@@ -216,11 +216,14 @@ class SkillCollection {
 
   static final CombatSkill woodActive_0 = CombatSkill(
     id: SkillID.woodActive_0,
-    name: "光辉翠绿",
+    name: "绿荫",
     description: "根据生命上限的12.5%的回复生命，生效一次",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
-    handler: (skills, effects) {},
+    handler: (skills, effects) {
+      effects[EffectID.restoreLife.index].value += 0.125;
+      effects[EffectID.restoreLife.index].times += 1;
+    },
   );
 
   static final CombatSkill fireActive_0 = CombatSkill(
@@ -270,8 +273,8 @@ class SkillCollection {
 
   static final CombatSkill woodPassive_1 = CombatSkill(
     id: SkillID.woodPassive_1,
-    name: "光辉翠绿",
-    description: "光辉翠绿可以施加给己方任一元素。",
+    name: "绿荫",
+    description: "绿荫可以施加给己方任一元素。",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -388,7 +391,7 @@ class SkillCollection {
   static final CombatSkill woodActive_2 = CombatSkill(
     id: SkillID.woodActive_2,
     name: "越战越强",
-    description: "回复生命的溢出值可以转换为额外的生命上限，额外生命上限不能超过基础生命上限的100%，生效一次。",
+    description: "回复生命的溢出量可以提高额外的生命上限，额外生命上限不能超过基础生命上限，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -404,8 +407,8 @@ class SkillCollection {
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.splashDamage.index].value = 0.25;
-      effects[EffectID.splashDamage.index].times += 1;
+      effects[EffectID.hotDamage.index].value = 0.25;
+      effects[EffectID.hotDamage.index].times += 1;
     },
   );
 

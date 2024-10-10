@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../foundation/energy.dart';
-import '../middleware/custom.dart';
-import '../middleware/entity.dart';
+import '../foundation/entity.dart';
+import '../middleware/common.dart';
 import '../middleware/map.dart';
-import '../middleware/rose.dart';
+import '../middleware/elemental.dart';
 import 'home_logic.dart';
 
 class HomePage extends StatelessWidget {
@@ -89,7 +89,7 @@ class HomePage extends StatelessWidget {
 }
 
 class HomeInfoRegion extends StatelessWidget {
-  final RosePreview info;
+  final ElementalPreview info;
 
   const HomeInfoRegion({super.key, required this.info});
 

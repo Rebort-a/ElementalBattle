@@ -5,9 +5,9 @@ import 'dart:async';
 
 import '../foundation/energy.dart';
 import '../middleware/common.dart';
-import '../middleware/entity.dart';
+import '../foundation/entity.dart';
 import '../middleware/map.dart';
-import '../middleware/rose.dart';
+import '../middleware/elemental.dart';
 import 'combat_page.dart';
 import 'package_page.dart';
 import 'skill_page.dart';
@@ -21,8 +21,8 @@ class HomeLogic {
 
   MapDataStack _mapData = MapDataStack(y: 0, x: 0, parent: null); // 初始化主城的地图数据栈
 
-  final player =
-      PlayerRose(id: EntityID.player, y: mapLevel, x: mapLevel); // 创建并初始化玩家
+  final player = PlayerElemental(
+      id: EntityID.player, y: mapLevel, x: mapLevel); // 创建并初始化玩家
 
   late Timer _activeTimer; // 活动定时器
 
@@ -37,6 +37,7 @@ class HomeLogic {
   HomeLogic() {
     _generateMap(); // 生成地图
     _startActive(); // 添加键盘响应，启动定时器
+    _fillHandler();
   }
 
   _generateMap() {
@@ -148,25 +149,21 @@ class HomeLogic {
     if ((y == 0) && (x == 0)) {
       return EntityID.road;
     }
-    EntityID entityId = EntityID.weak;
+
+    EntityID entityID;
 
     // 随机敌人类型
-    EnemyType enemyType = EnemyType.weak;
     int randVal = _random.nextInt(1000);
     if (randVal > 100) {
       return EntityID.road;
     } else if (randVal < 72) {
-      enemyType = EnemyType.weak;
-      entityId = EntityID.weak;
+      entityID = EntityID.weak;
     } else if (randVal < 88) {
-      enemyType = EnemyType.opponent;
-      entityId = EntityID.opponent;
+      entityID = EntityID.opponent;
     } else if (randVal < 96) {
-      enemyType = EnemyType.strong;
-      entityId = EntityID.strong;
+      entityID = EntityID.strong;
     } else {
-      enemyType = EnemyType.boss;
-      entityId = EntityID.boss;
+      entityID = EntityID.boss;
     }
 
     // 随机敌人元素数量
@@ -175,15 +172,15 @@ class HomeLogic {
     // 根据层数和敌人类型确定等级
 
     // 添加到地图数据的实体列表中
-    _mapData.entities.add(EnemyRose(
-        name: enemyNames[enemyType.index],
+    _mapData.entities.add(EnemyElemental(
+        name: enemyNames[entityID.index - EntityID.weak.index],
         count: elementCount,
-        level: floorNum.value + enemyType.index,
-        id: entityId,
+        level: floorNum.value + entityID.index - EntityID.weak.index,
+        id: entityID,
         y: y,
         x: x));
 
-    return entityId;
+    return entityID;
   }
 
   _startKeyboard() {
@@ -243,6 +240,24 @@ class HomeLogic {
     _stopTimer();
   }
 
+  _fillHandler() {
+    player.propsHandler[EntityID.hospital] =
+        player.propsHandler[EntityID.sword] =
+            player.propsHandler[EntityID.shield] = (context, onTap) {
+      SelectEnergy(
+          context: context,
+          energies: player.energies,
+          onSelected: onTap,
+          available: false);
+    };
+
+    player.propsHandler[EntityID.scroll] = (context, onTap) {
+      _backToMain();
+      onTap(player.current);
+      Navigator.of(context).pop();
+    };
+  }
+
   switchPlayerNext() {
     player.switchNext();
     _updatePlayerCell();
@@ -265,13 +280,7 @@ class HomeLogic {
   }
 
   navigateToPackagePage(BuildContext context) {
-    _stopActive();
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => PackagePage(homeLogic: this))).then((value) {
-      _startActive();
-    });
+    _navigateAndSetActive(context, PackagePage(player: player));
   }
 
   void navigateToStorePage(BuildContext context) {
@@ -294,7 +303,8 @@ class HomeLogic {
     });
   }
 
-  navigateToCombatPage(BuildContext context, EnemyRose enemy, bool offensive) {
+  navigateToCombatPage(
+      BuildContext context, EnemyElemental enemy, bool offensive) {
     _stopActive(); // 暂停定时器
     Navigator.push(
       context,
@@ -313,25 +323,25 @@ class HomeLogic {
           _mapData.entities.remove(enemy);
           _setCellToEntity(enemy.y, enemy.x, EntityID.road); // 从地图上清除敌人
         } else if (value == ResultType.defeat) {
-          backToMain();
+          _backToMain();
         }
       }
     });
   }
 
-  backToMain() {
+  _backToMain() {
     while (_mapData.parent != null) {
       _backToPrevious();
     }
     _setCellToPlayer(mapLevel, mapLevel, player.id);
     showPage.value = (BuildContext context) {
-      SnackBarMessage(context, '你从主城复活了');
+      SnackBarMessage(context, '你回到了主城');
     };
   }
 
   _moveEntities() {
     for (var entity in _mapData.entities) {
-      if (entity is EnemyRose) {
+      if (entity is EnemyElemental) {
         List<List<int>> directions = [
           [0, -1], // 向左
           [-1, 0], // 向上
@@ -429,7 +439,7 @@ class HomeLogic {
         case EntityID.boss:
           for (var entity in _mapData.entities) {
             if ((entity.y == newY) && (entity.x == newX)) {
-              if (entity is EnemyRose) {
+              if (entity is EnemyElemental) {
                 showPage.value = (BuildContext context) {
                   navigateToCombatPage(context, entity, true);
                 };
@@ -535,7 +545,7 @@ class HomeLogic {
         index: player.current + 1,
         proportion: (player.preview.survival / player.count) *
             (player.energies[player.current].health /
-                (player.energies[player.current].capacity))); // 设置新位置
+                (player.energies[player.current].capacityBase))); // 设置新位置
     player.updatePosition(newY, newX); // 更新位置
     _setAroundVisibility(player.y, player.x);
   }

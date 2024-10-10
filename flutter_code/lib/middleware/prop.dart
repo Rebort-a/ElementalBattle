@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'entity.dart';
+import '../foundation/entity.dart';
 
 class MapProp {
   late final EntityID id;
@@ -26,6 +26,15 @@ class PropCollection {
     EntityID.sword: sword,
     EntityID.shield: shield,
     EntityID.scroll: scroll,
+  };
+
+  static final Map<EntityID,
+          void Function(BuildContext context, void Function(int index) onTap)>
+      totalItemHandler = {
+    EntityID.hospital: (context, onTap) {},
+    EntityID.sword: (context, onTap) {},
+    EntityID.shield: (context, onTap) {},
+    EntityID.scroll: (context, onTap) {},
   };
 
   static MapProp emptyItem = MapProp(

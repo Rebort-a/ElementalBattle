@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import '../foundation/energy.dart';
 import '../foundation/skill.dart';
 import '../middleware/common.dart';
-import '../middleware/rose.dart';
+import '../middleware/elemental.dart';
 
 class SkillsPage extends StatefulWidget {
-  final PlayerRose player;
+  final PlayerElemental player;
   const SkillsPage({super.key, required this.player});
 
   @override

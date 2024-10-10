@@ -2,6 +2,8 @@
 enum EffectID {
   multipleHit,
 
+  restoreLife,
+
   giantKiller,
 
   strengthenAttribute,
@@ -12,7 +14,7 @@ enum EffectID {
 
   sacrificing,
 
-  damageCoeff,
+  coeffcient,
 
   parryState,
 
@@ -36,7 +38,7 @@ enum EffectID {
 
   toughBrave,
 
-  splashDamage,
+  hotDamage,
 
   revengeAtonce,
 }

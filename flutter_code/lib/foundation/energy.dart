@@ -1,7 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-
 import 'effect.dart';
 import 'skill.dart';
 
@@ -21,31 +19,23 @@ const List<String> attributeNames = ["❤️", "⚔️", "🛡️"];
 
 // 灵根类
 class Energy {
-  final String name;
-  final EnergyType type;
+  late int _health; // 血量，不能直接修改
 
-  late int _health;
-  late int attack;
-  late int defence;
+  late int _capacityBase; // 上限
+  late int _capacityExtra; // 额外上限
 
-  late int healthBase;
-  late int healthExtra;
-  late int capacity;
+  late int _attackBase; // 基础攻击
+  late int _attackOffset; // 攻击力偏移
 
-  late int attackBase;
-  late int attackOffset;
+  late int _defenceBase; // 基础防御
+  late int _defenceOffset; // 防御力偏移
 
-  late int defenceBase;
-  late int defenceOffset;
+  late final List<CombatSkill> _skills; // 技能列表
 
-  // 技能列表
-  late List<CombatSkill> skills;
-
-  // 效果列表
-  late List<CombatEffect> effects;
+  late final List<CombatEffect> _effects; // 效果列表
 
   // 初始数值
-  static List<List<int>> baseAttributes = [
+  static final List<List<int>> _baseAttributes = [
     [128, 32, 32], // metal
     [160, 16, 64], // water
     [256, 32, 16], // wood
@@ -53,46 +43,95 @@ class Energy {
     [384, 16, 0] // earth
   ];
 
+  int get health => _health;
+
+  int get capacityBase => _capacityBase;
+  int get capacityExtra => _capacityExtra;
+
+  int get attackBase => _attackBase;
+  int get attackOffset => _attackOffset;
+
+  int get defenceBase => _defenceBase;
+  int get defenceOffset => _defenceOffset;
+
+  List<CombatSkill> get skills => _skills;
+
+  List<CombatEffect> get effects => _effects;
+
+  int _changeHealth(int value) {
+    _health += value;
+    if (_health < 0) {
+      value -= _health;
+      _health = 0;
+    } else if (_health > _capacityBase) {
+      value -= _health - _capacityBase;
+      _health = _capacityBase;
+    }
+    return value;
+  }
+
+  changeCapcityExtra(int value) {
+    _capacityExtra -= value;
+    if (_capacityExtra < 0) {
+      _capacityExtra = 0;
+    } else if (_capacityExtra > _capacityBase) {
+      _capacityExtra = _capacityBase;
+    }
+  }
+
+  changeAttackOffset(int value) {
+    if (_health == (_capacityBase + _capacityExtra)) {
+      _attackOffset = 0;
+    } else {
+      _attackOffset += value;
+    }
+  }
+
+  changeDefenceOffset(int value) {
+    if (_health == (_capacityBase + _capacityExtra)) {
+      _defenceOffset = 0;
+    } else {
+      _defenceOffset += value;
+    }
+  }
+
+  final String name;
+  final EnergyType type;
+
   Energy({
     required this.name,
     required this.type,
   }) {
     _initAttributes();
-    _restoreSkill();
-    restoreEffect();
-  }
-
-  int get health => _health;
-
-  _changeHealth(int value) {
-    _health += value;
+    _initSkills();
+    _initEffects();
   }
 
   // 从列表中获取初始属性
   _initAttributes() {
-    healthBase = baseAttributes[type.index][AttributeType.hp.index];
-    attackBase = baseAttributes[type.index][AttributeType.atk.index];
-    defenceBase = baseAttributes[type.index][AttributeType.def.index];
+    _capacityBase = _baseAttributes[type.index][AttributeType.hp.index];
+    _attackBase = _baseAttributes[type.index][AttributeType.atk.index];
+    _defenceBase = _baseAttributes[type.index][AttributeType.def.index];
 
     restoreAttributes();
   }
 
   // 清空技能，并将可学习技能列表的第一个技能作为初始技能
-  _restoreSkill() {
+  _initSkills() {
     // 长度为本属性所有可用技能
-    skills =
+    _skills =
         List.generate(SkillCollection.totalSkills[type.index].length, (index) {
       return SkillCollection.totalSkills[type.index][index];
     });
 
     // 默认学习第一个技能
-    skills[0].learned = true;
+    _skills[0].learned = true;
   }
 
   // 清空效果
-  restoreEffect() {
+  _initEffects() {
     // 长度为所有效果，方便战斗时核查
-    effects = List.generate(EffectID.values.length, (index) {
+    _effects = List.generate(EffectID.values.length, (index) {
       return CombatEffect(
         id: EffectID.values[index],
         type: EffectType.limited,
@@ -102,18 +141,24 @@ class Energy {
     });
   }
 
-  restoreAttributes() {
-    healthExtra = 0;
-    attackOffset = 0;
-    defenceOffset = 0;
-    updateAttributes();
-    _health = capacity;
+// 还原影响
+  restoreEffects() {
+    for (int i = 0; i < _effects.length; i++) {
+      _effects[i] = CombatEffect(
+        id: EffectID.values[i],
+        type: EffectType.limited,
+        value: 1,
+        times: 0,
+      );
+    }
   }
 
-  updateAttributes() {
-    attack = attackBase + attackOffset;
-    defence = defenceBase + defenceOffset;
-    capacity = healthBase + healthExtra;
+// 还原属性
+  restoreAttributes() {
+    _capacityExtra = 0; // 清除额外上限
+    _attackOffset = 0; // 清除偏移
+    _defenceOffset = 0;
+    _health = capacityBase; // 恢复血量到上限
   }
 
   // 回复生命
@@ -122,29 +167,28 @@ class Energy {
   }
 
   // 扣除生命
-  int deductHealth(int value, bool isMagic) {
-    return EnergyCombat.handleDeductHealth(this, value, isMagic, _changeHealth);
+  int deductHealth(int value, bool damageType) {
+    return EnergyCombat.handleDeductHealth(
+        this, value, damageType, _changeHealth);
   }
 
   // 升级属性
   upgradeAttributes(AttributeType attribute) {
     switch (attribute) {
       case AttributeType.hp:
-        healthBase += 32;
-        updateAttributes();
+        _capacityBase += 32;
         recoverHealth(32);
         break;
       case AttributeType.atk:
-        attackBase += 8;
-        updateAttributes();
+        _attackBase += 8;
         break;
       case AttributeType.def:
-        defenceBase += 8;
-        updateAttributes();
+        _defenceBase += 8;
         break;
     }
   }
 
+// 遭受技能
   sufferSkill(CombatSkill skill) {
     skill.handler(skills, effects);
   }
@@ -153,112 +197,62 @@ class Energy {
 class EnergyCombat {
   final Energy source;
   final Energy target;
-  final ValueNotifier<String> message;
-  int result = 0;
+  String message = "";
+  int record = 0;
 
-  EnergyCombat(
-      {required this.source, required this.target, required this.message}) {
-    result = _handleCombat(source, target);
+  EnergyCombat({required this.source, required this.target});
+
+  void battle() {
+    record = _handleCombat(source, target);
   }
 
-  static _handleEffectAttribute(
+  static List<int> _handleAttributeEffect(
       Energy attacker, Energy defender, bool implement) {
-    attacker.updateAttributes();
-    defender.updateAttributes();
+    int attack = attacker.attackBase + attacker.attackOffset;
+    int defence = defender.defenceBase + defender.defenceOffset;
 
     CombatEffect effect;
 
     effect = attacker.effects[EffectID.giantKiller.index];
     if (implement ? effect.implement() : effect.check()) {
-      attacker.attack += (defender.health * effect.value).round();
+      attack += (defender.health * effect.value).round();
     }
 
     effect = attacker.effects[EffectID.strengthenAttribute.index];
     if (implement ? effect.implement() : effect.check()) {
-      attacker.attack += (attacker.attack * effect.value).round();
-      attacker.defence += (attacker.defence * effect.value).round();
+      attack += (attack * effect.value).round();
     }
 
     effect = defender.effects[EffectID.strengthenAttribute.index];
     if (implement ? effect.implement() : effect.check()) {
-      defender.attack += (defender.attack * effect.value).round();
-      defender.defence += (defender.defence * effect.value).round();
+      defence += (defence * effect.value).round();
     }
 
     effect = attacker.effects[EffectID.weakenAttack.index];
     if (implement ? effect.implement() : effect.check()) {
-      attacker.attack -= (attacker.attack * effect.value).round();
+      attack -= (attack * effect.value).round();
     }
 
     effect = defender.effects[EffectID.weakenDefence.index];
     if (implement ? effect.implement() : effect.check()) {
-      defender.defence -= (attacker.defence * effect.value).round();
+      defence -= (defence * effect.value).round();
     }
+    return [attack, defence];
   }
 
-  static int _actualRecovery(Energy energy, int recovery) {
-    int checkHealth = energy.health + recovery;
-    if (checkHealth > energy.capacity) {
-      EnergyCombat.handleIncreaseCapacity(
-          energy, checkHealth - energy.capacity);
-      recovery -= checkHealth - energy.capacity;
-    }
-    return recovery;
-  }
+  double _handleCoeffcientEffect(Energy attacker, Energy defender) {
+    double coeff = 1.0;
 
-  static int _actualDeduction(Energy energy, int damage) {
-    int checkHealth = energy.health - damage;
-    if (checkHealth < 0) {
-      damage += checkHealth;
-    }
-    return damage;
-  }
-
-  static int handleDeductHealth(
-      Energy energy, int damage, bool isMagic, Function(int) changeHealth) {
-    damage = _actualDeduction(energy, damage);
-
-    _handleAdjustAttribute(energy, damage);
-
-    changeHealth(-damage);
-
-    if (energy.healthExtra > 0) {
-      energy.healthExtra -= damage;
-      if (energy.healthExtra < 0) {
-        energy.healthExtra = 0;
-      }
-      energy.updateAttributes();
-    }
-
-    _handleExemptionDeath(energy);
-
-    _handleDamageToAddition(energy, damage, isMagic);
-
-    return energy.health > 0 ? 0 : 1;
-  }
-
-  static int handleRecoverHealth(
-      Energy energy, int recovery, Function(int) changeHealth) {
-    recovery = _actualRecovery(energy, recovery);
-
-    changeHealth(recovery);
-
-    _handleAdjustAttribute(energy, -recovery);
-
-    return 0;
-  }
-
-  double _handleEffectCoeff(Energy attacker, Energy defender, double coeff) {
     CombatEffect effect;
 
     effect = attacker.effects[EffectID.sacrificing.index];
     if (effect.implement()) {
-      attacker.deductHealth(attacker.health - 1, true);
+      attacker.deductHealth(attacker.health - effect.value.round(), true);
 
-      coeff *= (1 + ((attacker.health - 1) / (attacker.healthBase)));
+      coeff *= (1 + ((attacker.health - 1) / (attacker.capacityBase)));
     }
 
-    effect = attacker.effects[EffectID.damageCoeff.index];
+    effect = attacker.effects[EffectID.coeffcient.index];
     if (effect.implement()) {
       coeff *= (1 + effect.value);
     }
@@ -281,21 +275,29 @@ class EnergyCombat {
     }
 
     for (int i = 0; i < combatCount; ++i) {
-      int ret = 0;
-      double coeff = 1.0;
-      double enchantRatio = 0;
+      int result = 0;
+      int attack = 0;
+      int defence = 0;
+      double coeff = 0;
+      double enchantRatio = 0.0;
 
-      _handleEffectAttribute(attacker, defender, true);
+      List<int> attributeEffects =
+          _handleAttributeEffect(attacker, defender, true);
 
-      coeff = _handleEffectCoeff(attacker, defender, coeff);
+      attack = attributeEffects[0];
+      defence = attributeEffects[1];
+      coeff = _handleCoeffcientEffect(attacker, defender);
 
       effect = attacker.effects[EffectID.enchanting.index];
       if (effect.implement()) {
         enchantRatio += effect.value;
+        if (enchantRatio > 1) {
+          enchantRatio = 1;
+        }
       }
 
-      double physicsAttack = attacker.attack * (1 - enchantRatio);
-      double magicAttack = attacker.attack * enchantRatio;
+      double physicsAttack = attack * (1 - enchantRatio);
+      double magicAttack = attack * enchantRatio;
 
       effect = attacker.effects[EffectID.physicsAddition.index];
       if (effect.implement()) {
@@ -309,14 +311,15 @@ class EnergyCombat {
         effect.value = 1;
       }
 
-      ret = _handleAttack(attacker, defender, physicsAttack, coeff, false);
-      if (ret != 0) {
-        return ret;
+      result = _handleAttack(
+          attacker, defender, physicsAttack, defence, coeff, false);
+      if (result != 0) {
+        return result;
       }
 
-      ret = _handleAttack(attacker, defender, magicAttack, coeff, true);
-      if (ret != 0) {
-        return ret;
+      result = _handleAttack(attacker, defender, magicAttack, 0, coeff, true);
+      if (result != 0) {
+        return result;
       }
     }
 
@@ -324,105 +327,106 @@ class EnergyCombat {
   }
 
   int _handleAttack(Energy attacker, Energy defender, double attack,
-      double coeff, bool isMagic) {
-    int damage = 0;
-
+      int defence, double coeff, bool damageType) {
     if (attack > 0) {
-      if (isMagic) {
-        damage = _calculateDamage(attack, 0, coeff);
-      } else {
-        damage = _calculateDamage(attack, defender.defence, coeff);
-      }
+      int damage = _handleDamageAddition(
+          defender, _calculateDamage(attack, defence, coeff));
 
-      damage = _handleBurnDamage(defender, damage);
-
-      return _handleDamage(attacker, defender, damage, isMagic);
+      return _handleDamage(attacker, defender, damage, damageType);
     }
 
     return 0;
   }
 
-  int _calculateDamage(double attackValue, int defenceValue, double coeff) {
-    double damage = 0.0;
+  int _calculateDamage(double attack, int defence, double coeff) {
+    int damage = 0;
 
-    if (defenceValue > 0) {
-      damage = attackValue * (attackValue / (attackValue + defenceValue));
+    if (defence > 0) {
+      damage = (attack * (attack / (attack + defence)) * coeff).round();
     } else {
-      damage = attackValue - defenceValue;
+      damage = ((attack - defence) * coeff).round();
     }
-    int finalDamage = (damage * coeff).round();
 
-    message.value +=
-        ("⚔️:${attackValue.toStringAsFixed(1)} 🛡️:${defenceValue.toStringAsFixed(1)} ${(coeff * 100).toStringAsFixed(0)}% => 💔:$finalDamage\n");
+    message +=
+        ("⚔️:${attack.toStringAsFixed(1)} 🛡️:$defence ${(coeff * 100).toStringAsFixed(0)}% => 💔:$damage\n");
 
-    return finalDamage;
+    return damage;
   }
 
-  int _handleBurnDamage(Energy energy, int damage) {
+  int _handleDamageAddition(Energy energy, int damage) {
     CombatEffect effect = energy.effects[EffectID.burnDamage.index];
     if (effect.implement()) {
       damage += effect.value.round() - 1;
+      effect.value = 1;
     }
 
     return damage;
   }
 
   int _handleDamage(
-      Energy attacker, Energy defender, int damage, bool isMagic) {
-    int ret = 0;
+      Energy attacker, Energy defender, int damage, bool damageType) {
+    int result = defender.deductHealth(damage, damageType);
 
-    ret = defender.deductHealth(damage, isMagic);
-
-    message.value +=
-        ('${defender.name} 受到 $damage ${isMagic ? '⚡法术' : '🗡️物理'} 伤害, 当前生命值为 ${defender.health}\n');
+    message +=
+        ('${defender.name} 受到 $damage ${damageType ? '⚡法术' : '🗡️物理'} 伤害, 当前生命值为 ${defender.health}\n');
 
     _handleDamageToBlood(attacker, damage);
 
-    _handleSplashDamage(attacker, defender, damage, isMagic);
+    _handleHotDamage(attacker, defender, damage, damageType);
 
-    if (ret != 0) {
-      return ret;
+    if (result != 0) {
+      return result;
     } else {
       return _handleDamageToCounter(attacker, defender);
     }
   }
 
-  static void _handleAdjustAttribute(Energy energy, int damage) {
-    if (damage > 0) {
-      CombatEffect effect = energy.effects[EffectID.adjustAttribute.index];
-      if (effect.implement()) {
-        double damageRatio = damage / energy.healthBase;
-        double healthRatio = energy.health / energy.healthBase;
+  static int handleDeductHealth(Energy energy, int damage, bool damageType,
+      int Function(int) changeHealth) {
+    damage = -changeHealth(-damage);
+    _handleAdjustByDamage(energy, damage);
 
-        int adjustValue = (energy.defenceBase *
-                damageRatio *
-                pow(healthRatio + sqrt(2) - 1, 4))
-            .round();
+    _handleExemptionDeath(energy);
 
-        energy.defenceOffset -= adjustValue;
-        energy.attackOffset += (adjustValue * effect.value).round();
+    energy.changeCapcityExtra(-damage);
 
-        effect = energy.effects[EffectID.adjustAttribute.index];
-      }
+    _handleDamageToAddition(energy, damage, damageType);
+
+    return energy.health > 0 ? 0 : 1;
+  }
+
+  static void _handleAdjustByDamage(Energy energy, int damage) {
+    CombatEffect effect = energy.effects[EffectID.adjustAttribute.index];
+    if (effect.implement()) {
+      int health = energy.health + damage;
+
+      double damageRatio = damage / energy.capacityBase;
+      double healthRatio = health / energy.capacityBase;
+
+      int adjustValue =
+          (energy.defenceBase * damageRatio * pow(healthRatio + sqrt(2) - 1, 4))
+              .round();
+
+      energy.changeDefenceOffset(-adjustValue);
+      energy.changeAttackOffset((adjustValue * effect.value).round());
     }
-
-    energy.updateAttributes();
   }
 
   static void _handleExemptionDeath(Energy energy) {
     if (energy.health <= 0) {
       CombatEffect effect = energy.effects[EffectID.exemptionDeath.index];
       if (effect.implement()) {
-        energy.recoverHealth(1 - energy.health);
+        energy.recoverHealth(effect.value.round() - energy.health);
       }
     }
   }
 
-  static void _handleDamageToAddition(Energy energy, int damage, bool isMagic) {
+  static void _handleDamageToAddition(
+      Energy energy, int damage, bool damageType) {
     CombatEffect effect = energy.effects[EffectID.accumulateAnger.index];
     if (effect.implement()) {
       int addition = 0;
-      if (isMagic) {
+      if (damageType) {
         addition = (damage * effect.value * 0.3).round();
         effect = energy.effects[EffectID.magicAddition.index];
         effect.value += addition;
@@ -437,10 +441,10 @@ class EnergyCombat {
 
     effect = energy.effects[EffectID.toughBrave.index];
     if (effect.implement()) {
-      double increaseCoeff = 1 - (energy.health / energy.capacity);
+      double increaseCoeff = 1 - (energy.health / energy.capacityBase);
 
-      energy.effects[EffectID.damageCoeff.index].value *= (1 + increaseCoeff);
-      energy.effects[EffectID.damageCoeff.index].times = 1;
+      energy.effects[EffectID.coeffcient.index].value *= (1 + increaseCoeff);
+      energy.effects[EffectID.coeffcient.index].times = 1;
     }
   }
 
@@ -449,26 +453,54 @@ class EnergyCombat {
     if (effect.implement()) {
       int recovery = (damage * effect.value).round();
       energy.recoverHealth(recovery);
-      message.value +=
+      message +=
           ('${energy.name} 回复了 $recovery 生命值❤️‍🩹, 当前生命值为 ${energy.health}\n');
     }
   }
 
-  static void handleIncreaseCapacity(Energy energy, int overflow) {
-    CombatEffect effect = energy.effects[EffectID.increaseCapacity.index];
-    if (effect.implement()) {
-      energy.healthExtra += overflow;
-      if (energy.healthExtra > energy.healthBase) {
-        energy.healthExtra = energy.healthBase;
+  static int handleRecoverHealth(
+      Energy energy, int recovery, Function(int) changeHealth) {
+    _handleIncreaseCapacity(energy, recovery);
+
+    recovery = changeHealth(recovery);
+
+    _handleAdjustByRecovery(energy, recovery);
+
+    return 0;
+  }
+
+  static void _handleIncreaseCapacity(Energy energy, int recovery) {
+    int checkHealth = energy.health + recovery;
+    int capacity = energy.capacityBase + energy.capacityExtra;
+
+    if (checkHealth > capacity) {
+      CombatEffect effect = energy.effects[EffectID.increaseCapacity.index];
+      if (effect.implement()) {
+        energy.changeCapcityExtra(checkHealth = capacity);
       }
-      energy.updateAttributes();
     }
   }
 
-  void _handleSplashDamage(
-      Energy attacker, Energy defender, int damage, bool isMagic) {
-    if (isMagic) {
-      CombatEffect effect = attacker.effects[EffectID.splashDamage.index];
+  static void _handleAdjustByRecovery(Energy energy, int recovery) {
+    CombatEffect effect = energy.effects[EffectID.adjustAttribute.index];
+    if (effect.implement()) {
+      double recoveryRatio = recovery / energy.capacityBase;
+      double healthRatio = energy.health / energy.capacityBase;
+
+      int adjustValue = (energy.defenceBase *
+              recoveryRatio *
+              pow(healthRatio + sqrt(2) - 1, 4))
+          .round();
+
+      energy.changeDefenceOffset(adjustValue);
+      energy.changeAttackOffset(-(adjustValue * effect.value).round());
+    }
+  }
+
+  void _handleHotDamage(
+      Energy attacker, Energy defender, int damage, bool damageType) {
+    if (damageType) {
+      CombatEffect effect = attacker.effects[EffectID.hotDamage.index];
       if (effect.implement()) {
         defender.effects[EffectID.burnDamage.index].value +=
             damage * effect.value;
@@ -480,13 +512,13 @@ class EnergyCombat {
   int _handleDamageToCounter(Energy attacker, Energy defender) {
     CombatEffect effect = defender.effects[EffectID.revengeAtonce.index];
     if (effect.implement()) {
-      int ret = 0;
+      int result = 0;
       int counterCount = effect.value.round();
 
       for (int i = 0; i < counterCount; ++i) {
-        ret = -_handleCombat(defender, attacker);
-        if (ret != 0) {
-          return ret;
+        result = -_handleCombat(defender, attacker);
+        if (result != 0) {
+          return result;
         }
       }
     }

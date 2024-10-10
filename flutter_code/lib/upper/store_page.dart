@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../middleware/common.dart';
 import '../middleware/prop.dart';
-import '../middleware/rose.dart';
+import '../middleware/elemental.dart';
 
 class StorePage extends StatefulWidget {
-  final PlayerRose player;
+  final PlayerElemental player;
   const StorePage({super.key, required this.player});
 
   @override

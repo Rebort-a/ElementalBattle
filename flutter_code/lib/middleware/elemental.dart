@@ -1,35 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_code/foundation/skill.dart';
 import 'dart:math';
 
 import '../foundation/energy.dart';
-import 'entity.dart';
+import '../foundation/entity.dart';
+import '../foundation/skill.dart';
 import 'map.dart';
 import 'prop.dart';
 
-// 敌人类型
-enum EnemyType { weak, opponent, strong, boss }
-
-// 敌人名称
-const List<String> enemyNames = ["敌方小弟", "敌方大哥", "敌方长老", "敌方魔王"];
-
 class EnergyResume {
-  final int index;
-  final String name;
   final EnergyType type;
   final int health;
-  final int capacity;
 
   EnergyResume({
-    required this.index,
-    required this.name,
     required this.type,
     required this.health,
-    required this.capacity,
   });
 }
 
-class RosePreview {
+class ElementalPreview {
   final ValueNotifier<List<EnergyResume>> resumes = ValueNotifier([]);
   final ValueNotifier<String> name = ValueNotifier("");
   final ValueNotifier<String> element = ValueNotifier("");
@@ -50,11 +38,8 @@ class RosePreview {
           survival++;
         }
         return EnergyResume(
-          index: index,
-          name: energy.name,
           type: energy.type,
           health: energy.health,
-          capacity: energy.capacity,
         );
       },
     );
@@ -62,22 +47,27 @@ class RosePreview {
     name.value = energies[current].name;
     element.value = energyNames[energies[current].type.index];
     health.value = energies[current].health;
-    capacity.value = energies[current].capacity;
-    attack.value = energies[current].attack;
-    defence.value = energies[current].defence;
+    capacity.value = energies[current].capacityBase;
+    attack.value =
+        energies[current].attackBase + energies[current].attackOffset;
+    defence.value =
+        energies[current].defenceBase + energies[current].defenceOffset;
   }
 }
 
-class Rose extends MovableEntity {
+class Elemental extends MovableEntity {
   final _random = Random();
+  late final List<Energy> energies;
+  late int _current;
+  final ElementalPreview preview = ElementalPreview();
+
+  int get current => _current;
+
   final String name;
   final int count;
   int level;
-  late final List<Energy> energies;
-  late int _current;
-  final RosePreview preview = RosePreview();
 
-  Rose({
+  Elemental({
     required this.name,
     required this.count,
     required this.level,
@@ -87,13 +77,21 @@ class Rose extends MovableEntity {
   }) {
     energies = getEnergy(count); // 根据元素数量初始化元素列表
     _current = _random.nextInt(count); // 当前元素为随机
-    updateEnergy();
+    updatePreview();
   }
 
-  int get current => _current;
+  updatePreview() {
+    preview.update(energies, _current);
+  }
 
   List<Energy> getEnergy(int count) {
-    // 根据EnergyType创建全部列表
+    if (count > EnergyType.values.length) {
+      count = EnergyType.values.length;
+    } else if (count < 1) {
+      count = 1;
+    }
+
+    // 获取全部的EnergyType组建索引数组
     List<int> allIndexes =
         List.generate(EnergyType.values.length, (index) => index);
 
@@ -106,15 +104,15 @@ class Rose extends MovableEntity {
     // 重新按照相生顺序排序
     selectedIndexes.sort();
 
-    // 根据索引创建SingleElement列表并
-    List<Energy> selectedElements = selectedIndexes
+    // 根据索引创建列表
+    List<Energy> selectedEnergies = selectedIndexes
         .map((index) => Energy(
               name: "$name.${energyNames[index]}",
               type: EnergyType.values[index],
             ))
         .toList();
 
-    return selectedElements;
+    return selectedEnergies;
   }
 
   switchPrevious() {
@@ -124,7 +122,7 @@ class Rose extends MovableEntity {
         break;
       }
     }
-    updateEnergy();
+    updatePreview();
   }
 
   switchNext() {
@@ -134,44 +132,53 @@ class Rose extends MovableEntity {
         break;
       }
     }
-    updateEnergy();
+    updatePreview();
   }
 
   switchAppoint(int index) {
     if (energies[index].health > 0) {
       _current = index;
-      updateEnergy();
+      updatePreview();
     }
   }
 
   restoreEnergies() {
     for (int i = 0; i < count; i++) {
       energies[i].restoreAttributes();
-      energies[i].restoreEffect();
+      energies[i].restoreEffects();
     }
-    updateEnergy();
+    updatePreview();
   }
 
   upgradeEnergy(int index, AttributeType attribute) {
     energies[index].upgradeAttributes(attribute);
-    updateEnergy();
-  }
-
-  updateEnergy() {
-    preview.update(energies, _current);
+    updatePreview();
   }
 
   recoverHealth(int index, int value) {
     energies[index].recoverHealth(value);
+    updatePreview();
   }
 
   sufferSkill(int index, CombatSkill skill) {
     energies[index].sufferSkill(skill);
+    updatePreview();
+  }
+
+  int battleWith(Elemental enemyElemental, ValueNotifier<String> message) {
+    EnergyCombat combat = EnergyCombat(
+        source: energies[current],
+        target: enemyElemental.energies[enemyElemental.current]);
+    combat.battle();
+    message.value += combat.message;
+    updatePreview();
+    enemyElemental.updatePreview();
+    return combat.record;
   }
 }
 
-class EnemyRose extends Rose {
-  EnemyRose(
+class EnemyElemental extends Elemental {
+  EnemyElemental(
       {required super.name,
       required super.count,
       required super.level,
@@ -192,16 +199,20 @@ class EnemyRose extends Rose {
   }
 }
 
-class PlayerRose extends Rose {
+class PlayerElemental extends Elemental {
   late final Map<EntityID, MapProp> props;
+  late final Map<EntityID,
+          void Function(BuildContext context, void Function(int index) onTap)>
+      propsHandler;
   late int money;
   late int experience;
   int gained = 0;
-  PlayerRose({required super.id, required super.y, required super.x})
+  PlayerElemental({required super.id, required super.y, required super.x})
       : super(name: "旅行者", count: EnergyType.values.length, level: 2) {
     money = 20;
     experience = 60;
     props = PropCollection.totalItems;
+    propsHandler = PropCollection.totalItemHandler;
   }
 
   addExperience(int num) {

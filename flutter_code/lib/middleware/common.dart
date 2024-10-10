@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../foundation/energy.dart';
 import '../foundation/skill.dart';
-import 'rose.dart';
+
+// 敌人名称
+const List<String> enemyNames = ["敌方小弟", "敌方大哥", "敌方长老", "敌方魔王"];
 
 // 战斗结果类型
 enum ResultType { continued, victory, defeat, escape, draw }
@@ -19,19 +21,19 @@ class AlwaysNotifyValueNotifier<T> extends ValueNotifier<T> {
 
 class SelectEnergy {
   final BuildContext context;
-  final Rose elemental;
+  final List<Energy> energies;
   final void Function(int) onSelected;
   final bool available;
 
   SelectEnergy(
       {required this.context,
-      required this.elemental,
+      required this.energies,
       required this.onSelected,
       required this.available}) {
-    _showEnergy(context, elemental, onSelected, available);
+    _showEnergy(context, energies, onSelected, available);
   }
 
-  _showEnergy(BuildContext context, Rose elemental,
+  _showEnergy(BuildContext context, List<Energy> energies,
       void Function(int) onSelected, bool available) {
     showDialog(
       context: context,
@@ -40,8 +42,8 @@ class SelectEnergy {
           title: const Text('选择一个元素'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: List.generate(elemental.energies.length, (index) {
-              Energy energy = elemental.energies[index];
+            children: List.generate(energies.length, (index) {
+              Energy energy = energies[index];
               return Column(
                 children: [
                   ElevatedButton(
@@ -64,7 +66,7 @@ class SelectEnergy {
                       disabledBackgroundColor: Colors.grey,
                     ),
                     child: Text(
-                        '${energy.name} ${energy.health}/${energy.capacity}'),
+                        '${energy.name} ${energy.health}/${energy.capacityBase}'),
                   ),
                   const SizedBox(height: 5), // 添加间隙
                 ],
@@ -282,5 +284,76 @@ class UpgradeDialog {
       // 对话框关闭后的回调
       after();
     });
+  }
+}
+
+class CustomDirectionButton extends StatefulWidget {
+  final Size size;
+  final VoidCallback onTap;
+  final Widget? icon;
+  final Color color;
+  final bool enableLongPress;
+
+  const CustomDirectionButton({
+    super.key,
+    required this.size,
+    required this.onTap,
+    this.icon,
+    this.color = Colors.blue,
+    this.enableLongPress = true,
+  });
+
+  @override
+  State<CustomDirectionButton> createState() => _CustomerDirectionButtonState();
+}
+
+class _CustomerDirectionButtonState extends State<CustomDirectionButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    )..addListener(() {
+        setState(() {});
+      });
+    _animation =
+        Tween<double>(begin: 1.0, end: 0.95).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: widget.color,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) {
+          _animationController.forward();
+          widget.onTap();
+        },
+        onTapUp: (_) {
+          _animationController.reverse();
+        },
+        onTapCancel: () {
+          _animationController.reverse();
+        },
+        child: Transform.scale(
+          scale: _animation.value,
+          child: SizedBox.fromSize(size: widget.size),
+        ),
+      ),
+    );
   }
 }

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../foundation/energy.dart';
-import '../middleware/rose.dart';
+import '../middleware/elemental.dart';
 import 'combat_logic.dart';
 
 class CombatPage extends StatelessWidget {
   late final CombatLogic combatLogic;
-  final PlayerRose player;
-  final EnemyRose enemy;
+  final PlayerElemental player;
+  final EnemyElemental enemy;
   final bool offensive;
 
   CombatPage(
@@ -100,7 +100,7 @@ class CombatPage extends StatelessWidget {
 }
 
 class BattleInfoRegion extends StatelessWidget {
-  final RosePreview info;
+  final ElementalPreview info;
 
   const BattleInfoRegion({super.key, required this.info});
 

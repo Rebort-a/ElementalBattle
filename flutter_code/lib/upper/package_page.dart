@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_code/middleware/elemental.dart';
 
 import '../foundation/energy.dart';
-import '../middleware/common.dart';
-import '../middleware/entity.dart';
+import '../foundation/entity.dart';
 import '../middleware/prop.dart';
-import 'home_logic.dart';
 
 class PackagePage extends StatefulWidget {
-  final HomeLogic homeLogic;
-  const PackagePage({super.key, required this.homeLogic});
+  final PlayerElemental player;
+  const PackagePage({super.key, required this.player});
 
   @override
   State<PackagePage> createState() => _PackagePageState();
@@ -54,7 +53,7 @@ class _PackagePageState extends State<PackagePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('金币数量: ${widget.homeLogic.player.money}'),
+          Text('金币数量: ${widget.player.money}'),
         ],
       ),
     );
@@ -63,7 +62,7 @@ class _PackagePageState extends State<PackagePage> {
   Widget _buildInventoryGrid() {
     // 过滤出数量大于0的物品
     final filteredItems =
-        widget.homeLogic.player.props.values.where((item) => item.count > 0);
+        widget.player.props.values.where((item) => item.count > 0);
 
     return Expanded(
       child: Container(
@@ -207,61 +206,30 @@ class _PackagePageState extends State<PackagePage> {
   }
 
   _useItem() {
+    void Function(BuildContext context, void Function(int index) onTap)?
+        handler = widget.player.propsHandler[_selectedItem.id];
+    if (handler != null) {
+      handler(context, _itemCallBack);
+    }
+  }
+
+  _itemCallBack(int index) {
+    setState(() {
+      widget.player.props[_selectedItem.id]?.count--;
+    });
+
     switch (_selectedItem.id) {
       case EntityID.hospital:
-        SelectEnergy(
-            context: context,
-            elemental: widget.homeLogic.player,
-            onSelected: (int index) {
-              _increasePlayerAttribute(
-                  _selectedItem, index, AttributeType.hp, 1);
-            },
-            available: false);
+        widget.player.recoverHealth(index, 32);
         break;
       case EntityID.sword:
-        SelectEnergy(
-            context: context,
-            elemental: widget.homeLogic.player,
-            onSelected: (int index) {
-              _increasePlayerAttribute(
-                  _selectedItem, index, AttributeType.atk, 1);
-            },
-            available: false);
+        widget.player.upgradeEnergy(index, AttributeType.atk);
         break;
       case EntityID.shield:
-        SelectEnergy(
-            context: context,
-            elemental: widget.homeLogic.player,
-            onSelected: (int index) {
-              _increasePlayerAttribute(
-                  _selectedItem, index, AttributeType.def, 1);
-            },
-            available: false);
-        break;
-      case EntityID.scroll:
-        widget.homeLogic.backToMain();
-        setState(() {
-          _selectedItem.count--;
-        });
-        Navigator.of(context).pop();
+        widget.player.upgradeEnergy(index, AttributeType.def);
         break;
       default:
         break;
     }
-  }
-
-  _increasePlayerAttribute(
-      MapProp item, int index, AttributeType attribute, int times) {
-    for (int i = 0; i < times; i++) {
-      if (attribute == AttributeType.hp) {
-        widget.homeLogic.player.recoverHealth(index, 32);
-      } else {
-        widget.homeLogic.player.upgradeEnergy(index, attribute);
-      }
-    }
-    widget.homeLogic.player.updateEnergy();
-    setState(() {
-      item.count--;
-    });
   }
 }

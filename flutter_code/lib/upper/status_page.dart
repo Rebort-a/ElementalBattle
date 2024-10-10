@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_code/foundation/effect.dart';
 
 import '../foundation/energy.dart';
-import '../middleware/rose.dart';
+import '../middleware/elemental.dart';
 
 class StatusPage extends StatefulWidget {
-  final PlayerRose player;
+  final PlayerElemental player;
   const StatusPage({super.key, required this.player});
 
   @override
@@ -70,13 +70,16 @@ class _StatusPageState extends State<StatusPage> {
   Widget _buildAttributeInfo() {
     return Column(
       children: [
-        _buildTextItem('生命值上限: ${widget.player.energies[_index].capacity}'),
+        _buildTextItem(
+            '生命值上限: ${widget.player.energies[_index].capacityBase + widget.player.energies[_index].capacityExtra}'),
         _buildTextItem('初始攻击力: ${widget.player.energies[_index].attackBase}'),
         _buildTextItem('初始防御力: ${widget.player.energies[_index].attackOffset}'),
         const Divider(),
         _buildTextItem('当前生命值: ${widget.player.energies[_index].health}'),
-        _buildTextItem('当前攻击力: ${widget.player.energies[_index].attack}'),
-        _buildTextItem('当前防御力: ${widget.player.energies[_index].defence}'),
+        _buildTextItem(
+            '当前攻击力: ${widget.player.energies[_index].attackBase + widget.player.energies[_index].attackOffset}'),
+        _buildTextItem(
+            '当前防御力: ${widget.player.energies[_index].defenceBase + widget.player.energies[_index].defenceOffset}'),
       ],
     );
   }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
+import '../foundation/effect.dart';
 import '../foundation/energy.dart';
 import '../foundation/skill.dart';
 import '../middleware/common.dart';
-import '../middleware/rose.dart';
+import '../middleware/elemental.dart';
 
 // 战斗行为类型
 enum ActionType { attack, parry, skill, escape }
@@ -18,8 +19,8 @@ class CombatLogic {
   final ValueNotifier<String> combatMessage =
       ValueNotifier<String>(' '.padRight(100)); // 供消息区域使用
 
-  final PlayerRose player; // 玩家
-  final EnemyRose enemy; // 敌人
+  final PlayerElemental player; // 玩家
+  final EnemyElemental enemy; // 敌人
   final bool offensive; // 先手
 
   ResultType combatResult = ResultType.continued; // 保存战斗结果
@@ -72,14 +73,7 @@ class CombatLogic {
       combatMessage.value += ('\n玩家选择了$command\n');
       switch (command) {
         case ActionType.attack:
-          int result = EnergyCombat(
-            source: player.energies[player.current],
-            target: enemy.energies[enemy.current],
-            message: combatMessage,
-          ).result;
-          player.updateEnergy();
-          enemy.updateEnergy();
-          _handleCombatResult(result);
+          _handleCombatResult(player.battleWith(enemy, combatMessage));
           if (combatResult == ResultType.continued) {
             _handleEnemyAction();
           }
@@ -111,7 +105,7 @@ class CombatLogic {
         showPage.value = (BuildContext context) {
           SelectEnergy(
               context: context,
-              elemental: player,
+              energies: player.energies,
               onSelected: (int index) {
                 _handlePlayerSkill(skill, player, index);
               },
@@ -125,7 +119,7 @@ class CombatLogic {
         showPage.value = (BuildContext context) {
           SelectEnergy(
               context: context,
-              elemental: enemy,
+              energies: enemy.energies,
               onSelected: (int index) {
                 _handlePlayerSkill(skill, enemy, index);
               },
@@ -137,37 +131,40 @@ class CombatLogic {
     }
   }
 
-  _handlePlayerSkill(CombatSkill skill, Rose targetRose, int targetIndex) {
+  _handlePlayerSkill(
+      CombatSkill skill, Elemental targetElemental, int targetIndex) {
     int result = 0;
-    targetRose.sufferSkill(targetIndex, skill);
+    targetElemental.sufferSkill(targetIndex, skill);
     combatMessage.value +=
-        ('${player.energies[player.current].name} 施放了 ${skill.name}, ${targetRose.energies[targetIndex].name} 获得效果 ${skill.description}\n');
+        ('${player.energies[player.current].name} 施放了 ${skill.name}, ${targetElemental.energies[targetIndex].name} 获得效果 ${skill.description}\n');
 
     if (skill.id == SkillID.parry) {
       player.switchAppoint(targetIndex);
       _handlePassiveEffect(player.energies[player.current]);
       combatMessage.value +=
-          '${player.name} 切换为 ${targetRose.energies[targetIndex].name}\n';
+          '${player.name} 切换为 ${targetElemental.energies[targetIndex].name}\n';
     } else if (skill.id == SkillID.woodActive_0) {
-      int recovery =
-          (targetRose.energies[targetIndex].capacity * 0.125).round();
-      targetRose.recoverHealth(targetIndex, recovery);
-      combatMessage.value +=
-          ('${targetRose.energies[targetIndex].name} 回复了 $recovery 生命值❤️‍🩹, 当前生命值为 ${targetRose.energies[targetIndex].health}\n');
-      player.updateEnergy();
+      int recovery = 0;
+
+      CombatEffect effect = targetElemental
+          .energies[targetIndex].effects[EffectID.restoreLife.index];
+      if (effect.implement()) {
+        recovery = (effect.value *
+                (targetElemental.energies[targetIndex].capacityBase +
+                    targetElemental.energies[targetIndex].capacityExtra))
+            .round();
+
+        targetElemental.energies[targetIndex].recoverHealth(recovery);
+        combatMessage.value +=
+            ('${targetElemental.energies[targetIndex].name} 回复了 $recovery❤️‍🩹生命值, 当前生命值为 ${targetElemental.energies[targetIndex].health}\n');
+      }
     } else if (skill.id == SkillID.fireActive_0) {
       player.switchAppoint(targetIndex);
       _handlePassiveEffect(player.energies[player.current]);
       combatMessage.value +=
-          '${player.name} 切换为 ${targetRose.energies[targetIndex].name}\n';
+          '${player.name} 切换为 ${targetElemental.energies[targetIndex].name}\n';
 
-      result = EnergyCombat(
-        source: player.energies[player.current],
-        target: enemy.energies[enemy.current],
-        message: combatMessage,
-      ).result;
-      player.updateEnergy();
-      enemy.updateEnergy();
+      result = player.battleWith(enemy, combatMessage);
     }
 
     _handleCombatResult(result);
@@ -191,13 +188,8 @@ class CombatLogic {
     combatMessage.value += ('敌人选择了$command\n');
     switch (command) {
       case ActionType.attack:
-        _handleCombatResult(-EnergyCombat(
-          source: enemy.energies[enemy.current],
-          target: player.energies[player.current],
-          message: combatMessage,
-        ).result);
-        player.updateEnergy();
-        enemy.updateEnergy();
+        _handleCombatResult(-enemy.battleWith(player, combatMessage));
+
         break;
       case ActionType.parry:
         enemy.sufferSkill(0, SkillCollection.baseParry);
@@ -226,20 +218,25 @@ class CombatLogic {
 
     switch (enemy.energies[enemy.current].type) {
       case EnergyType.wood:
-        int recovery = (enemy.energies[enemy.current].capacity * 0.125).round();
-        combatMessage.value +=
-            ('${enemy.energies[enemy.current].name} 回复了 $recovery 生命值❤️‍🩹, 当前生命值为 ${enemy.energies[enemy.current].health}\n');
-        enemy.energies[enemy.current].recoverHealth(recovery);
-        enemy.updateEnergy();
+        int recovery = 0;
+
+        CombatEffect effect =
+            enemy.energies[enemy.current].effects[EffectID.restoreLife.index];
+        if (effect.implement()) {
+          recovery = (effect.value *
+                  (enemy.energies[enemy.current].capacityBase +
+                      enemy.energies[enemy.current].capacityExtra))
+              .round();
+
+          enemy.energies[enemy.current].recoverHealth(recovery);
+
+          combatMessage.value +=
+              ('${enemy.energies[enemy.current].name} 回复了 $recovery ❤️‍🩹生命值, 当前生命值为 ${enemy.energies[enemy.current].health}\n');
+        }
+
         break;
       case EnergyType.fire:
-        result = EnergyCombat(
-          source: enemy.energies[enemy.current],
-          target: player.energies[player.current],
-          message: combatMessage,
-        ).result;
-        player.updateEnergy();
-        enemy.updateEnergy();
+        _handleCombatResult(-enemy.battleWith(player, combatMessage));
       default:
         break;
     }
