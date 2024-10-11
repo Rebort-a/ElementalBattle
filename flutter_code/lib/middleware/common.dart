@@ -9,8 +9,8 @@ const List<String> enemyNames = ["敌方小弟", "敌方大哥", "敌方长老",
 // 战斗结果类型
 enum ResultType { continued, victory, defeat, escape, draw }
 
-class AlwaysNotifyValueNotifier<T> extends ValueNotifier<T> {
-  AlwaysNotifyValueNotifier(super.value);
+class AlwaysValueNotifier<T> extends ValueNotifier<T> {
+  AlwaysValueNotifier(super.value);
 
   @override
   set value(T newValue) {
@@ -142,13 +142,13 @@ class SnackBarMessage {
   }
 }
 
-class DiaglogMessage {
+class DialogMessage {
   final BuildContext context;
   final String title;
   final String content;
   final VoidCallback before;
   final VoidCallback after;
-  DiaglogMessage(
+  DialogMessage(
       this.context, this.title, this.content, this.before, this.after) {
     _showDialog(context, title, content, before, after);
   }

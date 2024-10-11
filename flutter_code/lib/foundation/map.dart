@@ -1,4 +1,4 @@
-import '../foundation/entity.dart';
+import 'entity.dart';
 
 const int mapLevel = 6; // 地图级数
 
@@ -34,7 +34,7 @@ class CellData {
 // 可移动的实体
 class MovableEntity {
   final EntityID id;
-  late int y, x;
+  int y, x;
   MovableEntity({required this.id, required this.y, required this.x});
 
   updatePosition(int newY, int newX) {
@@ -45,8 +45,8 @@ class MovableEntity {
 
 // 地图栈
 class MapDataStack {
-  late final int y, x; // 地图在父地图的位置
-  late final MapDataStack? parent; // 父节点
+  final int y, x; // 地图在父地图的位置
+  final MapDataStack? parent; // 父节点
   final List<MapDataStack> children = []; // 子节点列表
   int leaveY = 0, leaveX = 0; // 玩家离开地图时的位置
   List<List<CellData>> leaveMap = []; // 玩家离开时的地图数据

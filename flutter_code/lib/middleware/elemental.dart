@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 import '../foundation/energy.dart';
-import '../foundation/entity.dart';
 import '../foundation/skill.dart';
-import 'map.dart';
-import 'prop.dart';
+import '../foundation/map.dart';
 
 class EnergyResume {
   final EnergyType type;
@@ -25,7 +23,7 @@ class ElementalPreview {
   final ValueNotifier<int> capacity = ValueNotifier(0);
   final ValueNotifier<int> attack = ValueNotifier(0);
   final ValueNotifier<int> defence = ValueNotifier(0);
-  late int survival;
+  int survival = 0;
 
   update(List<Energy> energies, int current) {
     survival = 0;
@@ -165,14 +163,14 @@ class Elemental extends MovableEntity {
     updatePreview();
   }
 
-  int battleWith(Elemental enemyElemental, ValueNotifier<String> message) {
+  int battleWith(
+      Elemental elemental, int index, ValueNotifier<String> message) {
     EnergyCombat combat = EnergyCombat(
-        source: energies[current],
-        target: enemyElemental.energies[enemyElemental.current]);
+        source: energies[current], target: elemental.energies[index]);
     combat.battle();
     message.value += combat.message;
     updatePreview();
-    enemyElemental.updatePreview();
+    elemental.updatePreview();
     return combat.record;
   }
 }
@@ -195,32 +193,6 @@ class EnemyElemental extends Elemental {
       AttributeType attributeType = AttributeType
           .values[_random.nextInt(AttributeType.values.length)]; // 随机选择一个属性
       upgradeEnergy(elementIndex, attributeType); // 进行升级
-    }
-  }
-}
-
-class PlayerElemental extends Elemental {
-  late final Map<EntityID, MapProp> props;
-  late final Map<EntityID,
-          void Function(BuildContext context, void Function(int index) onTap)>
-      propsHandler;
-  late int money;
-  late int experience;
-  int gained = 0;
-  PlayerElemental({required super.id, required super.y, required super.x})
-      : super(name: "旅行者", count: EnergyType.values.length, level: 2) {
-    money = 20;
-    experience = 60;
-    props = PropCollection.totalItems;
-    propsHandler = PropCollection.totalItemHandler;
-  }
-
-  addExperience(int num) {
-    experience += num;
-    gained += num;
-    if (gained >= 30) {
-      gained -= 30;
-      level++;
     }
   }
 }

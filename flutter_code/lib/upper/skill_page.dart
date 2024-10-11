@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../foundation/energy.dart';
 import '../foundation/skill.dart';
 import '../middleware/common.dart';
-import '../middleware/elemental.dart';
+import '../middleware/player.dart';
 
 class SkillsPage extends StatefulWidget {
   final PlayerElemental player;

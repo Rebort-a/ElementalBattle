@@ -4,10 +4,11 @@ import 'dart:math';
 import 'dart:async';
 
 import '../foundation/energy.dart';
-import '../middleware/common.dart';
 import '../foundation/entity.dart';
-import '../middleware/map.dart';
+import '../foundation/map.dart';
 import '../middleware/elemental.dart';
+import '../middleware/common.dart';
+import '../middleware/player.dart';
 import 'combat_page.dart';
 import 'package_page.dart';
 import 'skill_page.dart';
@@ -28,8 +29,8 @@ class HomeLogic {
 
   final ValueNotifier<int> floorNum = ValueNotifier(0); // 供标题监听
 
-  final AlwaysNotifyValueNotifier<void Function(BuildContext)> showPage =
-      AlwaysNotifyValueNotifier((BuildContext context) {}); // 供弹出界面区域监听
+  final AlwaysValueNotifier<void Function(BuildContext)> showPage =
+      AlwaysValueNotifier((BuildContext context) {}); // 供弹出界面区域监听
 
   final ValueNotifier<List<List<ValueNotifier<CellData>>>> displayMap =
       ValueNotifier([]); // 供地图区域监听
@@ -37,10 +38,10 @@ class HomeLogic {
   HomeLogic() {
     _generateMap(); // 生成地图
     _startActive(); // 添加键盘响应，启动定时器
-    _fillHandler();
+    _fillHandler(); // 填充玩家的道具作用
   }
 
-  _generateMap() {
+  void _generateMap() {
     if (_mapData.parent == null) {
       _generateMainMap();
     } else {
@@ -48,7 +49,7 @@ class HomeLogic {
     }
   }
 
-  _generateMainMap() {
+  void _generateMainMap() {
     // 全部生成道路
     displayMap.value = List.generate(
       _height,
@@ -71,7 +72,7 @@ class HomeLogic {
     _setCellToEntity(_height - 1, _width - 1, EntityID.enter);
   }
 
-  _generateRelicMap() {
+  void _generateRelicMap() {
     // 全部生成墙壁
     displayMap.value = List.generate(
       _height,
@@ -92,7 +93,7 @@ class HomeLogic {
     _setCellToEntity(mapLevel, mapLevel, EntityID.enter);
   }
 
-  _generateMaze(int startY, int startX) {
+  void _generateMaze(int startY, int startX) {
     // 当前位置设置为道路
     _setCellToEntity(startY, startX, EntityID.road);
 
@@ -122,11 +123,15 @@ class HomeLogic {
       }
     }
     if (branchCount == 0) {
+      // 如果所在地，没有任何可探索的分支，代表其是道路尽头
       // 生成随机物品或入口
       _setCellToEntity(startY, startX, _getRadomItem());
-    } else {
-      // 生成随机敌人
-      _setCellToEntity(startY, startX, _getRandomEnemy(startY, startX));
+    } else if (branchCount > 1) {
+      // 概率生成随机敌人
+      int randVal = _random.nextInt(100);
+      if (randVal < 20) {
+        _setCellToEntity(startY, startX, _getRandomEnemy(startY, startX));
+      }
     }
   }
 
@@ -146,17 +151,10 @@ class HomeLogic {
   }
 
   EntityID _getRandomEnemy(int y, int x) {
-    if ((y == 0) && (x == 0)) {
-      return EntityID.road;
-    }
-
-    EntityID entityID;
-
     // 随机敌人类型
-    int randVal = _random.nextInt(1000);
-    if (randVal > 100) {
-      return EntityID.road;
-    } else if (randVal < 72) {
+    EntityID entityID;
+    int randVal = _random.nextInt(100);
+    if (randVal < 72) {
       entityID = EntityID.weak;
     } else if (randVal < 88) {
       entityID = EntityID.opponent;
@@ -170,7 +168,6 @@ class HomeLogic {
     int elementCount = _random.nextInt(EnergyType.values.length) + 1;
 
     // 根据层数和敌人类型确定等级
-
     // 添加到地图数据的实体列表中
     _mapData.entities.add(EnemyElemental(
         name: enemyNames[entityID.index - EntityID.weak.index],
@@ -183,12 +180,12 @@ class HomeLogic {
     return entityID;
   }
 
-  _startKeyboard() {
+  void _startKeyboard() {
     // 添加键盘事件处理器
     HardwareKeyboard.instance.addHandler(_handleHardwareKeyboardEvent);
   }
 
-  _stopKeyboard() {
+  void _stopKeyboard() {
     // 移除键盘事件处理器
     HardwareKeyboard.instance.removeHandler(_handleHardwareKeyboardEvent);
   }
@@ -216,7 +213,7 @@ class HomeLogic {
     return false;
   }
 
-  _startTimer() {
+  void _startTimer() {
     // 启动定时器
 
     _activeTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
@@ -224,62 +221,52 @@ class HomeLogic {
     });
   }
 
-  _stopTimer() {
+  void _stopTimer() {
     if (_activeTimer.isActive) {
       _activeTimer.cancel();
     }
   }
 
-  _startActive() {
+  void _startActive() {
     _startKeyboard();
     _startTimer();
   }
 
-  _stopActive() {
+  void _stopActive() {
     _stopKeyboard();
     _stopTimer();
   }
 
-  _fillHandler() {
-    player.propsHandler[EntityID.hospital] =
-        player.propsHandler[EntityID.sword] =
-            player.propsHandler[EntityID.shield] = (context, onTap) {
-      SelectEnergy(
-          context: context,
-          energies: player.energies,
-          onSelected: onTap,
-          available: false);
-    };
-
-    player.propsHandler[EntityID.scroll] = (context, onTap) {
+  void _fillHandler() {
+    player.props[EntityID.scroll]?.handler = (context, elemental, prop) {
+      prop.count--;
       _backToMain();
-      onTap(player.current);
       Navigator.of(context).pop();
     };
   }
 
-  switchPlayerNext() {
+  void switchPlayerNext() {
     player.switchNext();
     _updatePlayerCell();
   }
 
-  movePlayerUp() {
+  void movePlayerUp() {
     _movePlayer(player.y - 1, player.x + 0);
   }
 
-  movePlayerDown() {
+  void movePlayerDown() {
     _movePlayer(player.y + 1, player.x + 0);
   }
 
-  movePlayerLeft() {
+  void movePlayerLeft() {
     _movePlayer(player.y + 0, player.x - 1);
   }
 
-  movePlayerRight() {
+  void movePlayerRight() {
     _movePlayer(player.y + 0, player.x + 1);
   }
 
-  navigateToPackagePage(BuildContext context) {
+  void navigateToPackagePage(BuildContext context) {
     _navigateAndSetActive(context, PackagePage(player: player));
   }
 
@@ -296,14 +283,15 @@ class HomeLogic {
   }
 
   void _navigateAndSetActive(BuildContext context, Widget page) {
-    _stopActive();
+    _stopActive(); // 暂停定时器
     Navigator.push(context, MaterialPageRoute(builder: (context) => page))
         .then((_) {
-      _startActive();
+      // 当页面弹出（即返回）时，这个回调会被执行
+      _startActive(); // 重新启动定时器
     });
   }
 
-  navigateToCombatPage(
+  void navigateToCombatPage(
       BuildContext context, EnemyElemental enemy, bool offensive) {
     _stopActive(); // 暂停定时器
     Navigator.push(
@@ -315,7 +303,6 @@ class HomeLogic {
                 offensive: offensive,
               )),
     ).then((value) {
-      // 当页面被弹出（即返回）时，这个回调会被执行
       _updatePlayerCell();
       _startActive(); // 重新启动定时器
       if (value is ResultType) {
@@ -329,7 +316,7 @@ class HomeLogic {
     });
   }
 
-  _backToMain() {
+  void _backToMain() {
     while (_mapData.parent != null) {
       _backToPrevious();
     }
@@ -339,7 +326,7 @@ class HomeLogic {
     };
   }
 
-  _moveEntities() {
+  void _moveEntities() {
     for (var entity in _mapData.entities) {
       if (entity is EnemyElemental) {
         List<List<int>> directions = [
@@ -376,7 +363,7 @@ class HomeLogic {
     }
   }
 
-  _movePlayer(int newY, int newX) {
+  void _movePlayer(int newY, int newX) {
     if (_checkInMap(newY, newX)) {
       CellData cell = displayMap.value[newY][newX].value;
       switch (cell.id) {
@@ -400,14 +387,14 @@ class HomeLogic {
         case EntityID.home:
           _restorePlayer();
           showPage.value = (BuildContext context) {
-            DiaglogMessage(
+            DialogMessage(
                 context, "提示", "你睡了一觉，恢复了状态", _stopActive, _startActive);
           };
           break;
         case EntityID.hospital:
           player.props[EntityID.hospital]?.count += 1;
           showPage.value = (BuildContext context) {
-            SnackBarMessage(context, '你得到了一个药水');
+            SnackBarMessage(context, '你得到了一个药');
           };
           _setCellToEntity(newY, newX, EntityID.road);
           break;
@@ -459,7 +446,7 @@ class HomeLogic {
     }
   }
 
-  _backToPrevious() {
+  void _backToPrevious() {
     floorNum.value--;
 
     _clearPlayerCurrentCell();
@@ -479,7 +466,7 @@ class HomeLogic {
     _setCellToPlayer(_mapData.leaveY, _mapData.leaveX, player.id); // 更新位置
   }
 
-  _enterNext(int newY, int newX) {
+  void _enterNext(int newY, int newX) {
     if (player.energies[player.current].health <= 0) {
       showPage.value = (BuildContext context) {
         SnackBarMessage(context, '无法继续冒险');
@@ -509,17 +496,17 @@ class HomeLogic {
     _generateMap();
   }
 
-  _updatePlayerCell() {
+  void _updatePlayerCell() {
     _setCellToPlayer(player.y, player.x,
         displayMap.value[player.y][player.x].value.id); //更新地图上玩家所在位置
   }
 
-  _restorePlayer() {
+  void _restorePlayer() {
     player.restoreEnergies();
     _updatePlayerCell();
   }
 
-  _upgradePlayer(int index, AttributeType attribute) {
+  void _upgradePlayer(int index, AttributeType attribute) {
     if (player.experience >= 30) {
       player.experience -= 30;
       player.upgradeEnergy(index, attribute);
@@ -533,12 +520,12 @@ class HomeLogic {
     }
   }
 
-  _setCellToEntity(int y, int x, EntityID id) {
+  void _setCellToEntity(int y, int x, EntityID id) {
     displayMap.value[y][x].value =
         displayMap.value[y][x].value.copyWith(id: id, index: 0, proportion: 1);
   }
 
-  _setCellToPlayer(int newY, int newX, EntityID id) {
+  void _setCellToPlayer(int newY, int newX, EntityID id) {
     _clearPlayerCurrentCell();
     displayMap.value[newY][newX].value = CellData(
         id: id,
@@ -550,7 +537,7 @@ class HomeLogic {
     _setAroundVisibility(player.y, player.x);
   }
 
-  _clearPlayerCurrentCell() {
+  void _clearPlayerCurrentCell() {
     CellData cell = displayMap.value[player.y][player.x].value;
     if (cell.id == player.id) {
       _setCellToEntity(player.y, player.x, EntityID.road); // 设置为道路
@@ -559,7 +546,7 @@ class HomeLogic {
     }
   }
 
-  _setAroundVisibility(int y, int x) {
+  void _setAroundVisibility(int y, int x) {
     List<List<int>> around = [
       [0, 0], //所在地
       [-1, 0], // 上
@@ -577,7 +564,7 @@ class HomeLogic {
     }
   }
 
-  _checkInMap(y, x) {
+  bool _checkInMap(y, x) {
     return y >= 0 &&
         y < displayMap.value.length &&
         x >= 0 &&

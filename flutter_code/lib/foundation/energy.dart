@@ -207,34 +207,34 @@ class EnergyCombat {
   }
 
   static List<int> _handleAttributeEffect(
-      Energy attacker, Energy defender, bool implement) {
+      Energy attacker, Energy defender, bool expend) {
     int attack = attacker.attackBase + attacker.attackOffset;
     int defence = defender.defenceBase + defender.defenceOffset;
 
     CombatEffect effect;
 
     effect = attacker.effects[EffectID.giantKiller.index];
-    if (implement ? effect.implement() : effect.check()) {
+    if (expend ? effect.expend() : effect.check()) {
       attack += (defender.health * effect.value).round();
     }
 
     effect = attacker.effects[EffectID.strengthenAttribute.index];
-    if (implement ? effect.implement() : effect.check()) {
+    if (expend ? effect.expend() : effect.check()) {
       attack += (attack * effect.value).round();
     }
 
     effect = defender.effects[EffectID.strengthenAttribute.index];
-    if (implement ? effect.implement() : effect.check()) {
+    if (expend ? effect.expend() : effect.check()) {
       defence += (defence * effect.value).round();
     }
 
     effect = attacker.effects[EffectID.weakenAttack.index];
-    if (implement ? effect.implement() : effect.check()) {
+    if (expend ? effect.expend() : effect.check()) {
       attack -= (attack * effect.value).round();
     }
 
     effect = defender.effects[EffectID.weakenDefence.index];
-    if (implement ? effect.implement() : effect.check()) {
+    if (expend ? effect.expend() : effect.check()) {
       defence -= (defence * effect.value).round();
     }
     return [attack, defence];
@@ -246,19 +246,19 @@ class EnergyCombat {
     CombatEffect effect;
 
     effect = attacker.effects[EffectID.sacrificing.index];
-    if (effect.implement()) {
+    if (effect.expend()) {
       attacker.deductHealth(attacker.health - effect.value.round(), true);
 
       coeff *= (1 + ((attacker.health - 1) / (attacker.capacityBase)));
     }
 
     effect = attacker.effects[EffectID.coeffcient.index];
-    if (effect.implement()) {
+    if (effect.expend()) {
       coeff *= (1 + effect.value);
     }
 
     effect = defender.effects[EffectID.parryState.index];
-    if (effect.implement()) {
+    if (effect.expend()) {
       coeff *= (1 - effect.value);
     }
 
@@ -267,10 +267,23 @@ class EnergyCombat {
 
   int _handleCombat(Energy attacker, Energy defender) {
     CombatEffect effect;
+
+    effect = defender.effects[EffectID.restoreLife.index];
+    if (effect.expend()) {
+      int recovery =
+          (effect.value * (defender.capacityBase + defender.capacityExtra))
+              .round();
+
+      defender.recoverHealth(recovery);
+      message +=
+          ('${defender.name} 回复了 $recovery 生命值❤️‍🩹, 当前生命值为 ${defender.health}\n');
+      return 0;
+    }
+
     int combatCount = 1;
 
     effect = attacker.effects[EffectID.multipleHit.index];
-    if (effect.implement()) {
+    if (effect.expend()) {
       combatCount += effect.value.round();
     }
 
@@ -289,7 +302,7 @@ class EnergyCombat {
       coeff = _handleCoeffcientEffect(attacker, defender);
 
       effect = attacker.effects[EffectID.enchanting.index];
-      if (effect.implement()) {
+      if (effect.expend()) {
         enchantRatio += effect.value;
         if (enchantRatio > 1) {
           enchantRatio = 1;
@@ -300,13 +313,13 @@ class EnergyCombat {
       double magicAttack = attack * enchantRatio;
 
       effect = attacker.effects[EffectID.physicsAddition.index];
-      if (effect.implement()) {
+      if (effect.expend()) {
         physicsAttack += effect.value - 1;
         effect.value = 1;
       }
 
       effect = attacker.effects[EffectID.magicAddition.index];
-      if (effect.implement()) {
+      if (effect.expend()) {
         magicAttack += effect.value - 1;
         effect.value = 1;
       }
@@ -355,7 +368,7 @@ class EnergyCombat {
 
   int _handleDamageAddition(Energy energy, int damage) {
     CombatEffect effect = energy.effects[EffectID.burnDamage.index];
-    if (effect.implement()) {
+    if (effect.expend()) {
       damage += effect.value.round() - 1;
       effect.value = 1;
     }
@@ -397,7 +410,7 @@ class EnergyCombat {
 
   static void _handleAdjustByDamage(Energy energy, int damage) {
     CombatEffect effect = energy.effects[EffectID.adjustAttribute.index];
-    if (effect.implement()) {
+    if (effect.expend()) {
       int health = energy.health + damage;
 
       double damageRatio = damage / energy.capacityBase;
@@ -415,7 +428,7 @@ class EnergyCombat {
   static void _handleExemptionDeath(Energy energy) {
     if (energy.health <= 0) {
       CombatEffect effect = energy.effects[EffectID.exemptionDeath.index];
-      if (effect.implement()) {
+      if (effect.expend()) {
         energy.recoverHealth(effect.value.round() - energy.health);
       }
     }
@@ -424,7 +437,7 @@ class EnergyCombat {
   static void _handleDamageToAddition(
       Energy energy, int damage, bool damageType) {
     CombatEffect effect = energy.effects[EffectID.accumulateAnger.index];
-    if (effect.implement()) {
+    if (effect.expend()) {
       int addition = 0;
       if (damageType) {
         addition = (damage * effect.value * 0.3).round();
@@ -440,7 +453,7 @@ class EnergyCombat {
     }
 
     effect = energy.effects[EffectID.toughBrave.index];
-    if (effect.implement()) {
+    if (effect.expend()) {
       double increaseCoeff = 1 - (energy.health / energy.capacityBase);
 
       energy.effects[EffectID.coeffcient.index].value *= (1 + increaseCoeff);
@@ -450,7 +463,7 @@ class EnergyCombat {
 
   void _handleDamageToBlood(Energy energy, int damage) {
     CombatEffect effect = energy.effects[EffectID.absorbBlood.index];
-    if (effect.implement()) {
+    if (effect.expend()) {
       int recovery = (damage * effect.value).round();
       energy.recoverHealth(recovery);
       message +=
@@ -475,7 +488,7 @@ class EnergyCombat {
 
     if (checkHealth > capacity) {
       CombatEffect effect = energy.effects[EffectID.increaseCapacity.index];
-      if (effect.implement()) {
+      if (effect.expend()) {
         energy.changeCapcityExtra(checkHealth = capacity);
       }
     }
@@ -483,7 +496,7 @@ class EnergyCombat {
 
   static void _handleAdjustByRecovery(Energy energy, int recovery) {
     CombatEffect effect = energy.effects[EffectID.adjustAttribute.index];
-    if (effect.implement()) {
+    if (effect.expend()) {
       double recoveryRatio = recovery / energy.capacityBase;
       double healthRatio = energy.health / energy.capacityBase;
 
@@ -501,7 +514,7 @@ class EnergyCombat {
       Energy attacker, Energy defender, int damage, bool damageType) {
     if (damageType) {
       CombatEffect effect = attacker.effects[EffectID.hotDamage.index];
-      if (effect.implement()) {
+      if (effect.expend()) {
         defender.effects[EffectID.burnDamage.index].value +=
             damage * effect.value;
         defender.effects[EffectID.burnDamage.index].times = 1;
@@ -511,7 +524,7 @@ class EnergyCombat {
 
   int _handleDamageToCounter(Energy attacker, Energy defender) {
     CombatEffect effect = defender.effects[EffectID.revengeAtonce.index];
-    if (effect.implement()) {
+    if (effect.expend()) {
       int result = 0;
       int counterCount = effect.value.round();
 

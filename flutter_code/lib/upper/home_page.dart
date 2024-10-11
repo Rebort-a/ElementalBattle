@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../foundation/energy.dart';
-import '../foundation/entity.dart';
+import '../foundation/image.dart';
 import '../middleware/common.dart';
-import '../middleware/map.dart';
+import '../foundation/map.dart';
 import '../middleware/elemental.dart';
 import 'home_logic.dart';
 
@@ -196,9 +196,11 @@ class HomeDirectionRegion extends StatelessWidget {
 }
 
 class HomeMapRegion extends StatelessWidget {
+  final ImageManager imageManager = ImageManager();
+
   final List<List<ValueNotifier<CellData>>> map;
 
-  const HomeMapRegion({super.key, required this.map});
+  HomeMapRegion({super.key, required this.map});
 
   @override
   Widget build(BuildContext context) {
@@ -221,112 +223,13 @@ class HomeMapRegion extends StatelessWidget {
             return ValueListenableBuilder(
               valueListenable: map[y][x],
               builder: (context, value, child) {
-                return _getImage(value);
+                return imageManager.getAssetsImage(
+                    value.id, value.index, value.proportion, value.fog);
               },
             );
           },
         ),
       ),
     );
-  }
-
-  Widget _getImage(CellData data) {
-    if (data.fog) {
-      return Container(color: Colors.black);
-    } else {
-      return Container(
-        color: _getColor(data.id, data.index),
-        child: Center(
-          child: _getIcon(data.id, data.proportion),
-        ),
-      );
-    }
-  }
-
-  Color _getColor(EntityID id, int index) {
-    switch (id) {
-      case EntityID.road:
-        return Colors.blueGrey; // 道路
-      case EntityID.wall:
-        return Colors.brown; // 墙壁
-      case EntityID.player:
-      case EntityID.enter:
-      case EntityID.exit:
-        switch (index) {
-          case 1:
-            return const Color(0xFFC0C0C0);
-          case 2:
-            return Colors.blue;
-          case 3:
-            return Colors.lightGreen;
-          case 4:
-            return Colors.deepOrange;
-          case 5:
-            return Colors.brown;
-          default:
-            return Colors.blueGrey;
-        }
-      case EntityID.experience:
-      case EntityID.businessman:
-      case EntityID.home:
-        return Colors.teal;
-      case EntityID.weak:
-        return const Color.fromARGB(255, 255, 128, 128);
-      case EntityID.opponent:
-        return const Color.fromARGB(255, 255, 64, 64);
-      case EntityID.strong:
-        return const Color.fromARGB(255, 255, 32, 32);
-      case EntityID.boss:
-        return const Color.fromARGB(255, 255, 0, 0);
-      default:
-        return Colors.blueGrey;
-    }
-  }
-
-  Widget _getIcon(EntityID id, double proportion) {
-    switch (id) {
-      case EntityID.road:
-        return Container(); // 道路
-      case EntityID.wall:
-        return const Text('🧱'); // 墙壁
-      case EntityID.player:
-        if (proportion < 0.25) {
-          return const Text('😢');
-        } else if (proportion < 0.5) {
-          return const Text('😮');
-        } else if (proportion < 0.75) {
-          return const Text('😊');
-        } else {
-          return const Text('😎');
-        }
-      case EntityID.enter:
-        return const Icon(Icons.exit_to_app); // 入口
-      case EntityID.exit:
-        return const Icon(Icons.door_sliding); // 出口
-      case EntityID.experience:
-        return const Text('🏟️'); // 训练场
-      case EntityID.businessman:
-        return const Text('🏦'); // 商店
-      case EntityID.home:
-        return const Text('🏠'); //家
-      case EntityID.hospital:
-        return const Text('💊');
-      case EntityID.sword:
-        return const Text('🗡️');
-      case EntityID.shield:
-        return const Text('🛡️');
-      case EntityID.purse:
-        return const Text('💰'); //钱袋
-      case EntityID.weak:
-        return const Text('👻'); // 弱鸡
-      case EntityID.opponent:
-        return const Text('🤡'); // 对手
-      case EntityID.strong:
-        return const Text('👿'); // 强敌
-      case EntityID.boss:
-        return const Text('💀'); // 魔王
-      default:
-        return const Text('❓'); // 未知
-    }
   }
 }

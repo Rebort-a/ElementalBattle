@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
+
+import '../foundation/energy.dart';
 import '../foundation/entity.dart';
+import 'common.dart';
+import 'elemental.dart';
 
 class MapProp {
-  late final EntityID id;
-  late final String name;
-  late final String description;
-  late final String icon;
-  late final IconData? type;
-  late final int price;
+  final EntityID id;
+  final String name;
+  final String description;
+  final String icon;
+  final IconData? type;
+  final int price;
+  void Function(BuildContext context, Elemental elemental, MapProp prop)
+      handler;
   int count = 0;
 
   MapProp({
@@ -17,6 +23,7 @@ class MapProp {
     required this.icon,
     required this.type,
     required this.price,
+    required this.handler,
   });
 }
 
@@ -28,15 +35,6 @@ class PropCollection {
     EntityID.scroll: scroll,
   };
 
-  static final Map<EntityID,
-          void Function(BuildContext context, void Function(int index) onTap)>
-      totalItemHandler = {
-    EntityID.hospital: (context, onTap) {},
-    EntityID.sword: (context, onTap) {},
-    EntityID.shield: (context, onTap) {},
-    EntityID.scroll: (context, onTap) {},
-  };
-
   static MapProp emptyItem = MapProp(
     id: EntityID.road,
     name: '',
@@ -44,15 +42,26 @@ class PropCollection {
     icon: '',
     type: null,
     price: 0,
+    handler: (context, elemental, prop) {},
   );
 
   static MapProp hospital = MapProp(
     id: EntityID.hospital,
-    name: '药水',
+    name: '药',
     description: '生命值+32',
     icon: '💊',
     type: Icons.local_hospital,
     price: 10,
+    handler: (context, elemental, prop) {
+      SelectEnergy(
+          context: context,
+          energies: elemental.energies,
+          onSelected: (index) {
+            prop.count--;
+            elemental.recoverHealth(index, 32);
+          },
+          available: false);
+    },
   );
 
   static MapProp sword = MapProp(
@@ -62,6 +71,16 @@ class PropCollection {
     icon: '🗡️',
     type: Icons.colorize,
     price: 10,
+    handler: (context, elemental, prop) {
+      SelectEnergy(
+          context: context,
+          energies: elemental.energies,
+          onSelected: (index) {
+            prop.count--;
+            elemental.upgradeEnergy(index, AttributeType.atk);
+          },
+          available: false);
+    },
   );
 
   static MapProp shield = MapProp(
@@ -71,6 +90,16 @@ class PropCollection {
     icon: '🛡️',
     type: Icons.shield,
     price: 10,
+    handler: (context, elemental, prop) {
+      SelectEnergy(
+          context: context,
+          energies: elemental.energies,
+          onSelected: (index) {
+            prop.count--;
+            elemental.upgradeEnergy(index, AttributeType.def);
+          },
+          available: false);
+    },
   );
   static MapProp scroll = MapProp(
     id: EntityID.scroll,
@@ -79,5 +108,6 @@ class PropCollection {
     icon: '📜',
     type: null,
     price: 10,
+    handler: (context, elemental, prop) {},
   );
 }

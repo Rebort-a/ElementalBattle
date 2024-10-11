@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../middleware/common.dart';
 import '../middleware/prop.dart';
-import '../middleware/elemental.dart';
+import '../middleware/player.dart';
 
 class StorePage extends StatefulWidget {
   final PlayerElemental player;
