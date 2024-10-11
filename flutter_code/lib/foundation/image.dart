@@ -36,7 +36,7 @@ class ImageSplitter {
     final int totalImages = rows * columns;
 
     if (index < 0 || index >= totalImages) {
-      throw IndexError.withLength(index, totalImages, indexable: 'index');
+      return const Center(child: Icon(Icons.error, color: Colors.red));
     }
 
     final int rowIndex = index ~/ columns;
@@ -47,8 +47,7 @@ class ImageSplitter {
       builder: (BuildContext context, AsyncSnapshot<ImageInfo> snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
-            return const Center(
-                child: Icon(Icons.error, color: Colors.red, size: 32));
+            return const Center(child: Icon(Icons.error, color: Colors.red));
           }
           final imageInfo = snapshot.data!;
           final pieceWidth = imageInfo.image.width / columns;
@@ -77,6 +76,7 @@ class ImageSplitPainter extends CustomPainter {
   final int columnIndex;
   final double pieceWidth;
   final double pieceHeight;
+  final Paint _paint = Paint();
 
   ImageSplitPainter({
     required this.imageInfo,
@@ -99,7 +99,7 @@ class ImageSplitPainter extends CustomPainter {
       imageInfo.image,
       srcRect,
       Rect.fromLTRB(0, 0, size.width, size.height),
-      Paint(),
+      _paint,
     );
   }
 
@@ -127,26 +127,117 @@ class ImageManager {
 
   final Map<EntityID, ImageSplitter> _imageSplitters = {};
 
-  Widget getResource(EntityID entityID, int imageIndex) {
-    if (!_imageSplitters.containsKey(entityID)) {
-      switch (entityID) {
+  Widget getAssetsImage(EntityID id, int index, double proportion, bool fog) {
+    _imageSplitters.putIfAbsent(id, () {
+      switch (id) {
         case EntityID.player:
-          _imageSplitters[entityID] = ImageSplitter(
-            imagePath: 'assets/images/player.png',
-            rows: 4,
-            columns: 4,
-          );
-          break;
-
+          return ImageSplitter(
+              imagePath: 'assets/images/player.png', rows: 4, columns: 4);
         default:
-          _imageSplitters[entityID] = ImageSplitter(
-            imagePath: 'assets/images/road.png',
-            rows: 1,
-            columns: 1,
-          );
-          break;
+          return ImageSplitter(
+              imagePath: 'assets/images/road.png', rows: 1, columns: 1);
       }
+    });
+    return _imageSplitters[id]!.getImagePiece(index);
+  }
+
+  Widget getPresetsImage(EntityID id, int index, double proportion, bool fog) {
+    if (fog) {
+      return Container(color: Colors.black);
+    } else {
+      return Container(
+        color: _getColor(id, index),
+        child: Center(
+          child: _getIcon(id, proportion),
+        ),
+      );
     }
-    return _imageSplitters[entityID]!.getImagePiece(imageIndex);
+  }
+
+  Color _getColor(EntityID id, int index) {
+    switch (id) {
+      case EntityID.road:
+        return Colors.blueGrey; // 道路
+      case EntityID.wall:
+        return Colors.brown; // 墙壁
+      case EntityID.player:
+      case EntityID.enter:
+      case EntityID.exit:
+        switch (index) {
+          case 1:
+            return const Color(0xFFC0C0C0);
+          case 2:
+            return Colors.blue;
+          case 3:
+            return Colors.lightGreen;
+          case 4:
+            return Colors.deepOrange;
+          case 5:
+            return Colors.brown;
+          default:
+            return Colors.blueGrey;
+        }
+      case EntityID.experience:
+      case EntityID.businessman:
+      case EntityID.home:
+        return Colors.teal;
+      case EntityID.weak:
+        return const Color.fromARGB(255, 255, 128, 128);
+      case EntityID.opponent:
+        return const Color.fromARGB(255, 255, 64, 64);
+      case EntityID.strong:
+        return const Color.fromARGB(255, 255, 32, 32);
+      case EntityID.boss:
+        return const Color.fromARGB(255, 255, 0, 0);
+      default:
+        return Colors.blueGrey; // 道路的背景
+    }
+  }
+
+  Widget _getIcon(EntityID id, double proportion) {
+    switch (id) {
+      case EntityID.road:
+        return const Center(); // 道路
+      case EntityID.wall:
+        return const Text('🧱'); // 墙壁
+      case EntityID.player:
+        if (proportion < 0.25) {
+          return const Text('😢');
+        } else if (proportion < 0.5) {
+          return const Text('😮');
+        } else if (proportion < 0.75) {
+          return const Text('😊');
+        } else {
+          return const Text('😎');
+        }
+      case EntityID.enter:
+        return const Icon(Icons.exit_to_app); // 入口
+      case EntityID.exit:
+        return const Icon(Icons.door_sliding); // 出口
+      case EntityID.experience:
+        return const Text('🏟️'); // 训练场
+      case EntityID.businessman:
+        return const Text('🏦'); // 商店
+      case EntityID.home:
+        return const Text('🏠'); // 家
+      case EntityID.hospital:
+        return const Text('💊'); // 药
+      case EntityID.sword:
+        return const Text('🗡️'); // 剑
+      case EntityID.shield:
+        return const Text('🛡️'); // 盾
+      case EntityID.purse:
+        return const Text('💰'); // 钱袋
+      case EntityID.weak:
+        return const Text('👻'); // 弱鸡
+      case EntityID.opponent:
+        return const Text('🤡'); // 对手
+      case EntityID.strong:
+        return const Text('👿'); // 强敌
+      case EntityID.boss:
+        return const Text('💀'); // 魔王
+      default:
+        return const Text('❓'); // 未知
+    }
   }
 }

@@ -67,7 +67,7 @@ class CombatEffect {
     return type == EffectType.unlimited || times > 0;
   }
 
-  bool implement() {
+  bool expend() {
     if (type == EffectType.unlimited) {
       return true;
     }

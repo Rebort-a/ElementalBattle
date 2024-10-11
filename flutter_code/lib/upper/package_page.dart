@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_code/middleware/elemental.dart';
 
-import '../foundation/energy.dart';
-import '../foundation/entity.dart';
 import '../middleware/prop.dart';
+import '../middleware/player.dart';
 
 class PackagePage extends StatefulWidget {
   final PlayerElemental player;
@@ -112,7 +110,8 @@ class _PackagePageState extends State<PackagePage> {
             ),
             ElevatedButton(
               onPressed: _selectedItem.count > 0
-                  ? () => setState(() => _useItem())
+                  ? () => setState(() => _selectedItem.handler(
+                      context, widget.player, _selectedItem))
                   : null,
               child: const Text('使用'),
             ),
@@ -203,33 +202,5 @@ class _PackagePageState extends State<PackagePage> {
             Text('${item.count}', style: const TextStyle(color: Colors.white)),
       ),
     );
-  }
-
-  _useItem() {
-    void Function(BuildContext context, void Function(int index) onTap)?
-        handler = widget.player.propsHandler[_selectedItem.id];
-    if (handler != null) {
-      handler(context, _itemCallBack);
-    }
-  }
-
-  _itemCallBack(int index) {
-    setState(() {
-      widget.player.props[_selectedItem.id]?.count--;
-    });
-
-    switch (_selectedItem.id) {
-      case EntityID.hospital:
-        widget.player.recoverHealth(index, 32);
-        break;
-      case EntityID.sword:
-        widget.player.upgradeEnergy(index, AttributeType.atk);
-        break;
-      case EntityID.shield:
-        widget.player.upgradeEnergy(index, AttributeType.def);
-        break;
-      default:
-        break;
-    }
   }
 }

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../foundation/energy.dart';
 import '../middleware/elemental.dart';
-import 'combat_logic.dart';
+import '../middleware/player.dart';
+import '../middleware/combat_logic.dart';
 
 class CombatPage extends StatelessWidget {
   late final CombatLogic combatLogic;
