@@ -206,7 +206,7 @@ class EnergyCombat {
     record = _handleCombat(source, target);
   }
 
-  static List<int> _handleAttributeEffect(
+  static List<int> handleAttributeEffect(
       Energy attacker, Energy defender, bool expend) {
     int attack = attacker.attackBase + attacker.attackOffset;
     int defence = defender.defenceBase + defender.defenceOffset;
@@ -295,7 +295,7 @@ class EnergyCombat {
       double enchantRatio = 0.0;
 
       List<int> attributeEffects =
-          _handleAttributeEffect(attacker, defender, true);
+          handleAttributeEffect(attacker, defender, true);
 
       attack = attributeEffects[0];
       defence = attributeEffects[1];

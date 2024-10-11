@@ -37,6 +37,13 @@ class _StorePageState extends State<StorePage> {
           _buildSelectedItemInfo(),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        tooltip: 'Back',
+        child: const Icon(Icons.arrow_back),
+      ),
     );
   }
 

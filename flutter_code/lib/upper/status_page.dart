@@ -34,6 +34,13 @@ class _StatusPageState extends State<StatusPage> {
           _buildNavigationButtons(),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        tooltip: 'Back',
+        child: const Icon(Icons.arrow_back),
+      ),
     );
   }
 

@@ -129,7 +129,7 @@ class HomeLogic {
     } else if (branchCount > 1) {
       // 概率生成随机敌人
       int randVal = _random.nextInt(100);
-      if (randVal < 20) {
+      if (randVal < 50) {
         _setCellToEntity(startY, startX, _getRandomEnemy(startY, startX));
       }
     }

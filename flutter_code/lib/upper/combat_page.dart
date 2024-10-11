@@ -117,8 +117,8 @@ class BattleInfoRegion extends StatelessWidget {
           },
         ),
         _buildInfo("生命值", info.health),
-        _buildInfo("攻击力", info.attack),
-        _buildInfo("防御力", info.defence),
+        _buildInfoRoll("攻击力", info.attack),
+        _buildInfoRoll("防御力", info.defence),
         _buildGlobalStatus(),
       ],
     );
@@ -130,6 +130,33 @@ class BattleInfoRegion extends StatelessWidget {
       builder: (context, value, child) {
         return Text("$label: $value");
       },
+    );
+  }
+
+  Widget _buildInfoRoll(String label, ValueNotifier<int> notifier) {
+    return Row(
+      children: [
+        Text('$label: '),
+        ValueListenableBuilder<int>(
+          valueListenable: notifier,
+          builder: (context, value, child) {
+            return TweenAnimationBuilder(
+              tween:
+                  Tween<double>(begin: value.toDouble(), end: value.toDouble()),
+              duration: const Duration(milliseconds: 500),
+              builder: (context, double value, child) {
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 50),
+                  child: Text(
+                    '${value.toInt()}',
+                    key: ValueKey<int>(value.toInt()),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 

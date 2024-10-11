@@ -25,7 +25,7 @@ class ElementalPreview {
   final ValueNotifier<int> defence = ValueNotifier(0);
   int survival = 0;
 
-  update(List<Energy> energies, int current) {
+  updateActualInfo(List<Energy> energies, int current) {
     survival = 0;
 
     resumes.value = List.generate(
@@ -50,6 +50,14 @@ class ElementalPreview {
         energies[current].attackBase + energies[current].attackOffset;
     defence.value =
         energies[current].defenceBase + energies[current].defenceOffset;
+  }
+
+  updateInferenceAttack(int value) {
+    attack.value = value;
+  }
+
+  updateInferenceDefence(int value) {
+    defence.value = value;
   }
 }
 
@@ -79,7 +87,7 @@ class Elemental extends MovableEntity {
   }
 
   updatePreview() {
-    preview.update(energies, _current);
+    preview.updateActualInfo(energies, _current);
   }
 
   List<Energy> getEnergy(int count) {
@@ -167,6 +175,17 @@ class Elemental extends MovableEntity {
       Elemental elemental, int index, ValueNotifier<String> message) {
     EnergyCombat combat = EnergyCombat(
         source: energies[current], target: elemental.energies[index]);
+
+    List<int> attribute1 = EnergyCombat.handleAttributeEffect(
+        energies[current], elemental.energies[index], false);
+
+    List<int> attribute2 = EnergyCombat.handleAttributeEffect(
+        elemental.energies[index], energies[current], false);
+
+    preview.updateInferenceAttack(attribute1[0]);
+    preview.updateInferenceDefence(attribute2[1]);
+    elemental.preview.updateInferenceAttack(attribute2[0]);
+    elemental.preview.updateInferenceDefence(attribute1[1]);
     combat.battle();
     message.value += combat.message;
     updatePreview();
