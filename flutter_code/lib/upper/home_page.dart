@@ -196,11 +196,9 @@ class HomeDirectionRegion extends StatelessWidget {
 }
 
 class HomeMapRegion extends StatelessWidget {
-  final ImageManager imageManager = ImageManager();
-
   final List<List<ValueNotifier<CellData>>> map;
 
-  HomeMapRegion({super.key, required this.map});
+  const HomeMapRegion({super.key, required this.map});
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +221,7 @@ class HomeMapRegion extends StatelessWidget {
             return ValueListenableBuilder(
               valueListenable: map[y][x],
               builder: (context, value, child) {
-                return imageManager.getPresetsImage(
+                return ImageManager.getPresetsImage(
                     value.id, value.index, value.proportion, value.fog);
               },
             );

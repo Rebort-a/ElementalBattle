@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_code/foundation/entity.dart';
 
 import '../foundation/energy.dart';
+import '../foundation/image.dart';
 import '../middleware/elemental.dart';
 import '../middleware/player.dart';
 import '../middleware/combat_logic.dart';
@@ -110,13 +112,8 @@ class BattleInfoRegion extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ValueListenableBuilder<String>(
-          valueListenable: info.name,
-          builder: (context, value, child) {
-            return Text(value);
-          },
-        ),
-        _buildInfo("生命值", info.health),
+        _buildInfo(info.name),
+        _buildInfoRoll("生命值", info.health),
         _buildInfoRoll("攻击力", info.attack),
         _buildInfoRoll("防御力", info.defence),
         _buildGlobalStatus(),
@@ -124,11 +121,19 @@ class BattleInfoRegion extends StatelessWidget {
     );
   }
 
-  Widget _buildInfo(String label, ValueNotifier notifier) {
+  Widget _buildInfo(ValueNotifier notifier) {
     return ValueListenableBuilder(
       valueListenable: notifier,
       builder: (context, value, child) {
-        return Text("$label: $value");
+        double emoji = (info.survival / info.resumes.value.length) *
+            (info.health.value / (info.capacity.value));
+
+        return Row(
+          children: [
+            Text(value),
+            ImageManager.getIcon(EntityID.player, emoji),
+          ],
+        );
       },
     );
   }
@@ -145,12 +150,9 @@ class BattleInfoRegion extends StatelessWidget {
                   Tween<double>(begin: value.toDouble(), end: value.toDouble()),
               duration: const Duration(milliseconds: 500),
               builder: (context, double value, child) {
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 50),
-                  child: Text(
-                    '${value.toInt()}',
-                    key: ValueKey<int>(value.toInt()),
-                  ),
+                return Text(
+                  '${value.toInt()}',
+                  key: ValueKey<int>(value.toInt()),
                 );
               },
             );

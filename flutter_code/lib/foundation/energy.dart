@@ -206,11 +206,8 @@ class EnergyCombat {
     record = _handleCombat(source, target);
   }
 
-  static List<int> handleAttributeEffect(
-      Energy attacker, Energy defender, bool expend) {
+  static int handleAttackEffect(Energy attacker, Energy defender, bool expend) {
     int attack = attacker.attackBase + attacker.attackOffset;
-    int defence = defender.defenceBase + defender.defenceOffset;
-
     CombatEffect effect;
 
     effect = attacker.effects[EffectID.giantKiller.index];
@@ -223,21 +220,29 @@ class EnergyCombat {
       attack += (attack * effect.value).round();
     }
 
-    effect = defender.effects[EffectID.strengthenAttribute.index];
-    if (expend ? effect.expend() : effect.check()) {
-      defence += (defence * effect.value).round();
-    }
-
     effect = attacker.effects[EffectID.weakenAttack.index];
     if (expend ? effect.expend() : effect.check()) {
       attack -= (attack * effect.value).round();
+    }
+    return attack;
+  }
+
+  static int handleDefenceEffect(
+      Energy attacker, Energy defender, bool expend) {
+    int defence = defender.defenceBase + defender.defenceOffset;
+    CombatEffect effect;
+
+    effect = defender.effects[EffectID.strengthenAttribute.index];
+    if (expend ? effect.expend() : effect.check()) {
+      defence += (defence * effect.value).round();
     }
 
     effect = defender.effects[EffectID.weakenDefence.index];
     if (expend ? effect.expend() : effect.check()) {
       defence -= (defence * effect.value).round();
     }
-    return [attack, defence];
+
+    return defence;
   }
 
   double _handleCoeffcientEffect(Energy attacker, Energy defender) {
@@ -289,21 +294,18 @@ class EnergyCombat {
 
     for (int i = 0; i < combatCount; ++i) {
       int result = 0;
-      int attack = 0;
-      int defence = 0;
-      double coeff = 0;
+
+      int attack = handleAttackEffect(attacker, defender, true);
+
+      int defence = handleDefenceEffect(attacker, defender, true);
+
+      double coeff = _handleCoeffcientEffect(attacker, defender);
+
       double enchantRatio = 0.0;
-
-      List<int> attributeEffects =
-          handleAttributeEffect(attacker, defender, true);
-
-      attack = attributeEffects[0];
-      defence = attributeEffects[1];
-      coeff = _handleCoeffcientEffect(attacker, defender);
 
       effect = attacker.effects[EffectID.enchanting.index];
       if (effect.expend()) {
-        enchantRatio += effect.value;
+        enchantRatio = effect.value;
         if (enchantRatio > 1) {
           enchantRatio = 1;
         }

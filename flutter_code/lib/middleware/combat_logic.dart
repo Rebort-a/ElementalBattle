@@ -30,14 +30,16 @@ class CombatLogic {
     // 战斗开始前，为当前Energy施加所有已学习的被动技能效果
     _handlePassiveEffect(player);
     _handlePassiveEffect(enemy);
-    if (offensive) {
-      combatMessage.value += ("\n你获得了先手\n");
-    } else {
-      combatMessage.value += ("\n敌人获得了先手\n");
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleUpdateAttribute();
+      if (offensive) {
+        combatMessage.value += ("\n你获得了先手\n");
+      } else {
+        combatMessage.value += ("\n敌人获得了先手\n");
         _handleEnemyAction();
-      });
-    }
+      }
+    });
   }
 
   void _handlePassiveEffect(Elemental elemental) {
@@ -51,6 +53,7 @@ class CombatLogic {
   void _switchAppoint(Elemental elemental, int index) {
     elemental.switchAppoint(index);
     _handlePassiveEffect(elemental);
+    _handleUpdateAttribute();
     combatMessage.value +=
         '${elemental.name} 切换为 ${energyNames[elemental.energies[elemental.current].type.index]}\n';
   }
@@ -60,6 +63,7 @@ class CombatLogic {
     elemental.switchNext();
     _handlePassiveEffect(elemental);
     if (elemental.energies[elemental.current].health > 0) {
+      _handleUpdateAttribute();
       combatMessage.value +=
           '${elemental.name} 切换为 ${energyNames[elemental.energies[elemental.current].type.index]}\n';
 
@@ -236,7 +240,27 @@ class CombatLogic {
     _handleCombatResult(-result);
   }
 
+  void _handleUpdateAttribute() {
+    int playerAttack = EnergyCombat.handleAttackEffect(
+        player.energies[player.current], enemy.energies[enemy.current], false);
+
+    int playerDefence = EnergyCombat.handleDefenceEffect(
+        enemy.energies[enemy.current], player.energies[player.current], false);
+
+    int enemyAttack = EnergyCombat.handleAttackEffect(
+        enemy.energies[enemy.current], player.energies[player.current], false);
+
+    int enemyDefence = EnergyCombat.handleDefenceEffect(
+        player.energies[player.current], enemy.energies[enemy.current], false);
+
+    player.preview.updateInferenceInfo(playerAttack, playerDefence);
+
+    enemy.preview.updateInferenceInfo(enemyAttack, enemyDefence);
+  }
+
   void _handleCombatResult(int result) {
+    _handleUpdateAttribute();
+
     if (result == 1) {
       result = _switchNext(enemy, result);
     } else if (result == -1) {

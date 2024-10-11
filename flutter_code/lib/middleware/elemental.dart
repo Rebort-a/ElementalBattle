@@ -52,12 +52,9 @@ class ElementalPreview {
         energies[current].defenceBase + energies[current].defenceOffset;
   }
 
-  updateInferenceAttack(int value) {
-    attack.value = value;
-  }
-
-  updateInferenceDefence(int value) {
-    defence.value = value;
+  updateInferenceInfo(int attackValue, int defenceValue) {
+    attack.value = attackValue;
+    defence.value = defenceValue;
   }
 }
 
@@ -176,16 +173,6 @@ class Elemental extends MovableEntity {
     EnergyCombat combat = EnergyCombat(
         source: energies[current], target: elemental.energies[index]);
 
-    List<int> attribute1 = EnergyCombat.handleAttributeEffect(
-        energies[current], elemental.energies[index], false);
-
-    List<int> attribute2 = EnergyCombat.handleAttributeEffect(
-        elemental.energies[index], energies[current], false);
-
-    preview.updateInferenceAttack(attribute1[0]);
-    preview.updateInferenceDefence(attribute2[1]);
-    elemental.preview.updateInferenceAttack(attribute2[0]);
-    elemental.preview.updateInferenceDefence(attribute1[1]);
     combat.battle();
     message.value += combat.message;
     updatePreview();

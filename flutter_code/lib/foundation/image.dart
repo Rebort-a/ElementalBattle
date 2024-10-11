@@ -141,20 +141,21 @@ class ImageManager {
     return _imageSplitters[id]!.getImagePiece(index);
   }
 
-  Widget getPresetsImage(EntityID id, int index, double proportion, bool fog) {
+  static Widget getPresetsImage(
+      EntityID id, int index, double proportion, bool fog) {
     if (fog) {
       return Container(color: Colors.black);
     } else {
       return Container(
-        color: _getColor(id, index),
+        color: getColor(id, index),
         child: Center(
-          child: _getIcon(id, proportion),
+          child: getIcon(id, proportion),
         ),
       );
     }
   }
 
-  Color _getColor(EntityID id, int index) {
+  static Color getColor(EntityID id, int index) {
     switch (id) {
       case EntityID.road:
         return Colors.blueGrey; // 道路
@@ -194,10 +195,10 @@ class ImageManager {
     }
   }
 
-  Widget _getIcon(EntityID id, double proportion) {
+  static Widget getIcon(EntityID id, double proportion) {
     switch (id) {
       case EntityID.road:
-        return const Center(); // 道路
+        return Container(); // 道路
       case EntityID.wall:
         return const Text('🧱'); // 墙壁
       case EntityID.player:
