@@ -6,14 +6,14 @@ import 'dart:async';
 import '../foundation/energy.dart';
 import '../foundation/entity.dart';
 import '../foundation/map.dart';
-import '../middleware/elemental.dart';
-import '../middleware/common.dart';
-import '../middleware/player.dart';
-import 'combat_page.dart';
-import 'package_page.dart';
-import 'skill_page.dart';
-import 'status_page.dart';
-import 'store_page.dart';
+import 'elemental.dart';
+import 'common.dart';
+import 'player.dart';
+import '../upper/combat_page.dart';
+import '../upper/package_page.dart';
+import '../upper/skill_page.dart';
+import '../upper/status_page.dart';
+import '../upper/store_page.dart';
 
 class HomeLogic {
   final _random = Random(); // 初始化随机生成器
@@ -126,12 +126,13 @@ class HomeLogic {
       // 如果所在地，没有任何可探索的分支，代表其是道路尽头
       // 生成随机物品或入口
       _setCellToEntity(startY, startX, _getRadomItem());
-    } else if (branchCount > 1) {
-      // 概率生成随机敌人
-      int randVal = _random.nextInt(100);
-      if (randVal < 50) {
-        _setCellToEntity(startY, startX, _getRandomEnemy(startY, startX));
-      }
+    } else if (branchCount == 1) {
+      // 不生成
+    } else if (branchCount == 2) {
+      // 生成随机敌人
+      _setCellToEntity(startY, startX, _getRandomEnemy(startY, startX));
+    } else if (branchCount == 4) {
+      // 不生成
     }
   }
 
@@ -238,8 +239,8 @@ class HomeLogic {
   }
 
   void _fillHandler() {
-    player.props[EntityID.scroll]?.handler = (context, elemental, prop) {
-      prop.count--;
+    player.props[EntityID.scroll]?.handler = (context, elemental, after) {
+      after();
       _backToMain();
       Navigator.of(context).pop();
     };

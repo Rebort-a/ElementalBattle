@@ -5,7 +5,7 @@ import '../foundation/image.dart';
 import '../middleware/common.dart';
 import '../foundation/map.dart';
 import '../middleware/elemental.dart';
-import 'home_logic.dart';
+import '../middleware/home_logic.dart';
 
 class HomePage extends StatelessWidget {
   final HomeLogic homeLogic = HomeLogic();
@@ -32,7 +32,7 @@ class HomePage extends StatelessWidget {
           _buildButtonRegion(),
           // 方向键区域
           _buildirectionRegion(),
-
+          // 底部空白区域
           _buildBlankRegion(),
         ],
       ),

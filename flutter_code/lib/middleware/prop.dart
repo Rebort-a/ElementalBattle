@@ -12,7 +12,7 @@ class MapProp {
   final String icon;
   final IconData? type;
   final int price;
-  void Function(BuildContext context, Elemental elemental, MapProp prop)
+  void Function(BuildContext context, Elemental elemental, VoidCallback after)
       handler;
   int count = 0;
 
@@ -42,7 +42,7 @@ class PropCollection {
     icon: '',
     type: null,
     price: 0,
-    handler: (context, elemental, prop) {},
+    handler: (context, elemental, after) {},
   );
 
   static MapProp hospital = MapProp(
@@ -52,12 +52,12 @@ class PropCollection {
     icon: '💊',
     type: Icons.local_hospital,
     price: 10,
-    handler: (context, elemental, prop) {
+    handler: (context, elemental, after) {
       SelectEnergy(
           context: context,
           energies: elemental.energies,
           onSelected: (index) {
-            prop.count--;
+            after();
             elemental.recoverHealth(index, 32);
           },
           available: false);
@@ -71,12 +71,12 @@ class PropCollection {
     icon: '🗡️',
     type: Icons.colorize,
     price: 10,
-    handler: (context, elemental, prop) {
+    handler: (context, elemental, after) {
       SelectEnergy(
           context: context,
           energies: elemental.energies,
           onSelected: (index) {
-            prop.count--;
+            after();
             elemental.upgradeEnergy(index, AttributeType.atk);
           },
           available: false);
@@ -90,12 +90,12 @@ class PropCollection {
     icon: '🛡️',
     type: Icons.shield,
     price: 10,
-    handler: (context, elemental, prop) {
+    handler: (context, elemental, after) {
       SelectEnergy(
           context: context,
           energies: elemental.energies,
           onSelected: (index) {
-            prop.count--;
+            after();
             elemental.upgradeEnergy(index, AttributeType.def);
           },
           available: false);
@@ -108,6 +108,6 @@ class PropCollection {
     icon: '📜',
     type: null,
     price: 10,
-    handler: (context, elemental, prop) {},
+    handler: (context, elemental, after) {},
   );
 }

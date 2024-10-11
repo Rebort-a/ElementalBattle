@@ -42,10 +42,8 @@ class CombatPage extends StatelessWidget {
             _buildMessageRegion(),
             // 按键区域
             _buildButtonRegion(),
-
-            const SizedBox(
-              height: 200,
-            ),
+            // 底部空白区域
+            _buildBlankRegion(),
           ],
         ),
       ),
@@ -100,6 +98,10 @@ class CombatPage extends StatelessWidget {
   Widget _buildButtonRegion() {
     return BattleButtonRegion(combatLogic: combatLogic);
   }
+
+  Widget _buildBlankRegion() {
+    return const SizedBox(height: 192);
+  }
 }
 
 class BattleInfoRegion extends StatelessWidget {
@@ -125,8 +127,7 @@ class BattleInfoRegion extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: notifier,
       builder: (context, value, child) {
-        double emoji = (info.survival / info.resumes.value.length) *
-            (info.health.value / (info.capacity.value));
+        double emoji = (info.survival / info.resumes.value.length);
 
         return Row(
           children: [

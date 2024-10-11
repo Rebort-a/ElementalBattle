@@ -28,10 +28,10 @@ class CombatLogic {
   CombatLogic(
       {required this.player, required this.enemy, required this.offensive}) {
     // 战斗开始前，为当前Energy施加所有已学习的被动技能效果
-    _handlePassiveEffect(player);
-    _handlePassiveEffect(enemy);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handlePassiveEffect(player);
+      _handlePassiveEffect(enemy);
       _handleUpdateAttribute();
       if (offensive) {
         combatMessage.value += ("\n你获得了先手\n");
@@ -187,7 +187,7 @@ class CombatLogic {
   ActionType _getEnemyAction() {
     // 敌方的行为是根据概率随机的
     int randVal = _random.nextInt(1000);
-    if (randVal < 20) {
+    if (randVal < 10) {
       return ActionType.escape;
     } else if (randVal < 150) {
       return ActionType.parry;
@@ -206,6 +206,8 @@ class CombatLogic {
         break;
       case ActionType.parry:
         enemy.sufferSkill(enemy.current, SkillCollection.baseParry);
+        combatMessage.value +=
+            ('${enemy.energies[enemy.current].name} 施放了${SkillCollection.baseParry.name}, ${enemy.energies[enemy.current].name} 获得效果${SkillCollection.baseParry.description}\n');
         break;
       case ActionType.skill:
         _handleEnemySkill();

@@ -221,7 +221,7 @@ class SkillCollection {
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.restoreLife.index].value += 0.125;
+      effects[EffectID.restoreLife.index].value = 0.125;
       effects[EffectID.restoreLife.index].times += 1;
     },
   );
@@ -379,11 +379,11 @@ class SkillCollection {
   static final CombatSkill waterActive_2 = CombatSkill(
     id: SkillID.waterActive_2,
     name: "止水",
-    description: "受到致命伤害时，生命值保持为1点，生效一次。",
+    description: "受到致命伤害时，生命值保持为1点，生效一次。\n\n区区致命伤。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.exemptionDeath.index].value = 0;
+      effects[EffectID.exemptionDeath.index].value = 1;
       effects[EffectID.exemptionDeath.index].times += 1;
     },
   );

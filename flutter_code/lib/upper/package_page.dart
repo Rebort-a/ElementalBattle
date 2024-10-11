@@ -111,7 +111,7 @@ class _PackagePageState extends State<PackagePage> {
             ElevatedButton(
               onPressed: _selectedItem.count > 0
                   ? () => setState(() => _selectedItem.handler(
-                      context, widget.player, _selectedItem))
+                      context, widget.player, consumeItem))
                   : null,
               child: const Text('使用'),
             ),
@@ -119,6 +119,12 @@ class _PackagePageState extends State<PackagePage> {
         ),
       ),
     );
+  }
+
+  void consumeItem() {
+    setState(() {
+      _selectedItem.count--;
+    });
   }
 
   Widget _buildItemTile(MapProp? item) {

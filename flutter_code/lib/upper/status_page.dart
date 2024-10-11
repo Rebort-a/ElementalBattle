@@ -73,7 +73,7 @@ class _StatusPageState extends State<StatusPage> {
         _buildTextItem(
             '生命值上限: ${widget.player.energies[_index].capacityBase + widget.player.energies[_index].capacityExtra}'),
         _buildTextItem('初始攻击力: ${widget.player.energies[_index].attackBase}'),
-        _buildTextItem('初始防御力: ${widget.player.energies[_index].attackOffset}'),
+        _buildTextItem('初始防御力: ${widget.player.energies[_index].defenceBase}'),
         const Divider(),
         _buildTextItem('当前生命值: ${widget.player.energies[_index].health}'),
         _buildTextItem(

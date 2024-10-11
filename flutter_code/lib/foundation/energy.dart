@@ -63,15 +63,15 @@ class Energy {
     if (_health < 0) {
       value -= _health;
       _health = 0;
-    } else if (_health > _capacityBase) {
-      value -= _health - _capacityBase;
-      _health = _capacityBase;
+    } else if (_health > (_capacityBase + _capacityExtra)) {
+      value -= _health - (_capacityBase + _capacityExtra);
+      _health = (_capacityBase + _capacityExtra);
     }
     return value;
   }
 
   changeCapcityExtra(int value) {
-    _capacityExtra -= value;
+    _capacityExtra += value;
     if (_capacityExtra < 0) {
       _capacityExtra = 0;
     } else if (_capacityExtra > _capacityBase) {
@@ -252,9 +252,9 @@ class EnergyCombat {
 
     effect = attacker.effects[EffectID.sacrificing.index];
     if (effect.expend()) {
-      attacker.deductHealth(attacker.health - effect.value.round(), true);
-
       coeff *= (1 + ((attacker.health - 1) / (attacker.capacityBase)));
+
+      attacker.deductHealth(attacker.health - effect.value.round(), true);
     }
 
     effect = attacker.effects[EffectID.coeffcient.index];
@@ -491,7 +491,7 @@ class EnergyCombat {
     if (checkHealth > capacity) {
       CombatEffect effect = energy.effects[EffectID.increaseCapacity.index];
       if (effect.expend()) {
-        energy.changeCapcityExtra(checkHealth = capacity);
+        energy.changeCapcityExtra(checkHealth - capacity);
       }
     }
   }
