@@ -104,7 +104,7 @@ class HomeInfoRegion extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Spacer(flex: 1),
+          const Spacer(flex: 2),
           _buildInfo("🌈", info.element),
           _buildInfo(attributeNames[AttributeType.hp.index], info.health),
           _buildInfo(attributeNames[AttributeType.atk.index], info.attack),
@@ -116,7 +116,7 @@ class HomeInfoRegion extends StatelessWidget {
 
   Widget _buildInfo(String label, ValueNotifier notifier) {
     return Expanded(
-      flex: 2,
+      flex: 5,
       child: ValueListenableBuilder(
         valueListenable: notifier,
         builder: (context, value, child) {
