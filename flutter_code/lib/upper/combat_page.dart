@@ -113,6 +113,7 @@ class BattleInfoRegion extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         _buildInfoTitle(),
         Text('等级: ${info.level}'),

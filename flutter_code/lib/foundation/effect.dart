@@ -36,7 +36,7 @@ enum EffectID {
 
   accumulateAnger,
 
-  toughBrave,
+  luker,
 
   hotDamage,
 

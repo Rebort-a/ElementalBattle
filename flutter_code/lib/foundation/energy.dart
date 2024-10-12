@@ -267,6 +267,7 @@ class EnergyCombat {
     effect = attacker.effects[EffectID.coeffcient.index];
     if (effect.expend()) {
       coeff *= (1 + effect.value);
+      effect.value = 1;
     }
 
     effect = defender.effects[EffectID.parryState.index];
@@ -460,14 +461,6 @@ class EnergyCombat {
         effect.times = 1;
       }
     }
-
-    effect = energy.effects[EffectID.toughBrave.index];
-    if (effect.expend()) {
-      double increaseCoeff = 1 - (energy.health / energy.capacityBase);
-
-      energy.effects[EffectID.coeffcient.index].value *= (1 + increaseCoeff);
-      energy.effects[EffectID.coeffcient.index].times = 1;
-    }
   }
 
   void _handleDamageToBlood(Energy energy, int damage) {
@@ -532,9 +525,27 @@ class EnergyCombat {
   }
 
   int _handleDamageToCounter(Energy attacker, Energy defender) {
-    CombatEffect effect = defender.effects[EffectID.revengeAtonce.index];
+    int result = 0;
+
+    CombatEffect effect = defender.effects[EffectID.luker.index];
     if (effect.expend()) {
-      int result = 0;
+      double attack =
+          ((defender.capacityBase + defender.capacityExtra) - defender.health) *
+              effect.value;
+
+      int defence = handleDefenceEffect(defender, attacker, true);
+
+      for (int i = 0; i < 2; i++) {
+        result = -_handleAttack(
+            defender, attacker, attack, defence, effect.value, false);
+        if (result != 0) {
+          return result;
+        }
+      }
+    }
+
+    effect = defender.effects[EffectID.revengeAtonce.index];
+    if (effect.expend()) {
       int counterCount = effect.value.round();
 
       for (int i = 0; i < counterCount; ++i) {

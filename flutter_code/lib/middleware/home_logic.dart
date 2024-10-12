@@ -291,6 +291,7 @@ class HomeLogic {
     Navigator.push(context, MaterialPageRoute(builder: (context) => page))
         .then((_) {
       // 当页面弹出（即返回）时，这个回调会被执行
+      _updatePlayerCell(); // 更新玩家
       _startActive(); // 重新启动定时器
     });
   }

@@ -414,13 +414,13 @@ class SkillCollection {
 
   static final CombatSkill earthActive_2 = CombatSkill(
     id: SkillID.earthActive_2,
-    name: "越挫越勇",
-    description: "受到伤害时，基于已损失的生命值比例，提高攻击伤害系数，生效一次。",
+    name: "地刺",
+    description: "受到伤害时，将已损失生命值的25%作为攻击力，造成两次伤害系数为25%的物理伤害，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.toughBrave.index].value = 0;
-      effects[EffectID.toughBrave.index].times += 1;
+      effects[EffectID.luker.index].value = 0.25;
+      effects[EffectID.luker.index].times += 1;
     },
   );
 }
