@@ -205,7 +205,7 @@ class SkillCollection {
   static final CombatSkill waterActive_0 = CombatSkill(
     id: SkillID.waterActive_0,
     name: "寸步难行",
-    description: "敌人下次攻击时，减少50%的攻击力，生效两次。",
+    description: "下次攻击时，减少50%的攻击力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.enemyFront,
     handler: (skills, effects) {

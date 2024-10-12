@@ -224,16 +224,16 @@ class CombatLogic {
     CombatSkill skill = SkillCollection
         .totalSkills[enemy.energies[enemy.current].type.index][1];
 
-    Energy targetElemental = (skill.targetType == SkillTarget.selfFront)
+    Energy targetEnergy = (skill.targetType == SkillTarget.selfFront)
         ? enemy.energies[enemy.current]
         : player.energies[player.current];
 
     int result = 0;
 
-    targetElemental.sufferSkill(skill);
+    targetEnergy.sufferSkill(skill);
 
     combatMessage.value +=
-        ('${enemy.energies[enemy.current].name} 施放了${skill.name}, $targetElemental 获得效果${skill.description}\n');
+        ('${enemy.energies[enemy.current].name} 施放了${skill.name}, ${targetEnergy.name} 获得效果${skill.description}\n');
 
     if (skill.id == SkillID.woodActive_0) {
       result = enemy.battleWith(enemy, enemy.current, combatMessage);
