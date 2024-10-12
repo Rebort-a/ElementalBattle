@@ -103,8 +103,8 @@ class HomeInfoRegion extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          const Spacer(flex: 1),
           _buildInfo("🌈", info.element),
           _buildInfo(attributeNames[AttributeType.hp.index], info.health),
           _buildInfo(attributeNames[AttributeType.atk.index], info.attack),
@@ -115,11 +115,14 @@ class HomeInfoRegion extends StatelessWidget {
   }
 
   Widget _buildInfo(String label, ValueNotifier notifier) {
-    return ValueListenableBuilder(
-      valueListenable: notifier,
-      builder: (context, value, child) {
-        return Text("$label: $value");
-      },
+    return Expanded(
+      flex: 2,
+      child: ValueListenableBuilder(
+        valueListenable: notifier,
+        builder: (context, value, child) {
+          return Text("$label: $value");
+        },
+      ),
     );
   }
 }

@@ -63,16 +63,12 @@ class CombatPage extends StatelessWidget {
   }
 
   Widget _buildInfoRegion() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildPlayerInfo(),
-          _buildEnemyInfo(),
-        ],
-      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: _buildPlayerInfo()),
+        Expanded(child: _buildEnemyInfo()),
+      ],
     );
   }
 
@@ -112,81 +108,90 @@ class BattleInfoRegion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        _buildInfoTitle(),
-        Text('等级: ${info.level}'),
-        _buildInfoRoll('生命值', info.health),
-        _buildInfoRoll('攻击力', info.attack),
-        _buildInfoRoll('防御力', info.defence),
+        _buildInfoRow(_buildInfoName(), _buildInfoEmoji()),
+        _buildInfoRow(_buildInfoLabel('等级'), _buildInfoNormal(info.level)),
+        _buildInfoRow(_buildInfoLabel('生命值'), _buildInfoNotifier(info.health)),
+        _buildInfoRow(_buildInfoLabel('攻击力'), _buildInfoNotifier(info.attack)),
+        _buildInfoRow(_buildInfoLabel('防御力'), _buildInfoNotifier(info.defence)),
         _buildGlobalStatus(),
       ],
     );
   }
 
-  Widget _buildInfoTitle() {
+  Widget _buildInfoRow(Widget title, Widget content) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ValueListenableBuilder(
-          valueListenable: info.name,
-          builder: (context, value, child) {
-            return Text(value);
-          },
-        ),
-        ValueListenableBuilder(
-          valueListenable: info.emoji,
-          builder: (context, value, child) {
-            return ImageManager.getIcon(EntityID.player, value);
-          },
-        ),
+        title,
+        content,
       ],
     );
   }
 
-  Widget _buildInfoRoll(String label, ValueNotifier<int> notifier) {
-    return Row(
-      children: [
-        Text('$label: '),
-        ValueListenableBuilder<int>(
-          valueListenable: notifier,
-          builder: (context, value, child) {
-            return TweenAnimationBuilder(
-              tween:
-                  Tween<double>(begin: value.toDouble(), end: value.toDouble()),
-              duration: const Duration(milliseconds: 500),
-              builder: (context, double value, child) {
-                return Text(
-                  '${value.toInt()}',
-                  key: ValueKey<int>(value.toInt()),
-                );
-              },
+  Widget _buildInfoName() {
+    return ValueListenableBuilder(
+      valueListenable: info.name,
+      builder: (context, value, child) {
+        return Text(value);
+      },
+    );
+  }
+
+  Widget _buildInfoEmoji() {
+    return ValueListenableBuilder(
+      valueListenable: info.emoji,
+      builder: (context, value, child) {
+        return ImageManager.getIcon(EntityID.player, value);
+      },
+    );
+  }
+
+  Widget _buildInfoLabel(String label) {
+    return Text('$label: ');
+  }
+
+  Widget _buildInfoNormal(int value) {
+    return Text('$value');
+  }
+
+  Widget _buildInfoNotifier(ValueNotifier<int> notifier) {
+    return ValueListenableBuilder<int>(
+      valueListenable: notifier,
+      builder: (context, value, child) {
+        return TweenAnimationBuilder(
+          tween: Tween<double>(begin: value.toDouble(), end: value.toDouble()),
+          duration: const Duration(milliseconds: 500),
+          builder: (context, double value, child) {
+            return Text(
+              '${value.toInt()}',
+              key: ValueKey<int>(value.toInt()),
             );
           },
-        ),
-      ],
+        );
+      },
     );
   }
 
   Widget _buildGlobalStatus() {
     return ValueListenableBuilder(
       valueListenable: info.resumes,
-      builder: (context, value, child) {
-        List<Widget> widgets = [];
-
-        // 添加当前元素到第一行
-        widgets.add(_buildElementBox(value[0]));
-
-        // 添加其余元素到第二行
-        List<Widget> otherWidgets = List.generate(value.length - 1, (index) {
-          return _buildElementBox(value[index + 1]);
-        });
-
-        // 如果有其他元素，则添加到第二行
-        widgets.add(Wrap(children: otherWidgets));
+      builder: (context, List<EnergyResume> resumes, child) {
+        final front = resumes.isNotEmpty
+            ? _buildElementBox(resumes.first)
+            : const SizedBox.shrink();
+        final backend = resumes.length > 1
+            ? Wrap(
+                children: resumes.skip(1).map(_buildElementBox).toList(),
+              )
+            : const SizedBox.shrink();
 
         return Column(
-          children: widgets,
+          children: [
+            front,
+            backend,
+          ],
         );
       },
     );
