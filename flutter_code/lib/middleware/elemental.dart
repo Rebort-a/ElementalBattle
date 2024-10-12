@@ -23,7 +23,9 @@ class ElementalPreview {
   final ValueNotifier<int> capacity = ValueNotifier(0);
   final ValueNotifier<int> attack = ValueNotifier(0);
   final ValueNotifier<int> defence = ValueNotifier(0);
+  final ValueNotifier<double> emoji = ValueNotifier(0);
   int survival = 0;
+  int level = 0;
 
   updateActualInfo(List<Energy> energies, int current) {
     survival = 0;
@@ -50,6 +52,9 @@ class ElementalPreview {
         energies[current].attackBase + energies[current].attackOffset;
     defence.value =
         energies[current].defenceBase + energies[current].defenceOffset;
+
+    emoji.value =
+        (survival / energies.length) * (health.value / capacity.value);
   }
 
   updateInferenceInfo(int attackValue, int defenceValue) {
@@ -80,6 +85,7 @@ class Elemental extends MovableEntity {
   }) {
     energies = getEnergy(count); // 根据元素数量初始化元素列表
     _current = _random.nextInt(count); // 当前元素为随机
+    preview.level = level;
     updatePreview();
   }
 

@@ -114,28 +114,32 @@ class BattleInfoRegion extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildInfo(info.name),
-        _buildInfoRoll("生命值", info.health),
-        _buildInfoRoll("攻击力", info.attack),
-        _buildInfoRoll("防御力", info.defence),
+        _buildInfoTitle(),
+        Text('等级: ${info.level}'),
+        _buildInfoRoll('生命值', info.health),
+        _buildInfoRoll('攻击力', info.attack),
+        _buildInfoRoll('防御力', info.defence),
         _buildGlobalStatus(),
       ],
     );
   }
 
-  Widget _buildInfo(ValueNotifier notifier) {
-    return ValueListenableBuilder(
-      valueListenable: notifier,
-      builder: (context, value, child) {
-        double emoji = (info.survival / info.resumes.value.length);
-
-        return Row(
-          children: [
-            Text(value),
-            ImageManager.getIcon(EntityID.player, emoji),
-          ],
-        );
-      },
+  Widget _buildInfoTitle() {
+    return Row(
+      children: [
+        ValueListenableBuilder(
+          valueListenable: info.name,
+          builder: (context, value, child) {
+            return Text(value);
+          },
+        ),
+        ValueListenableBuilder(
+          valueListenable: info.emoji,
+          builder: (context, value, child) {
+            return ImageManager.getIcon(EntityID.player, value);
+          },
+        ),
+      ],
     );
   }
 

@@ -21,6 +21,7 @@ class PlayerElemental extends Elemental {
     if (gained >= 30) {
       gained -= 30;
       level++;
+      preview.level++;
     }
   }
 }

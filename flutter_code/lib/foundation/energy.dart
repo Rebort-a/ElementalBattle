@@ -276,7 +276,7 @@ class EnergyCombat {
     effect = defender.effects[EffectID.restoreLife.index];
     if (effect.expend()) {
       int recovery =
-          (effect.value * (defender.capacityBase + defender.capacityExtra))
+          (effect.value * (attacker.capacityBase + attacker.capacityExtra))
               .round();
 
       defender.recoverHealth(recovery);

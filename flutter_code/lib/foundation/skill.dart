@@ -403,11 +403,11 @@ class SkillCollection {
   static final CombatSkill fireActive_2 = CombatSkill(
     id: SkillID.fireActive_2,
     name: "灼烧",
-    description: "造成的法术伤害，会使敌人烧伤，使其再次受到伤害时，将会追加本次伤害25%的伤害，生效一次。",
+    description: "造成的法术伤害，会使敌人烧伤，使其再次受到伤害时，将会追加本次伤害50%的伤害，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.hotDamage.index].value = 0.25;
+      effects[EffectID.hotDamage.index].value = 0.5;
       effects[EffectID.hotDamage.index].times += 1;
     },
   );
