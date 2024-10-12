@@ -512,7 +512,7 @@ class HomeLogic {
 
   void _upgradePlayer(int index, AttributeType attribute) {
     if (player.experience >= 30) {
-      player.experience -= 30;
+      player.changeExperience(-30);
       player.upgradeEnergy(index, attribute);
       showPage.value = (BuildContext context) {
         SnackBarMessage(context, '升级成功！');

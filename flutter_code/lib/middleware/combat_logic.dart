@@ -209,7 +209,7 @@ class CombatLogic {
       case ActionType.parry:
         enemy.sufferSkill(enemy.current, SkillCollection.baseParry);
         combatMessage.value +=
-            ('${enemy.energies[enemy.current].name} 施放了${SkillCollection.baseParry.name}, ${enemy.energies[enemy.current].name} 获得效果${SkillCollection.baseParry.description}\n');
+            ('${enemy.energies[enemy.current].name} 施放了${SkillCollection.baseParry.name}, ${enemy.energies[enemy.current].name} 获得效果 ${SkillCollection.baseParry.description}\n');
         break;
       case ActionType.skill:
         _handleEnemySkill();
@@ -233,7 +233,7 @@ class CombatLogic {
     targetEnergy.sufferSkill(skill);
 
     combatMessage.value +=
-        ('${enemy.energies[enemy.current].name} 施放了${skill.name}, ${targetEnergy.name} 获得效果${skill.description}\n');
+        ('${enemy.energies[enemy.current].name} 施放了${skill.name}, ${targetEnergy.name} 获得效果 ${skill.description}\n');
 
     if (skill.id == SkillID.woodActive_0) {
       result = enemy.battleWith(enemy, enemy.current, combatMessage);
@@ -273,17 +273,17 @@ class CombatLogic {
     switch (result) {
       case 1:
         combatResult = ResultType.victory;
-        player.experience += 10 + 2 * enemy.level;
+        player.changeExperience(10 + 2 * enemy.level);
         showPage.value = _showCombatResult;
         break;
       case -1:
         combatResult = ResultType.defeat;
-        player.experience -= 5;
+        player.changeExperience(-5);
         showPage.value = _showCombatResult;
         break;
       case -2:
         combatResult = ResultType.escape;
-        player.experience -= 2;
+        player.changeExperience(2);
         showPage.value = _showCombatResult;
         break;
       case 2:
