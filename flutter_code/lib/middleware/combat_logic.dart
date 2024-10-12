@@ -283,7 +283,7 @@ class CombatLogic {
         break;
       case -2:
         combatResult = ResultType.escape;
-        player.changeExperience(2);
+        player.changeExperience(-2);
         showPage.value = _showCombatResult;
         break;
       case 2:
