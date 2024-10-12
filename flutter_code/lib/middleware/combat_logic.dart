@@ -186,11 +186,13 @@ class CombatLogic {
 
   ActionType _getEnemyAction() {
     // 敌方的行为是根据概率随机的
-    int randVal = _random.nextInt(1000);
-    if (randVal < 10) {
+    int randVal = _random.nextInt(128);
+    if (randVal < 1) {
       return ActionType.escape;
-    } else if (randVal < 150) {
+    } else if (randVal < 16) {
       return ActionType.parry;
+    } else if (randVal < 32) {
+      return ActionType.skill;
     } else {
       return ActionType.attack;
     }

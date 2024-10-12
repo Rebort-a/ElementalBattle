@@ -15,6 +15,9 @@ import '../upper/skill_page.dart';
 import '../upper/status_page.dart';
 import '../upper/store_page.dart';
 
+// 敌人名称
+const List<String> enemyNames = ["小鬼", "小丑", "恶魔", "鬼王"];
+
 class HomeLogic {
   final _random = Random(); // 初始化随机生成器
 

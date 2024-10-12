@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import '../foundation/energy.dart';
 import '../foundation/skill.dart';
 
-// 敌人名称
-const List<String> enemyNames = ["敌方小弟", "敌方大哥", "敌方长老", "敌方魔王"];
-
 // 战斗结果类型
 enum ResultType { continued, victory, defeat, escape, draw }
 

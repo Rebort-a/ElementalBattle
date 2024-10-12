@@ -252,9 +252,16 @@ class EnergyCombat {
 
     effect = attacker.effects[EffectID.sacrificing.index];
     if (effect.expend()) {
-      coeff *= (1 + ((attacker.health - 1) / (attacker.capacityBase)));
+      int deduction = attacker.health - effect.value.round();
 
-      attacker.deductHealth(attacker.health - effect.value.round(), true);
+      double increaseCoeff = deduction / attacker.capacityBase;
+
+      coeff *= (1 + increaseCoeff);
+
+      attacker.deductHealth(deduction, true);
+
+      message +=
+          ('${attacker.name} 对自身造成 $deduction ⚡法术伤害，伤害系数提高 ${(increaseCoeff * 100).toStringAsFixed(0)}% ， 当前生命值为 ${attacker.health}\n');
     }
 
     effect = attacker.effects[EffectID.coeffcient.index];
