@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_code/foundation/effect.dart';
 
+import '../foundation/effect.dart';
 import '../foundation/energy.dart';
 import '../middleware/player.dart';
 

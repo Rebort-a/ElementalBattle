@@ -98,7 +98,7 @@ class _SkillsPageState extends State<SkillsPage> {
             child: const Text('学习'),
             onPressed: () {
               if (widget.player.experience >= 30) {
-                widget.player.changeExperience(-30);
+                widget.player.experience -= 30;
                 SnackBarMessage(context, '学习成功！');
                 setState(() {
                   _playerSkills[index].learned = true;

@@ -188,7 +188,7 @@ class Energy {
     }
   }
 
-// 遭受技能
+  // 遭受技能
   sufferSkill(CombatSkill skill) {
     skill.handler(skills, effects);
   }
@@ -215,7 +215,7 @@ class EnergyCombat {
       attack += (defender.health * effect.value).round();
     }
 
-    effect = attacker.effects[EffectID.strengthenAttribute.index];
+    effect = attacker.effects[EffectID.strengthen.index];
     if (expend ? effect.expend() : effect.check()) {
       attack += (attack * effect.value).round();
     }
@@ -232,7 +232,7 @@ class EnergyCombat {
     int defence = defender.defenceBase + defender.defenceOffset;
     CombatEffect effect;
 
-    effect = defender.effects[EffectID.strengthenAttribute.index];
+    effect = defender.effects[EffectID.strengthen.index];
     if (expend ? effect.expend() : effect.check()) {
       defence += (defence * effect.value).round();
     }
@@ -316,7 +316,10 @@ class EnergyCombat {
         enchantRatio = effect.value;
         if (enchantRatio > 1) {
           enchantRatio = 1;
+        } else if (enchantRatio < 0) {
+          enchantRatio = 0;
         }
+        effect.value = 0;
       }
 
       double physicsAttack = attack * (1 - enchantRatio);
@@ -407,7 +410,7 @@ class EnergyCombat {
   static int handleDeductHealth(Energy energy, int damage, bool damageType,
       int Function(int) changeHealth) {
     damage = -changeHealth(-damage);
-    _handleAdjustByDamage(energy, damage);
+    _handleAdjustByDamage(energy, damage, damageType);
 
     _handleExemptionDeath(energy);
 
@@ -418,7 +421,8 @@ class EnergyCombat {
     return energy.health > 0 ? 0 : 1;
   }
 
-  static void _handleAdjustByDamage(Energy energy, int damage) {
+  static void _handleAdjustByDamage(
+      Energy energy, int damage, bool damageType) {
     CombatEffect effect = energy.effects[EffectID.adjustAttribute.index];
     if (effect.expend()) {
       int health = energy.health + damage;
@@ -432,6 +436,12 @@ class EnergyCombat {
 
       energy.changeDefenceOffset(-adjustValue);
       energy.changeAttackOffset((adjustValue * effect.value).round());
+
+      if (damageType) {
+        effect = energy.effects[EffectID.enchanting.index];
+        effect.value += damageRatio;
+        effect.times += 1;
+      }
     }
   }
 
@@ -527,7 +537,7 @@ class EnergyCombat {
   int _handleDamageToCounter(Energy attacker, Energy defender) {
     int result = 0;
 
-    CombatEffect effect = defender.effects[EffectID.luker.index];
+    CombatEffect effect = defender.effects[EffectID.rugged.index];
     if (effect.expend()) {
       double attack =
           ((defender.capacityBase + defender.capacityExtra) - defender.health) *
@@ -535,12 +545,10 @@ class EnergyCombat {
 
       int defence = handleDefenceEffect(defender, attacker, true);
 
-      for (int i = 0; i < 2; i++) {
-        result = -_handleAttack(
-            defender, attacker, attack, defence, effect.value, false);
-        if (result != 0) {
-          return result;
-        }
+      result = -_handleAttack(
+          defender, attacker, attack, defence, effect.value, false);
+      if (result != 0) {
+        return result;
       }
     }
 

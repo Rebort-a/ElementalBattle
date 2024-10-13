@@ -273,17 +273,18 @@ class CombatLogic {
     switch (result) {
       case 1:
         combatResult = ResultType.victory;
-        player.changeExperience(10 + 2 * enemy.level);
+        player.experience += 10 + 2 * enemy.level;
         showPage.value = _showCombatResult;
         break;
       case -1:
         combatResult = ResultType.defeat;
-        player.changeExperience(-5);
+        player.experience -= 5;
+        ;
         showPage.value = _showCombatResult;
         break;
       case -2:
         combatResult = ResultType.escape;
-        player.changeExperience(-2);
+        player.experience -= 2;
         showPage.value = _showCombatResult;
         break;
       case 2:

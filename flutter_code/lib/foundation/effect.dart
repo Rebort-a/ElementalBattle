@@ -1,12 +1,12 @@
 // 效果标识
 enum EffectID {
-  multipleHit,
-
   restoreLife,
+
+  multipleHit,
 
   giantKiller,
 
-  strengthenAttribute,
+  strengthen,
 
   weakenAttack,
 
@@ -36,7 +36,7 @@ enum EffectID {
 
   accumulateAnger,
 
-  luker,
+  rugged,
 
   hotDamage,
 
