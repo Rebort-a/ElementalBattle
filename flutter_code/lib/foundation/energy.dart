@@ -323,7 +323,6 @@ class EnergyCombat {
       effect = attacker.effects[EffectID.enchanting.index];
       if (effect.expend()) {
         enchantRatio = effect.value;
-        effect.value = 0;
         if (enchantRatio > 1) {
           enchantRatio = 1;
         } else if (enchantRatio < 0) {
@@ -448,7 +447,7 @@ class EnergyCombat {
 
       if (damageType) {
         effect = energy.effects[EffectID.enchanting.index];
-        effect.value += damageRatio;
+        effect.value = damageRatio;
         effect.times += 1;
       }
     }
