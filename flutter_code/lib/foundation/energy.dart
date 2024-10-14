@@ -3,7 +3,7 @@ import 'dart:math';
 import 'effect.dart';
 import 'skill.dart';
 
-// 灵根：特征，体系，潜力的统称（实在找不到更合适的单词🥹），灵根拥有独立的属性，技能和效果
+// 灵根：特征，体系，潜力的统称（实在找不到更合适的单词[允悲]），灵根拥有独立的属性，技能和效果
 
 // 五灵根枚举类型，按照相生顺序排列
 enum EnergyType { metal, water, wood, fire, earth }
@@ -19,7 +19,7 @@ const List<String> attributeNames = ["❤️", "⚔️", "🛡️"];
 
 // 灵根类
 class Energy {
-  late int _health; // 血量，不能直接修改
+  late int _health; // 血量
 
   late int _capacityBase; // 上限
   late int _capacityExtra; // 额外上限
@@ -278,10 +278,10 @@ class EnergyCombat {
     return coeff;
   }
 
-  int _handleCombat(Energy attacker, Energy defender) {
-    CombatEffect effect;
+  int _handleInstantlyEffect(Energy attacker, Energy defender) {
+    int result = 0;
 
-    effect = defender.effects[EffectID.restoreLife.index];
+    CombatEffect effect = defender.effects[EffectID.restoreLife.index];
     if (effect.expend()) {
       int recovery =
           (effect.value * (attacker.capacityBase + attacker.capacityExtra))
@@ -290,10 +290,21 @@ class EnergyCombat {
       defender.recoverHealth(recovery);
       message +=
           ('${defender.name} 回复了 $recovery 生命值❤️‍🩹, 当前生命值为 ${defender.health}\n');
-      return 0;
+      result = 1;
     }
 
+    return result;
+  }
+
+  int _handleCombat(Energy attacker, Energy defender) {
+    int result = 0;
     int combatCount = 1;
+    CombatEffect effect;
+
+    result = _handleInstantlyEffect(attacker, defender);
+    if (result != 0) {
+      return 0;
+    }
 
     effect = attacker.effects[EffectID.multipleHit.index];
     if (effect.expend()) {
@@ -301,8 +312,6 @@ class EnergyCombat {
     }
 
     for (int i = 0; i < combatCount; ++i) {
-      int result = 0;
-
       int attack = handleAttackEffect(attacker, defender, true);
 
       int defence = handleDefenceEffect(attacker, defender, true);
@@ -314,12 +323,12 @@ class EnergyCombat {
       effect = attacker.effects[EffectID.enchanting.index];
       if (effect.expend()) {
         enchantRatio = effect.value;
+        effect.value = 0;
         if (enchantRatio > 1) {
           enchantRatio = 1;
         } else if (enchantRatio < 0) {
           enchantRatio = 0;
         }
-        effect.value = 0;
       }
 
       double physicsAttack = attack * (1 - enchantRatio);

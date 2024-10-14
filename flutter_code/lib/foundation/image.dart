@@ -178,8 +178,8 @@ class ImageManager {
           default:
             return Colors.blueGrey;
         }
-      case EntityID.experience:
-      case EntityID.businessman:
+      case EntityID.train:
+      case EntityID.store:
       case EntityID.home:
         return Colors.teal;
       case EntityID.weak:
@@ -201,7 +201,7 @@ class ImageManager {
         return Container(); // 道路
       case EntityID.wall:
         return const Text('🧱'); // 墙壁
-      case EntityID.player:
+      case EntityID.player: // 玩家
         if (proportion < 0.25) {
           return const Text('😢');
         } else if (proportion < 0.5) {
@@ -215,9 +215,9 @@ class ImageManager {
         return const Icon(Icons.exit_to_app); // 入口
       case EntityID.exit:
         return const Icon(Icons.door_sliding); // 出口
-      case EntityID.experience:
+      case EntityID.train:
         return const Text('🏟️'); // 训练场
-      case EntityID.businessman:
+      case EntityID.store:
         return const Text('🏦'); // 商店
       case EntityID.home:
         return const Text('🏠'); // 家

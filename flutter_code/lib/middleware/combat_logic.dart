@@ -279,7 +279,6 @@ class CombatLogic {
       case -1:
         combatResult = ResultType.defeat;
         player.experience -= 5;
-        ;
         showPage.value = _showCombatResult;
         break;
       case -2:
@@ -321,9 +320,11 @@ class CombatLogic {
         break;
     }
 
-    DialogMessage(context, title, content, () => {}, () {
+    DialogMessage(context, title, content, () {
+      return true;
+    }, () {
       _navigateToHomePage(context, combatResult);
-    });
+    }, () => {});
   }
 
   _navigateToHomePage(BuildContext context, ResultType combatResult) {

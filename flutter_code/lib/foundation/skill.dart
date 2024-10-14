@@ -158,7 +158,7 @@ class SkillCollection {
   static final CombatSkill woodPassive_0 = CombatSkill(
     id: SkillID.woodPassive_0,
     name: "扎根",
-    description: "造成伤害后，根据伤害量的40%，回复生命。\n\n没有一滴血是原装的。",
+    description: "造成伤害后，根据伤害量的40%，回复生命。\n\n吐垢纳新，师法天地。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -170,7 +170,7 @@ class SkillCollection {
   static final CombatSkill firePassive_0 = CombatSkill(
     id: SkillID.firePassive_0,
     name: "燃烧吧",
-    description: "攻击时，获得100%附魔比例，造成无视防御的法术伤害。\n\n艺术就是派大星。",
+    description: "攻击时，获得100%附魔比例，造成无视防御的法术伤害。\n\n燃起来了。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -182,7 +182,7 @@ class SkillCollection {
   static final CombatSkill earthPassive_0 = CombatSkill(
     id: SkillID.earthPassive_0,
     name: "承天载物",
-    description: "受到伤害后，将物理伤害的50%和法术伤害的15%，作为加成提高下次攻击的攻击力。\n\n力的作用是相互的。",
+    description: "受到伤害后，将物理伤害的50%和法术伤害的15%作为加成，提高下次攻击的攻击力。\n\n力的作用是相互的。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -356,7 +356,7 @@ class SkillCollection {
   static final CombatSkill earthActive_1 = CombatSkill(
     id: SkillID.earthActive_1,
     name: "承天载物",
-    description: "可以施加给己方任一元素，使其受到伤害后，将物理伤害的50%和法术伤害的15%，作为加成提高下次攻击的攻击力，生效两次。",
+    description: "可以施加给己方任一元素，使其受到伤害后，将物理伤害的50%和法术伤害的15%作为加成，提高下次攻击的攻击力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -392,11 +392,11 @@ class SkillCollection {
   static final CombatSkill woodActive_2 = CombatSkill(
     id: SkillID.woodActive_2,
     name: "拔苗助长",
-    description: "回复生命的溢出量可以提高额外的生命上限，额外生命上限不能超过基础生命上限，生效一次。",
+    description: "回复生命的溢出量可以超过基础生命上限，但是不能超过基础生命上限的100%，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.increaseCapacity.index].value = 0;
+      effects[EffectID.increaseCapacity.index].value = 1;
       effects[EffectID.increaseCapacity.index].times += 1;
     },
   );
@@ -416,11 +416,11 @@ class SkillCollection {
   static final CombatSkill earthActive_2 = CombatSkill(
     id: SkillID.earthActive_2,
     name: "地刺",
-    description: "受到伤害时，将已损失生命值的25%作为攻击力，造成一次伤害系数为25%的物理伤害，生效两次。",
+    description: "受到伤害时，将已损失生命值的50%作为攻击力，造成一次伤害系数为50%的物理伤害，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.rugged.index].value = 0.25;
+      effects[EffectID.rugged.index].value = 0.5;
       effects[EffectID.rugged.index].times += 2;
     },
   );

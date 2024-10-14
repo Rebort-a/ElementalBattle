@@ -19,6 +19,8 @@ import '../upper/store_page.dart';
 const List<String> enemyNames = ["小鬼", "小丑", "恶魔", "鬼王"];
 
 class HomeLogic {
+  bool _routed = true; // 是可跳转到其他页面或进行弹窗
+
   final _random = Random(); // 初始化随机生成器
 
   final int _height = 2 * mapLevel + 1, _width = 2 * mapLevel + 1; // 确定地图的宽和高
@@ -69,8 +71,8 @@ class HomeLogic {
 
     // 添加玩家、NPC和入口
     _setCellToPlayer(mapLevel, mapLevel, player.id);
-    _setCellToEntity(mapLevel, _width - 1, EntityID.experience);
-    _setCellToEntity(mapLevel, 0, EntityID.businessman);
+    _setCellToEntity(mapLevel, _width - 1, EntityID.train);
+    _setCellToEntity(mapLevel, 0, EntityID.store);
     _setCellToEntity(_height - 1, mapLevel, EntityID.home);
     _setCellToEntity(_height - 1, _width - 1, EntityID.enter);
   }
@@ -232,13 +234,20 @@ class HomeLogic {
   }
 
   void _startActive() {
+    _routed = true;
     _startKeyboard();
     _startTimer();
   }
 
-  void _stopActive() {
-    _stopKeyboard();
-    _stopTimer();
+  bool _stopActive() {
+    if (!_routed) {
+      return false;
+    } else {
+      _routed = false;
+      _stopKeyboard();
+      _stopTimer();
+      return true;
+    }
   }
 
   void _fillHandler() {
@@ -287,38 +296,41 @@ class HomeLogic {
   }
 
   void _navigateAndSetActive(BuildContext context, Widget page) {
-    _stopActive(); // 暂停定时器
-    Navigator.push(context, MaterialPageRoute(builder: (context) => page))
-        .then((_) {
-      // 当页面弹出（即返回）时，这个回调会被执行
-      _updatePlayerCell(); // 更新玩家
-      _startActive(); // 重新启动定时器
-    });
+    if (_stopActive()) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => page))
+          .then((_) {
+        // 当页面弹出（即返回）时，这个回调会被执行
+        _updatePlayerCell(); // 更新玩家
+        _startActive(); // 重新启动定时器
+      });
+    }
   }
 
   void navigateToCombatPage(
       BuildContext context, EnemyElemental enemy, bool offensive) {
-    _stopActive(); // 暂停定时器
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => CombatPage(
-                player: player,
-                enemy: enemy,
-                offensive: offensive,
-              )),
-    ).then((value) {
-      _updatePlayerCell();
-      _startActive(); // 重新启动定时器
-      if (value is ResultType) {
-        if (value == ResultType.victory) {
-          _mapData.entities.remove(enemy);
-          _setCellToEntity(enemy.y, enemy.x, EntityID.road); // 从地图上清除敌人
-        } else if (value == ResultType.defeat) {
-          _backToMain();
+    if (_stopActive()) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => CombatPage(
+                  player: player,
+                  enemy: enemy,
+                  offensive: offensive,
+                )),
+      ).then((value) {
+        // 当页面弹出（即返回）时，这个回调会被执行
+        _updatePlayerCell(); // 更新玩家
+        _startActive(); // 重新启动定时器
+        if (value is ResultType) {
+          if (value == ResultType.victory) {
+            _mapData.entities.remove(enemy);
+            _setCellToEntity(enemy.y, enemy.x, EntityID.road); // 从地图上清除敌人
+          } else if (value == ResultType.defeat) {
+            _backToMain();
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   void _backToMain() {
@@ -381,19 +393,19 @@ class HomeLogic {
         case EntityID.exit:
           _setCellToPlayer(newY, newX, EntityID.exit);
           break;
-        case EntityID.experience:
+        case EntityID.train:
           showPage.value = (BuildContext context) {
             UpgradeDialog(context, _stopActive, _startActive, _upgradePlayer);
           };
           break;
-        case EntityID.businessman:
+        case EntityID.store:
           showPage.value = navigateToStorePage;
           break;
         case EntityID.home:
           _restorePlayer();
           showPage.value = (BuildContext context) {
-            DialogMessage(
-                context, "提示", "你睡了一觉，恢复了状态", _stopActive, _startActive);
+            DialogMessage(context, "提示", "你睡了一觉，恢复了状态", _stopActive, () => {},
+                _startActive);
           };
           break;
         case EntityID.hospital:

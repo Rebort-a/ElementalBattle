@@ -169,7 +169,7 @@ class HomeDirectionRegion extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(height: 16),
-        CustomDirectionButton(
+        ScaleButton(
           size: const Size(48, 48),
           onTap: homeLogic.movePlayerUp,
         ),
@@ -177,19 +177,19 @@ class HomeDirectionRegion extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CustomDirectionButton(
+            ScaleButton(
               size: const Size(48, 48),
               onTap: homeLogic.movePlayerLeft,
             ),
             const SizedBox(width: 64), // 在左键和右键之间添加空间
-            CustomDirectionButton(
+            ScaleButton(
               size: const Size(48, 48),
               onTap: homeLogic.movePlayerRight,
             ),
           ],
         ),
         const SizedBox(height: 16), // 在左键和下键之间添加空间
-        CustomDirectionButton(
+        ScaleButton(
           size: const Size(48, 48),
           onTap: homeLogic.movePlayerDown,
         ),

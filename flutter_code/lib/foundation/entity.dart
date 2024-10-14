@@ -1,25 +1,25 @@
 // 实体标识
 enum EntityID {
-  road,
-  wall,
+  road, // 道路
+  wall, // 墙壁
 
-  enter,
-  exit,
+  enter, // 入口
+  exit, // 出口
 
-  experience,
-  businessman,
-  home,
+  train, // 训练场
+  store, // 商店
+  home, // 家
 
-  hospital,
-  sword,
-  shield,
-  purse,
-  scroll,
+  hospital, // 药品
+  sword, // 剑
+  shield, // 盾
+  purse, // 钱袋
+  scroll, // 卷轴
 
-  player,
+  player, // 玩家
 
-  weak,
-  opponent,
-  strong,
-  boss
+  weak, // 弱鸡
+  opponent, // 对手
+  strong, // 强敌
+  boss // 魔王
 }
