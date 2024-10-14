@@ -226,8 +226,8 @@ class CombatLogic {
 
     Energy targetEnergy =
         (enemy.energies[enemy.current].type == EnergyType.water)
-            ? enemy.energies[enemy.current]
-            : player.energies[player.current];
+            ? player.energies[player.current]
+            : enemy.energies[enemy.current];
 
     int result = 0;
 
