@@ -321,7 +321,7 @@ class _ScaleButtonState extends State<ScaleButton>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 100),
     )..addListener(() {
         setState(() {});
       });

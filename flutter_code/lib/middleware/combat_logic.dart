@@ -224,9 +224,10 @@ class CombatLogic {
     CombatSkill skill = SkillCollection
         .totalSkills[enemy.energies[enemy.current].type.index][1];
 
-    Energy targetEnergy = (skill.targetType == SkillTarget.selfFront)
-        ? enemy.energies[enemy.current]
-        : player.energies[player.current];
+    Energy targetEnergy =
+        (enemy.energies[enemy.current].type == EnergyType.water)
+            ? enemy.energies[enemy.current]
+            : player.energies[player.current];
 
     int result = 0;
 

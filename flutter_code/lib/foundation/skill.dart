@@ -67,6 +67,26 @@ class CombatSkill {
     required this.targetType,
     required this.handler,
   });
+
+  // 实现copyWith方法
+  CombatSkill copyWith({
+    SkillID? id,
+    String? name,
+    String? description,
+    SkillType? type,
+    SkillTarget? targetType,
+    void Function(List<CombatSkill> skills, List<CombatEffect> effects)?
+        handler,
+  }) {
+    return CombatSkill(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      type: type ?? this.type,
+      targetType: targetType ?? this.targetType,
+      handler: handler ?? this.handler,
+    );
+  }
 }
 
 class SkillCollection {

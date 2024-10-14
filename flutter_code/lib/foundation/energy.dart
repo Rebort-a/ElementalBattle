@@ -121,7 +121,7 @@ class Energy {
     // 长度为本属性所有可用技能
     _skills =
         List.generate(SkillCollection.totalSkills[type.index].length, (index) {
-      return SkillCollection.totalSkills[type.index][index];
+      return SkillCollection.totalSkills[type.index][index].copyWith();
     });
 
     // 默认学习第一个技能
