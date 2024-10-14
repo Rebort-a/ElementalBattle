@@ -254,6 +254,7 @@ class SkillCollection {
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
+      effects[EffectID.sacrificing.index].value = 1;
       effects[EffectID.sacrificing.index].times += 1;
     },
   );

@@ -135,7 +135,7 @@ class Energy {
       return CombatEffect(
         id: EffectID.values[index],
         type: EffectType.limited,
-        value: 1,
+        value: 0,
         times: 0,
       );
     });
@@ -267,7 +267,9 @@ class EnergyCombat {
     effect = attacker.effects[EffectID.coeffcient.index];
     if (effect.expend()) {
       coeff *= (1 + effect.value);
-      effect.value = 1;
+      if (!effect.check()) {
+        effect.value = 0;
+      }
     }
 
     effect = defender.effects[EffectID.parryState.index];
@@ -322,11 +324,15 @@ class EnergyCombat {
 
       effect = attacker.effects[EffectID.enchanting.index];
       if (effect.expend()) {
+        if (effect.value > 1) {
+          effect.value = 1;
+        } else if (effect.value < 0) {
+          effect.value = 0;
+        }
         enchantRatio = effect.value;
-        if (enchantRatio > 1) {
-          enchantRatio = 1;
-        } else if (enchantRatio < 0) {
-          enchantRatio = 0;
+
+        if (!effect.check()) {
+          effect.value = 0;
         }
       }
 
@@ -335,14 +341,14 @@ class EnergyCombat {
 
       effect = attacker.effects[EffectID.physicsAddition.index];
       if (effect.expend()) {
-        physicsAttack += effect.value - 1;
-        effect.value = 1;
+        physicsAttack += effect.value;
+        effect.value = 0;
       }
 
       effect = attacker.effects[EffectID.magicAddition.index];
       if (effect.expend()) {
-        magicAttack += effect.value - 1;
-        effect.value = 1;
+        magicAttack += effect.value;
+        effect.value = 0;
       }
 
       result = _handleAttack(
@@ -367,9 +373,9 @@ class EnergyCombat {
           defender, _calculateDamage(attack, defence, coeff));
 
       return _handleDamage(attacker, defender, damage, damageType);
+    } else {
+      return 0;
     }
-
-    return 0;
   }
 
   int _calculateDamage(double attack, int defence, double coeff) {
@@ -390,8 +396,8 @@ class EnergyCombat {
   int _handleDamageAddition(Energy energy, int damage) {
     CombatEffect effect = energy.effects[EffectID.burnDamage.index];
     if (effect.expend()) {
-      damage += effect.value.round() - 1;
-      effect.value = 1;
+      damage += effect.value.round();
+      effect.value = 0;
     }
 
     return damage;
@@ -447,7 +453,7 @@ class EnergyCombat {
 
       if (damageType) {
         effect = energy.effects[EffectID.enchanting.index];
-        effect.value = damageRatio;
+        effect.value += damageRatio;
         effect.times += 1;
       }
     }
@@ -466,14 +472,13 @@ class EnergyCombat {
       Energy energy, int damage, bool damageType) {
     CombatEffect effect = energy.effects[EffectID.accumulateAnger.index];
     if (effect.expend()) {
-      int addition = 0;
       if (damageType) {
-        addition = (damage * effect.value * 0.3).round();
+        int addition = (damage * effect.value * 0.3).round();
         effect = energy.effects[EffectID.magicAddition.index];
         effect.value += addition;
         effect.times = 1;
       } else {
-        addition = (damage * effect.value).round();
+        int addition = (damage * effect.value).round();
         effect = energy.effects[EffectID.physicsAddition.index];
         effect.value += addition;
         effect.times = 1;
