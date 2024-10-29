@@ -27,11 +27,11 @@ class ElementalPreview {
   final ValueNotifier<double> emoji = ValueNotifier(0);
 
   void initInfo(List<Energy> energies, int current) {
-    updateResumesInfo(energies, current);
-    updateCurrentInfo(energies[current]);
+    _updateCurrentInfo(energies[current]);
+    _updateResumesInfo(energies, current);
   }
 
-  void updateResumesInfo(List<Energy> energies, int current) {
+  void _updateResumesInfo(List<Energy> energies, int current) {
     int survival = 0;
 
     resumes.value = List.generate(
@@ -52,7 +52,7 @@ class ElementalPreview {
         (survival / energies.length) * (health.value / capacity.value);
   }
 
-  void updateCurrentInfo(Energy energy) {
+  void _updateCurrentInfo(Energy energy) {
     name.value = energy.name;
     type.value = energyNames[energy.type.index];
     level.value = energy.level;
