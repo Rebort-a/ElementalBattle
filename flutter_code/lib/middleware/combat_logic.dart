@@ -27,12 +27,12 @@ class CombatLogic {
 
   CombatLogic(
       {required this.player, required this.enemy, required this.offensive}) {
-    // 战斗开始前，为当前Energy施加所有已学习的被动技能效果
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _handlePassiveEffect(player);
-      _handlePassiveEffect(enemy);
-      _handleUpdateAttribute();
+      // 战斗开始前，为交战双方施加所有已学习的被动技能效果
+      player.getPassiveEffect();
+      enemy.getPassiveEffect();
+
+      _handleUpdatePrediction();
       if (offensive) {
         combatMessage.value += ("\n你获得了先手\n");
       } else {
@@ -42,34 +42,26 @@ class CombatLogic {
     });
   }
 
-  void _handlePassiveEffect(Elemental elemental) {
-    for (var skill in elemental.energies[elemental.current].skills) {
-      if ((skill.type == SkillType.passive) && skill.learned) {
-        elemental.sufferSkill(elemental.current, skill);
-      }
-    }
-  }
-
   void _switchAppoint(Elemental elemental, int index) {
     elemental.switchAppoint(index);
-    _handlePassiveEffect(elemental);
-    _handleUpdateAttribute();
+    elemental.getPassiveEffect();
+    _handleUpdatePrediction();
     combatMessage.value +=
-        '${elemental.name} 切换为 ${energyNames[elemental.energies[elemental.current].type.index]}\n';
+        '${elemental.name} 切换为 ${elemental.preview.name.value}\n';
   }
 
   int _switchNext(Elemental elemental, int result) {
-    String lastName = elemental.energies[elemental.current].name;
+    String lastName = elemental.preview.name.value;
     elemental.switchNext();
-    _handlePassiveEffect(elemental);
-    if (elemental.energies[elemental.current].health > 0) {
-      _handleUpdateAttribute();
+    elemental.getPassiveEffect();
+    if (elemental.preview.health.value > 0) {
+      _handleUpdatePrediction();
       combatMessage.value +=
-          '${elemental.name} 切换为 ${energyNames[elemental.energies[elemental.current].type.index]}\n';
+          '${elemental.name} 切换为 ${elemental.preview.name.value}\n';
 
       showPage.value = (BuildContext context) {
         SnackBarMessage(context,
-            '连一刻都没有为 $lastName 的死亡哀悼，立刻赶到战场的是 ${elemental.energies[elemental.current].name}');
+            '连一刻都没有为 $lastName 的死亡哀悼，立刻赶到战场的是 ${elemental.preview.name.value}');
       };
       result = 0;
     }
@@ -113,9 +105,10 @@ class CombatLogic {
         case ActionType.skill:
           showPage.value = (BuildContext context) {
             SelectSkill(
-                context: context,
-                energy: player.energies[player.current],
-                handleSkill: _handlePlayerSkillTarget);
+              context: context,
+              skills: player.getCurrentSkills(),
+              handleSkill: _handlePlayerSkillTarget,
+            );
           };
           break;
         case ActionType.escape:
@@ -134,7 +127,7 @@ class CombatLogic {
         showPage.value = (BuildContext context) {
           SelectEnergy(
               context: context,
-              energies: player.energies,
+              elemental: player,
               onSelected: (int index) {
                 _handlePlayerSkill(skill, player, index);
               },
@@ -148,7 +141,7 @@ class CombatLogic {
         showPage.value = (BuildContext context) {
           SelectEnergy(
               context: context,
-              energies: enemy.energies,
+              elemental: enemy,
               onSelected: (int index) {
                 _handlePlayerSkill(skill, enemy, index);
               },
@@ -167,7 +160,7 @@ class CombatLogic {
     targetElemental.sufferSkill(targetIndex, skill);
 
     combatMessage.value +=
-        ('${player.energies[player.current].name} 施放了 ${skill.name}, ${targetElemental.energies[targetIndex].name} 获得效果 ${skill.description}\n');
+        ('${player.preview.name.value} 施放了 ${skill.name}, ${targetElemental.preview.name.value} 获得效果 ${skill.description}\n');
 
     if (skill.id == SkillID.parry) {
       _switchAppoint(targetElemental, targetIndex);
@@ -209,7 +202,7 @@ class CombatLogic {
       case ActionType.parry:
         enemy.sufferSkill(enemy.current, SkillCollection.baseParry);
         combatMessage.value +=
-            ('${enemy.energies[enemy.current].name} 施放了${SkillCollection.baseParry.name}, ${enemy.energies[enemy.current].name} 获得效果 ${SkillCollection.baseParry.description}\n');
+            ('${enemy.preview.name.value} 施放了 ${SkillCollection.baseParry.name}, ${enemy.preview.name.value} 获得效果 ${SkillCollection.baseParry.description}\n');
         break;
       case ActionType.skill:
         _handleEnemySkill();
@@ -221,20 +214,18 @@ class CombatLogic {
   }
 
   void _handleEnemySkill() {
-    CombatSkill skill = SkillCollection
-        .totalSkills[enemy.energies[enemy.current].type.index][1];
+    CombatSkill skill =
+        SkillCollection.totalSkills[enemy.getCurrentEnergy().type.index][1];
 
-    Energy targetEnergy =
-        (enemy.energies[enemy.current].type == EnergyType.water)
-            ? player.energies[player.current]
-            : enemy.energies[enemy.current];
+    Elemental targetElemental =
+        (enemy.getCurrentEnergy().type == EnergyType.water) ? player : enemy;
 
     int result = 0;
 
-    targetEnergy.sufferSkill(skill);
+    targetElemental.sufferSkill(targetElemental.current, skill);
 
     combatMessage.value +=
-        ('${enemy.energies[enemy.current].name} 施放了${skill.name}, ${targetEnergy.name} 获得效果 ${skill.description}\n');
+        ('${enemy.preview.name.value} 施放了 ${skill.name}, ${targetElemental.preview.name.value} 获得效果 ${skill.description}\n');
 
     if (skill.id == SkillID.woodActive_0) {
       result = enemy.battleWith(enemy, enemy.current, combatMessage);
@@ -245,26 +236,13 @@ class CombatLogic {
     _handleCombatResult(-result);
   }
 
-  void _handleUpdateAttribute() {
-    int playerAttack = EnergyCombat.handleAttackEffect(
-        player.energies[player.current], enemy.energies[enemy.current], false);
-
-    int playerDefence = EnergyCombat.handleDefenceEffect(
-        enemy.energies[enemy.current], player.energies[player.current], false);
-
-    int enemyAttack = EnergyCombat.handleAttackEffect(
-        enemy.energies[enemy.current], player.energies[player.current], false);
-
-    int enemyDefence = EnergyCombat.handleDefenceEffect(
-        player.energies[player.current], enemy.energies[enemy.current], false);
-
-    player.preview.updateInferenceInfo(playerAttack, playerDefence);
-
-    enemy.preview.updateInferenceInfo(enemyAttack, enemyDefence);
+  void _handleUpdatePrediction() {
+    player.confrontWith(enemy);
+    enemy.confrontWith(player);
   }
 
   void _handleCombatResult(int result) {
-    _handleUpdateAttribute();
+    _handleUpdatePrediction();
 
     if (result == 1) {
       result = _switchNext(enemy, result);
@@ -274,7 +252,7 @@ class CombatLogic {
     switch (result) {
       case 1:
         combatResult = ResultType.victory;
-        player.experience += 10 + 2 * enemy.level;
+        player.experience += 10 + 2 * enemy.levelTimes;
         showPage.value = _showCombatResult;
         break;
       case -1:

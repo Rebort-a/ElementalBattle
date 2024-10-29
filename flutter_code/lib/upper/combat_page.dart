@@ -111,7 +111,7 @@ class BattleInfoRegion extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         _buildInfoRow(_buildInfoName(), _buildInfoEmoji()),
-        _buildInfoRow(_buildInfoLabel('等级'), _buildInfoNormal(info.level)),
+        _buildInfoRow(_buildInfoLabel('等级'), _buildInfoNotifier(info.level)),
         _buildInfoRow(_buildInfoLabel('生命值'), _buildInfoNotifier(info.health)),
         _buildInfoRow(_buildInfoLabel('攻击力'), _buildInfoNotifier(info.attack)),
         _buildInfoRow(_buildInfoLabel('防御力'), _buildInfoNotifier(info.defence)),
@@ -164,10 +164,6 @@ class BattleInfoRegion extends StatelessWidget {
 
   Widget _buildInfoLabel(String label) {
     return Text('$label: ');
-  }
-
-  Widget _buildInfoNormal(int value) {
-    return Text('$value');
   }
 
   Widget _buildInfoNotifier(ValueNotifier<int> notifier) {

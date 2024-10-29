@@ -59,8 +59,6 @@ class _StatusPageState extends State<StatusPage> {
       children: [
         Text(widget.player.name,
             style: Theme.of(context).textTheme.titleMedium),
-        Text('等级: ${widget.player.level}',
-            style: Theme.of(context).textTheme.labelLarge),
         Text('经验: ${widget.player.experience}',
             style: Theme.of(context).textTheme.labelLarge),
       ],
@@ -70,16 +68,20 @@ class _StatusPageState extends State<StatusPage> {
   Widget _buildAttributeInfo() {
     return Column(
       children: [
+        _buildTextItem('等级: ${widget.player.getAppointEnergy(_index).level}'),
         _buildTextItem(
-            '生命值上限: ${widget.player.energies[_index].capacityBase + widget.player.energies[_index].capacityExtra}'),
-        _buildTextItem('初始攻击力: ${widget.player.energies[_index].attackBase}'),
-        _buildTextItem('初始防御力: ${widget.player.energies[_index].defenceBase}'),
+            '生命值上限: ${widget.player.getAppointEnergy(_index).capacityBase + widget.player.getAppointEnergy(_index).capacityExtra}'),
+        _buildTextItem(
+            '初始攻击力: ${widget.player.getAppointEnergy(_index).attackBase}'),
+        _buildTextItem(
+            '初始防御力: ${widget.player.getAppointEnergy(_index).defenceBase}'),
         const Divider(),
-        _buildTextItem('当前生命值: ${widget.player.energies[_index].health}'),
         _buildTextItem(
-            '当前攻击力: ${widget.player.energies[_index].attackBase + widget.player.energies[_index].attackOffset}'),
+            '当前生命值: ${widget.player.getAppointEnergy(_index).health}'),
         _buildTextItem(
-            '当前防御力: ${widget.player.energies[_index].defenceBase + widget.player.energies[_index].defenceOffset}'),
+            '当前攻击力: ${widget.player.getAppointEnergy(_index).attackBase + widget.player.getAppointEnergy(_index).attackOffset}'),
+        _buildTextItem(
+            '当前防御力: ${widget.player.getAppointEnergy(_index).defenceBase + widget.player.getAppointEnergy(_index).defenceOffset}'),
       ],
     );
   }
@@ -88,7 +90,9 @@ class _StatusPageState extends State<StatusPage> {
     return ListTile(
       title: const Text('掌握技能:', style: TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Column(
-        children: widget.player.energies[_index].skills
+        children: widget.player
+            .getAppointEnergy(_index)
+            .skills
             .where((skill) => skill.learned)
             .map((skill) => _buildTextItem(skill.name))
             .toList(),
@@ -100,7 +104,9 @@ class _StatusPageState extends State<StatusPage> {
     return ListTile(
       title: const Text('获得影响:', style: TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Column(
-        children: widget.player.energies[_index].effects
+        children: widget.player
+            .getAppointEnergy(_index)
+            .effects
             .where((effect) =>
                 (effect.type == EffectType.unlimited || effect.times > 0))
             .map((effect) => _buildTextItem(

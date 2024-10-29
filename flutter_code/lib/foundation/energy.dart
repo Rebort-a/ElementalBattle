@@ -34,6 +34,8 @@ class Energy {
 
   late final List<CombatEffect> _effects; // 效果列表
 
+  int _level = 0;
+
   // 初始数值
   static final List<List<int>> _baseAttributes = [
     [128, 32, 32], // metal
@@ -57,6 +59,8 @@ class Energy {
   List<CombatSkill> get skills => _skills;
 
   List<CombatEffect> get effects => _effects;
+
+  int get level => _level;
 
   int _changeHealth(int value) {
     _health += value;
@@ -178,18 +182,29 @@ class Energy {
       case AttributeType.hp:
         _capacityBase += 32;
         recoverHealth(32);
+        _level++;
         break;
       case AttributeType.atk:
         _attackBase += 8;
+        _level++;
         break;
       case AttributeType.def:
         _defenceBase += 8;
+        _level++;
         break;
     }
   }
 
+  // 学习技能
+  void learnSkill(int index) {
+    if (index < _skills.length) {
+      _skills[index].learned = true;
+      _level++;
+    }
+  }
+
   // 遭受技能
-  sufferSkill(CombatSkill skill) {
+  void sufferSkill(CombatSkill skill) {
     skill.handler(skills, effects);
   }
 }

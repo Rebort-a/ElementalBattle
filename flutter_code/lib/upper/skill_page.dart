@@ -25,7 +25,7 @@ class _SkillsPageState extends State<SkillsPage> {
   }
 
   _updateSkills() {
-    _playerSkills = widget.player.energies[_index].skills;
+    _playerSkills = widget.player.getAppointSkills(_index);
   }
 
   @override

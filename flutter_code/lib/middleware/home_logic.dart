@@ -178,7 +178,7 @@ class HomeLogic {
     _mapData.entities.add(EnemyElemental(
         name: enemyNames[entityID.index - EntityID.weak.index],
         count: elementCount,
-        level: floorNum.value + entityID.index - EntityID.weak.index,
+        levelTimes: floorNum.value + entityID.index - EntityID.weak.index,
         id: entityID,
         y: y,
         x: x));
@@ -484,7 +484,7 @@ class HomeLogic {
   }
 
   void _enterNext(int newY, int newX) {
-    if (player.energies[player.current].health <= 0) {
+    if (player.preview.health.value <= 0) {
       showPage.value = (BuildContext context) {
         SnackBarMessage(context, '无法继续冒险');
       };
@@ -526,7 +526,6 @@ class HomeLogic {
   void _upgradePlayer(int index, AttributeType attribute) {
     if (player.experience >= 30) {
       player.experience -= 30;
-      player.level++;
       player.upgradeEnergy(index, attribute);
       showPage.value = (BuildContext context) {
         SnackBarMessage(context, '升级成功！');
@@ -546,11 +545,10 @@ class HomeLogic {
   void _setCellToPlayer(int newY, int newX, EntityID id) {
     _clearPlayerCurrentCell();
     displayMap.value[newY][newX].value = CellData(
-        id: id,
-        index: player.current + 1,
-        proportion: (player.preview.survival / player.count) *
-            (player.energies[player.current].health /
-                (player.energies[player.current].capacityBase))); // 设置新位置
+      id: id,
+      index: player.current + 1,
+      proportion: player.preview.emoji.value,
+    ); // 设置新位置
     player.updatePosition(newY, newX); // 更新位置
     _setAroundVisibility(player.y, player.x);
   }

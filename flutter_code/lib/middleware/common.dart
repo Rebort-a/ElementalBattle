@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+// import 'package:flutter/services.dart';
 
 import '../foundation/energy.dart';
 import '../foundation/skill.dart';
+import 'elemental.dart';
 
 // 战斗结果类型
 enum ResultType { continued, victory, defeat, escape, draw }
@@ -20,19 +22,19 @@ class AlwaysValueNotifier<T> extends ValueNotifier<T> {
 
 class SelectEnergy {
   final BuildContext context;
-  final List<Energy> energies;
+  final Elemental elemental;
   final void Function(int) onSelected;
   final bool available;
 
   SelectEnergy(
       {required this.context,
-      required this.energies,
+      required this.elemental,
       required this.onSelected,
       required this.available}) {
-    _showEnergy(context, energies, onSelected, available);
+    _showEnergy(context, elemental, onSelected, available);
   }
 
-  _showEnergy(BuildContext context, List<Energy> energies,
+  _showEnergy(BuildContext context, Elemental elemental,
       void Function(int) onSelected, bool available) {
     showDialog(
       context: context,
@@ -41,8 +43,8 @@ class SelectEnergy {
           title: const Text('选择一个元素'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: List.generate(energies.length, (index) {
-              Energy energy = energies[index];
+            children: List.generate(elemental.count, (index) {
+              Energy energy = elemental.getAppointEnergy(index);
               return Column(
                 children: [
                   ElevatedButton(
@@ -80,16 +82,16 @@ class SelectEnergy {
 
 class SelectSkill {
   final BuildContext context;
-  final Energy energy;
+  final List<CombatSkill> skills;
   final void Function(CombatSkill) handleSkill;
   SelectSkill(
       {required this.context,
-      required this.energy,
+      required this.skills,
       required this.handleSkill}) {
-    _showSkills(context, energy, handleSkill);
+    _showSkills(context, skills, handleSkill);
   }
 
-  _showSkills(BuildContext context, Energy energy,
+  _showSkills(BuildContext context, List<CombatSkill> skills,
       void Function(CombatSkill) handleSkill) {
     showDialog(
       context: context,
@@ -98,7 +100,7 @@ class SelectSkill {
           title: const Text('选择一个技能'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: energy.skills
+            children: skills
                 .asMap()
                 .entries
                 .where((entry) =>
@@ -338,6 +340,7 @@ class _ScaleButtonState extends State<ScaleButton>
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      // HapticFeedback.lightImpact();
       widget.onTap();
     });
   }
@@ -354,6 +357,7 @@ class _ScaleButtonState extends State<ScaleButton>
 
   void _onTapUp(TapUpDetails details) {
     _controller.reverse();
+    // HapticFeedback.lightImpact();
   }
 
   void _onTapCancel() {

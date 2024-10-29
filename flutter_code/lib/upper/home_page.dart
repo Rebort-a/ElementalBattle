@@ -61,7 +61,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildMapRegion() {
-    return Expanded(
+    return Flexible(
       child: ValueListenableBuilder(
         valueListenable: homeLogic.displayMap,
         builder: (context, value, child) {
@@ -105,7 +105,7 @@ class HomeInfoRegion extends StatelessWidget {
       child: Row(
         children: [
           const Spacer(flex: 2),
-          _buildInfo("🌈", info.element),
+          _buildInfo("🌈", info.type),
           _buildInfo(attributeNames[AttributeType.hp.index], info.health),
           _buildInfo(attributeNames[AttributeType.atk.index], info.attack),
           _buildInfo(attributeNames[AttributeType.def.index], info.defence),
@@ -206,27 +206,41 @@ class HomeMapRegion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 1.0, // 强制宽高比为1:1，即正方形
+      aspectRatio: 1, // 宽高比为1:1，即正方形
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey, width: 10),
+          border: Border.all(color: Colors.grey, width: 8),
         ),
-        child: GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: map.length,
-          ),
-          itemCount: map.length * map[0].length,
-          itemBuilder: (context, index) {
-            final x = index % map.length;
-            final y = index ~/ map.length;
-            return ValueListenableBuilder(
-              valueListenable: map[y][x],
-              builder: (context, value, child) {
-                return ImageManager.getPresetsImage(
-                    value.id, value.index, value.proportion, value.fog);
-              },
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            return Container(
+              color: Colors.grey,
+              child: Center(
+                child: SizedBox(
+                  height: ((constraints.maxHeight ~/ map.length) * map.length)
+                      .toDouble(),
+                  width:
+                      ((constraints.maxWidth ~/ map[0].length) * map[0].length)
+                          .toDouble(),
+                  child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: map.length,
+                    ),
+                    itemCount: map.length * map[0].length,
+                    itemBuilder: (context, index) {
+                      final x = index % map.length;
+                      final y = index ~/ map.length;
+                      return ValueListenableBuilder(
+                        valueListenable: map[y][x],
+                        builder: (context, value, child) {
+                          return ImageManager.getPresetsImage(value.id,
+                              value.index, value.proportion, value.fog);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
             );
           },
         ),

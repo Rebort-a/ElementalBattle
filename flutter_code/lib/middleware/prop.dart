@@ -55,7 +55,7 @@ class PropCollection {
     handler: (context, elemental, after) {
       SelectEnergy(
           context: context,
-          energies: elemental.energies,
+          elemental: elemental,
           onSelected: (index) {
             after();
             elemental.recoverHealth(index, 32);
@@ -74,7 +74,7 @@ class PropCollection {
     handler: (context, elemental, after) {
       SelectEnergy(
           context: context,
-          energies: elemental.energies,
+          elemental: elemental,
           onSelected: (index) {
             after();
             elemental.upgradeEnergy(index, AttributeType.atk);
@@ -93,7 +93,7 @@ class PropCollection {
     handler: (context, elemental, after) {
       SelectEnergy(
           context: context,
-          energies: elemental.energies,
+          elemental: elemental,
           onSelected: (index) {
             after();
             elemental.upgradeEnergy(index, AttributeType.def);

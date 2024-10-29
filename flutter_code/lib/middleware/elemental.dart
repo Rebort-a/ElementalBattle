@@ -18,17 +18,21 @@ class EnergyResume {
 class ElementalPreview {
   final ValueNotifier<List<EnergyResume>> resumes = ValueNotifier([]);
   final ValueNotifier<String> name = ValueNotifier("");
-  final ValueNotifier<String> element = ValueNotifier("");
+  final ValueNotifier<String> type = ValueNotifier("");
+  final ValueNotifier<int> level = ValueNotifier(0);
   final ValueNotifier<int> health = ValueNotifier(0);
   final ValueNotifier<int> capacity = ValueNotifier(0);
   final ValueNotifier<int> attack = ValueNotifier(0);
   final ValueNotifier<int> defence = ValueNotifier(0);
   final ValueNotifier<double> emoji = ValueNotifier(0);
-  int survival = 0;
-  int level = 0;
 
-  updateActualInfo(List<Energy> energies, int current) {
-    survival = 0;
+  void initInfo(List<Energy> energies, int current) {
+    updateResumesInfo(energies, current);
+    updateCurrentInfo(energies[current]);
+  }
+
+  void updateResumesInfo(List<Energy> energies, int current) {
+    int survival = 0;
 
     resumes.value = List.generate(
       energies.length,
@@ -44,20 +48,21 @@ class ElementalPreview {
       },
     );
 
-    name.value = energies[current].name;
-    element.value = energyNames[energies[current].type.index];
-    health.value = energies[current].health;
-    capacity.value = energies[current].capacityBase;
-    attack.value =
-        energies[current].attackBase + energies[current].attackOffset;
-    defence.value =
-        energies[current].defenceBase + energies[current].defenceOffset;
-
     emoji.value =
         (survival / energies.length) * (health.value / capacity.value);
   }
 
-  updateInferenceInfo(int attackValue, int defenceValue) {
+  void updateCurrentInfo(Energy energy) {
+    name.value = energy.name;
+    type.value = energyNames[energy.type.index];
+    level.value = energy.level;
+    health.value = energy.health;
+    capacity.value = energy.capacityBase + energy.capacityExtra;
+    attack.value = energy.attackBase + energy.attackOffset;
+    defence.value = energy.defenceBase + energy.defenceOffset;
+  }
+
+  void updatePredictedInfo(int attackValue, int defenceValue) {
     attack.value = attackValue;
     defence.value = defenceValue;
   }
@@ -65,7 +70,7 @@ class ElementalPreview {
 
 class Elemental extends MovableEntity {
   final _random = Random();
-  late final List<Energy> energies;
+  late final List<Energy> _energies;
   late int _current;
   final ElementalPreview preview = ElementalPreview();
 
@@ -73,24 +78,23 @@ class Elemental extends MovableEntity {
 
   final String name;
   final int count;
-  int level;
+  int levelTimes;
 
   Elemental({
     required this.name,
     required this.count,
-    required this.level,
+    required this.levelTimes,
     required super.id,
     required super.y,
     required super.x,
   }) {
-    energies = getEnergy(count); // 根据元素数量初始化元素列表
+    _energies = getEnergy(count); // 根据元素数量初始化元素列表
     _current = _random.nextInt(count); // 当前元素为随机
-    preview.level = level;
-    updatePreview();
+    preview.initInfo(_energies, _current); // 更新预览
   }
 
   updatePreview() {
-    preview.updateActualInfo(energies, _current);
+    preview.initInfo(_energies, _current);
   }
 
   List<Energy> getEnergy(int count) {
@@ -124,60 +128,85 @@ class Elemental extends MovableEntity {
     return selectedEnergies;
   }
 
-  switchPrevious() {
+  void switchPrevious() {
     for (int i = 0; i < count; i++) {
       _current = (_current + count - 1) % count;
-      if (energies[_current].health > 0) {
+      if (_energies[_current].health > 0) {
         break;
       }
     }
     updatePreview();
   }
 
-  switchNext() {
+  void switchNext() {
     for (int i = 0; i < count; i++) {
       _current = (_current + 1) % count;
-      if (energies[_current].health > 0) {
+      if (_energies[_current].health > 0) {
         break;
       }
     }
     updatePreview();
   }
 
-  switchAppoint(int index) {
-    if (energies[index].health > 0) {
+  void switchAppoint(int index) {
+    if (_energies[index].health > 0) {
       _current = index;
       updatePreview();
     }
   }
 
-  restoreEnergies() {
+  void restoreEnergies() {
     for (int i = 0; i < count; i++) {
-      energies[i].restoreAttributes();
-      energies[i].restoreEffects();
+      _energies[i].restoreAttributes();
+      _energies[i].restoreEffects();
     }
     updatePreview();
   }
 
-  upgradeEnergy(int index, AttributeType attribute) {
-    energies[index].upgradeAttributes(attribute);
+  void upgradeEnergy(int index, AttributeType attribute) {
+    _energies[index].upgradeAttributes(attribute);
     updatePreview();
   }
 
-  recoverHealth(int index, int value) {
-    energies[index].recoverHealth(value);
+  void recoverHealth(int index, int value) {
+    _energies[index].recoverHealth(value);
     updatePreview();
   }
 
-  sufferSkill(int index, CombatSkill skill) {
-    energies[index].sufferSkill(skill);
+  void sufferSkill(int index, CombatSkill skill) {
+    _energies[index].sufferSkill(skill);
     updatePreview();
+  }
+
+  void getPassiveEffect() {
+    for (var skill in _energies[_current].skills) {
+      if ((skill.type == SkillType.passive) && skill.learned) {
+        _energies[_current].sufferSkill(skill);
+        updatePreview();
+      }
+    }
+  }
+
+  List<CombatSkill> getCurrentSkills() {
+    return _energies[_current].skills;
+  }
+
+  List<CombatSkill> getAppointSkills(int index) {
+    return _energies[index].skills;
+  }
+
+  Energy getCurrentEnergy() {
+    return _energies[_current];
+  }
+
+  Energy getAppointEnergy(int index) {
+    return _energies[index];
   }
 
   int battleWith(
       Elemental elemental, int index, ValueNotifier<String> message) {
     EnergyCombat combat = EnergyCombat(
-        source: energies[current], target: elemental.energies[index]);
+        source: _energies[current], target: elemental._energies[index]);
 
     combat.battle();
     message.value += combat.message;
@@ -185,17 +214,27 @@ class Elemental extends MovableEntity {
     elemental.updatePreview();
     return combat.record;
   }
+
+  void confrontWith(Elemental elemental) {
+    int attackValue = EnergyCombat.handleAttackEffect(
+        _energies[_current], elemental.getCurrentEnergy(), false);
+
+    int defenceValue = EnergyCombat.handleDefenceEffect(
+        elemental.getCurrentEnergy(), _energies[_current], false);
+
+    preview.updatePredictedInfo(attackValue, defenceValue);
+  }
 }
 
 class EnemyElemental extends Elemental {
   EnemyElemental(
       {required super.name,
       required super.count,
-      required super.level,
+      required super.levelTimes,
       required super.id,
       required super.y,
       required super.x}) {
-    _upgradeRandom(level);
+    _upgradeRandom(levelTimes);
   }
 
   _upgradeRandom(int times) {
