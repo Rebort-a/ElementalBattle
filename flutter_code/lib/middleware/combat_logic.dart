@@ -160,7 +160,7 @@ class CombatLogic {
     targetElemental.sufferSkill(targetIndex, skill);
 
     combatMessage.value +=
-        ('${player.preview.name.value} 施放了 ${skill.name}, ${targetElemental.preview.name.value} 获得效果 ${skill.description}\n');
+        ('${player.getCurrentEnergy().name} 施放了 ${skill.name}, ${targetElemental.getAppointEnergy(targetIndex).name} 获得效果 ${skill.description}\n');
 
     if (skill.id == SkillID.parry) {
       _switchAppoint(targetElemental, targetIndex);
