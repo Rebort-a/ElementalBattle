@@ -546,7 +546,7 @@ class HomeLogic {
     _clearPlayerCurrentCell();
     displayMap.value[newY][newX].value = CellData(
       id: id,
-      index: player.preview.type.value,
+      index: player.preview.type.value + 1,
       proportion: player.preview.emoji.value,
     ); // 设置新位置
     player.updatePosition(newY, newX); // 更新位置

@@ -105,7 +105,7 @@ class HomeInfoRegion extends StatelessWidget {
       child: Row(
         children: [
           const Spacer(flex: 2),
-          _buildInfo("🌈", info.type),
+          _buildInfo("🌈", info.typeString),
           _buildInfo(attributeNames[AttributeType.hp.index], info.health),
           _buildInfo(attributeNames[AttributeType.atk.index], info.attack),
           _buildInfo(attributeNames[AttributeType.def.index], info.defence),
