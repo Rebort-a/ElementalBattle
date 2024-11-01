@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../foundation/effect.dart';
-import '../foundation/energy.dart';
 import '../middleware/player.dart';
 
 class StatusPage extends StatefulWidget {
@@ -68,20 +67,14 @@ class _StatusPageState extends State<StatusPage> {
   Widget _buildAttributeInfo() {
     return Column(
       children: [
-        _buildTextItem('等级: ${widget.player.getAppointEnergy(_index).level}'),
-        _buildTextItem(
-            '生命值上限: ${widget.player.getAppointEnergy(_index).capacityBase + widget.player.getAppointEnergy(_index).capacityExtra}'),
-        _buildTextItem(
-            '初始攻击力: ${widget.player.getAppointEnergy(_index).attackBase}'),
-        _buildTextItem(
-            '初始防御力: ${widget.player.getAppointEnergy(_index).defenceBase}'),
+        _buildTextItem('等级: ${widget.player.getAppointLevel(_index)}'),
+        _buildTextItem('生命值上限: ${widget.player.getAppointCapacity(_index)}'),
+        _buildTextItem('初始攻击力: ${widget.player.getAppointAttackBase(_index)}'),
+        _buildTextItem('初始防御力: ${widget.player.getAppointDefenceBase(_index)}'),
         const Divider(),
-        _buildTextItem(
-            '当前生命值: ${widget.player.getAppointEnergy(_index).health}'),
-        _buildTextItem(
-            '当前攻击力: ${widget.player.getAppointEnergy(_index).attackBase + widget.player.getAppointEnergy(_index).attackOffset}'),
-        _buildTextItem(
-            '当前防御力: ${widget.player.getAppointEnergy(_index).defenceBase + widget.player.getAppointEnergy(_index).defenceOffset}'),
+        _buildTextItem('当前生命值: ${widget.player.getAppointHealth(_index)}'),
+        _buildTextItem('当前攻击力: ${widget.player.getAppointAttack(_index)}'),
+        _buildTextItem('当前防御力: ${widget.player.getAppointDefence(_index)}'),
       ],
     );
   }
@@ -91,8 +84,7 @@ class _StatusPageState extends State<StatusPage> {
       title: const Text('掌握技能:', style: TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Column(
         children: widget.player
-            .getAppointEnergy(_index)
-            .skills
+            .getAppointSkills(_index)
             .where((skill) => skill.learned)
             .map((skill) => _buildTextItem(skill.name))
             .toList(),
@@ -105,10 +97,9 @@ class _StatusPageState extends State<StatusPage> {
       title: const Text('获得影响:', style: TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Column(
         children: widget.player
-            .getAppointEnergy(_index)
-            .effects
+            .getAppointEffects(_index)
             .where((effect) =>
-                (effect.type == EffectType.unlimited || effect.times > 0))
+                (effect.type == EffectType.infinite || effect.times > 0))
             .map((effect) => _buildTextItem(
                   '${effect.id} ${effect.type} ${effect.value} ${effect.times}',
                 ))
@@ -149,6 +140,6 @@ class _StatusPageState extends State<StatusPage> {
   }
 
   Widget _buildElementName() {
-    return Text(energyNames[_index]);
+    return Text(widget.player.getAppointTypeString(_index));
   }
 }

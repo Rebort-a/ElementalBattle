@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:flutter_code/foundation/effect.dart';
 
 import '../foundation/energy.dart';
 import '../foundation/skill.dart';
@@ -16,17 +17,18 @@ class EnergyResume {
 }
 
 class ElementalPreview {
-  final ValueNotifier<List<EnergyResume>> resumes = ValueNotifier([]);
   final ValueNotifier<String> name = ValueNotifier("");
-  final ValueNotifier<String> type = ValueNotifier("");
+  final ValueNotifier<int> type = ValueNotifier(0);
+  final ValueNotifier<String> typeString = ValueNotifier("");
   final ValueNotifier<int> level = ValueNotifier(0);
   final ValueNotifier<int> health = ValueNotifier(0);
   final ValueNotifier<int> capacity = ValueNotifier(0);
   final ValueNotifier<int> attack = ValueNotifier(0);
   final ValueNotifier<int> defence = ValueNotifier(0);
+  final ValueNotifier<List<EnergyResume>> resumes = ValueNotifier([]);
   final ValueNotifier<double> emoji = ValueNotifier(0);
 
-  void initInfo(List<Energy> energies, int current) {
+  void updateInfo(List<Energy> energies, int current) {
     _updateCurrentInfo(energies[current]);
     _updateResumesInfo(energies, current);
   }
@@ -54,7 +56,8 @@ class ElementalPreview {
 
   void _updateCurrentInfo(Energy energy) {
     name.value = energy.name;
-    type.value = energyNames[energy.type.index];
+    type.value = energy.type.index;
+    typeString.value = energyNames[energy.type.index];
     level.value = energy.level;
     health.value = energy.health;
     capacity.value = energy.capacityBase + energy.capacityExtra;
@@ -69,35 +72,87 @@ class ElementalPreview {
 }
 
 class Elemental extends MovableEntity {
+  final ElementalPreview preview = ElementalPreview();
   final _random = Random();
   late final List<Energy> _energies;
   late int _current;
-  final ElementalPreview preview = ElementalPreview();
 
   int get current => _current;
 
+  String getCurrentName() {
+    return _energies[_current].name;
+  }
+
+  String getAppointName(int index) {
+    return _energies[index].name;
+  }
+
+  int getAppointLevel(int index) {
+    return _energies[index].level;
+  }
+
+  EnergyType getCurrentType() {
+    return _energies[_current].type;
+  }
+
+  String getAppointTypeString(int index) {
+    return energyNames[_energies[index].type.index];
+  }
+
+  int getAppointHealth(int index) {
+    return _energies[index].health;
+  }
+
+  int getAppointCapacity(int index) {
+    return _energies[index].capacityBase;
+  }
+
+  int getAppointAttackBase(int index) {
+    return _energies[index].attackBase;
+  }
+
+  int getAppointDefenceBase(int index) {
+    return _energies[index].defenceBase;
+  }
+
+  int getAppointAttack(int index) {
+    return _energies[index].attackBase + _energies[index].attackOffset;
+  }
+
+  int getAppointDefence(int index) {
+    return _energies[index].defenceBase + _energies[index].defenceOffset;
+  }
+
+  List<CombatSkill> getCurrentSkills() {
+    return _energies[_current].skills;
+  }
+
+  List<CombatSkill> getAppointSkills(int index) {
+    return _energies[index].skills;
+  }
+
+  List<CombatEffect> getAppointEffects(int index) {
+    return _energies[index].effects;
+  }
+
   final String name;
   final int count;
-  int levelTimes;
+  int upgradeTimes;
 
   Elemental({
     required this.name,
     required this.count,
-    required this.levelTimes,
+    required this.upgradeTimes,
     required super.id,
     required super.y,
     required super.x,
   }) {
-    _energies = getEnergy(count); // 根据元素数量初始化元素列表
+    _energies = _getRandomEnergies(count); // 根据元素数量初始化元素列表
     _current = _random.nextInt(count); // 当前元素为随机
-    preview.initInfo(_energies, _current); // 更新预览
+    _updatePreview();
   }
 
-  updatePreview() {
-    preview.initInfo(_energies, _current);
-  }
-
-  List<Energy> getEnergy(int count) {
+  List<Energy> _getRandomEnergies(int count) {
     if (count > EnergyType.values.length) {
       count = EnergyType.values.length;
     } else if (count < 1) {
@@ -128,6 +183,10 @@ class Elemental extends MovableEntity {
     return selectedEnergies;
   }
 
+  void _updatePreview() {
+    preview.updateInfo(_energies, _current); // 更新预览
+  }
+
   void switchPrevious() {
     for (int i = 0; i < count; i++) {
       _current = (_current + count - 1) % count;
@@ -135,7 +194,7 @@ class Elemental extends MovableEntity {
         break;
       }
     }
-    updatePreview();
+    _updatePreview();
   }
 
   void switchNext() {
@@ -145,84 +204,82 @@ class Elemental extends MovableEntity {
         break;
       }
     }
-    updatePreview();
+    _updatePreview();
   }
 
   void switchAppoint(int index) {
     if (_energies[index].health > 0) {
       _current = index;
-      updatePreview();
+      _updatePreview();
     }
   }
 
   void restoreEnergies() {
-    for (int i = 0; i < count; i++) {
-      _energies[i].restoreAttributes();
-      _energies[i].restoreEffects();
+    for (Energy energy in _energies) {
+      energy.restoreAttributes();
+      energy.restoreEffects();
     }
-    updatePreview();
+
+    _updatePreview();
   }
 
   void upgradeEnergy(int index, AttributeType attribute) {
     _energies[index].upgradeAttributes(attribute);
-    updatePreview();
+    _updatePreview();
   }
 
-  void recoverHealth(int index, int value) {
+  void recoverEnergy(int index, int value) {
     _energies[index].recoverHealth(value);
-    updatePreview();
+    _updatePreview();
   }
 
   void sufferSkill(int index, CombatSkill skill) {
     _energies[index].sufferSkill(skill);
-    updatePreview();
+    _updatePreview();
   }
 
-  void getPassiveEffect() {
-    for (var skill in _energies[_current].skills) {
-      if ((skill.type == SkillType.passive) && skill.learned) {
-        _energies[_current].sufferSkill(skill);
-        updatePreview();
-      }
+  void applyPassiveEffect() {
+    for (Energy energy in _energies) {
+      energy.applyPassiveEffect();
     }
+
+    _updatePreview();
   }
 
-  List<CombatSkill> getCurrentSkills() {
-    return _energies[_current].skills;
+  int confrontReply(int Function(Energy) handler) {
+    return handler(_energies[_current]);
   }
 
-  List<CombatSkill> getAppointSkills(int index) {
-    return _energies[index].skills;
-  }
+  void confrontRequest(Elemental elemental) {
+    int attackValue = elemental.confrontReply((energy) {
+      return EnergyCombat.handleAttackEffect(
+          _energies[_current], energy, false);
+    });
 
-  Energy getCurrentEnergy() {
-    return _energies[_current];
-  }
-
-  Energy getAppointEnergy(int index) {
-    return _energies[index];
-  }
-
-  int battleWith(
-      Elemental elemental, int index, ValueNotifier<String> message) {
-    EnergyCombat combat = EnergyCombat(
-        source: _energies[current], target: elemental._energies[index]);
-
-    combat.battle();
-    message.value += combat.message;
-    updatePreview();
-    elemental.updatePreview();
-    return combat.record;
-  }
-
-  void confrontWith(Elemental elemental) {
-    int attackValue = EnergyCombat.handleAttackEffect(
-        _energies[_current], elemental.getCurrentEnergy(), false);
-
-    int defenceValue = EnergyCombat.handleDefenceEffect(
-        elemental.getCurrentEnergy(), _energies[_current], false);
+    int defenceValue = elemental.confrontReply((energy) {
+      return EnergyCombat.handleDefenceEffect(
+          energy, _energies[_current], false);
+    });
 
     preview.updatePredictedInfo(attackValue, defenceValue);
+  }
+
+  EnergyCombat battleReply(int index, EnergyCombat Function(Energy) handler) {
+    EnergyCombat combat = handler(_energies[index]);
+    combat.battle();
+    _updatePreview();
+    return combat;
+  }
+
+  int battleRequest(
+      Elemental elemental, int index, ValueNotifier<String> message) {
+    EnergyCombat combat = elemental.battleReply(index, (energy) {
+      return EnergyCombat(source: _energies[_current], target: energy);
+    });
+
+    _updatePreview();
+    message.value += combat.message;
+    return combat.record;
   }
 }
 
@@ -230,11 +287,11 @@ class EnemyElemental extends Elemental {
   EnemyElemental(
       {required super.name,
       required super.count,
-      required super.levelTimes,
+      required super.upgradeTimes,
       required super.id,
       required super.y,
       required super.x}) {
-    _upgradeRandom(levelTimes);
+    _upgradeRandom(upgradeTimes);
   }
 
   _upgradeRandom(int times) {

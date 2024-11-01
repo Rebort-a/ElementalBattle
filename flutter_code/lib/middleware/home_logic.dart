@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:math';
 import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../foundation/energy.dart';
 import '../foundation/entity.dart';
@@ -178,7 +178,7 @@ class HomeLogic {
     _mapData.entities.add(EnemyElemental(
         name: enemyNames[entityID.index - EntityID.weak.index],
         count: elementCount,
-        levelTimes: floorNum.value + entityID.index - EntityID.weak.index,
+        upgradeTimes: floorNum.value + entityID.index - EntityID.weak.index,
         id: entityID,
         y: y,
         x: x));
@@ -546,7 +546,7 @@ class HomeLogic {
     _clearPlayerCurrentCell();
     displayMap.value[newY][newX].value = CellData(
       id: id,
-      index: player.current + 1,
+      index: player.preview.type.value,
       proportion: player.preview.emoji.value,
     ); // 设置新位置
     player.updatePosition(newY, newX); // 更新位置

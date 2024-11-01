@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../foundation/energy.dart';
 import '../foundation/skill.dart';
 import '../middleware/common.dart';
 import '../middleware/player.dart';
@@ -71,8 +70,8 @@ class _SkillsPageState extends State<SkillsPage> {
   }
 
   Widget _buildSkillText(CombatSkill skill) {
-    // String typeIndicator = skill.type == SkillType.active ? '🔥' : '🛡️';
-    String typeIndicator = skill.type == SkillType.active ? '主动' : '被动';
+    // String typeText = skill.type == SkillType.active ? '🔥' : '🛡️';
+    String typeText = skill.type == SkillType.active ? '主动' : '被动';
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -81,7 +80,7 @@ class _SkillsPageState extends State<SkillsPage> {
           style: const TextStyle(color: Colors.white, fontSize: 16.0),
         ),
         Text(
-          typeIndicator,
+          typeText,
           style: const TextStyle(color: Colors.white, fontSize: 12.0),
         ),
       ],
@@ -89,9 +88,15 @@ class _SkillsPageState extends State<SkillsPage> {
   }
 
   _showPlayerSkill(BuildContext context, int index) {
+    String targetText = _getTargetText(_playerSkills[index]);
     final AlertDialog showPage = AlertDialog(
       title: Text(_playerSkills[index].name),
-      content: Text(_playerSkills[index].description),
+      content: Column(
+        children: [
+          Text('目标: $targetText'),
+          Text('效果: ${_playerSkills[index].description}'),
+        ],
+      ),
       actions: [
         if (!_playerSkills[index].learned)
           TextButton(
@@ -117,6 +122,19 @@ class _SkillsPageState extends State<SkillsPage> {
     );
 
     showDialog(context: context, builder: (context) => showPage);
+  }
+
+  String _getTargetText(CombatSkill skill) {
+    switch (skill.targetType) {
+      case SkillTarget.selfFront:
+        return '已方前台角色';
+      case SkillTarget.selfAny:
+        return '己方任一角色';
+      case SkillTarget.enemyFront:
+        return '敌方前台角色';
+      case SkillTarget.enemyAny:
+        return '敌方任一角色';
+    }
   }
 
   Widget _buildNavigationButtons() {
@@ -148,6 +166,6 @@ class _SkillsPageState extends State<SkillsPage> {
   }
 
   Widget _buildElementName() {
-    return Text(energyNames[_index]);
+    return Text(widget.player.getAppointTypeString(_index));
   }
 }

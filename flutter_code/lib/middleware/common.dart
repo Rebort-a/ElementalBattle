@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 // import 'package:flutter/services.dart';
 
 import '../foundation/energy.dart';
@@ -44,12 +45,14 @@ class SelectEnergy {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: List.generate(elemental.count, (index) {
-              Energy energy = elemental.getAppointEnergy(index);
+              String name = elemental.getAppointName(index);
+              int health = elemental.getAppointHealth(index);
+              int capacity = elemental.getAppointCapacity(index);
               return Column(
                 children: [
                   ElevatedButton(
                     onPressed: available
-                        ? energy.health > 0
+                        ? health > 0
                             ? () {
                                 onSelected(index);
                                 Navigator.of(context).pop();
@@ -60,14 +63,11 @@ class SelectEnergy {
                             Navigator.of(context).pop();
                           },
                     style: ElevatedButton.styleFrom(
-                      foregroundColor:
-                          energy.health > 0 ? Colors.white : Colors.black,
-                      backgroundColor:
-                          energy.health > 0 ? Colors.blue : Colors.grey,
+                      foregroundColor: health > 0 ? Colors.white : Colors.black,
+                      backgroundColor: health > 0 ? Colors.blue : Colors.grey,
                       disabledBackgroundColor: Colors.grey,
                     ),
-                    child: Text(
-                        '${energy.name} ${energy.health}/${energy.capacityBase}'),
+                    child: Text('$name $health/$capacity'),
                   ),
                   const SizedBox(height: 5), // 添加间隙
                 ],
@@ -88,10 +88,10 @@ class SelectSkill {
       {required this.context,
       required this.skills,
       required this.handleSkill}) {
-    _showSkills(context, skills, handleSkill);
+    _showSkillsDialog(context, skills, handleSkill);
   }
 
-  _showSkills(BuildContext context, List<CombatSkill> skills,
+  _showSkillsDialog(BuildContext context, List<CombatSkill> skills,
       void Function(CombatSkill) handleSkill) {
     showDialog(
       context: context,
@@ -340,7 +340,7 @@ class _ScaleButtonState extends State<ScaleButton>
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      // HapticFeedback.lightImpact();
+      HapticFeedback.selectionClick();
       widget.onTap();
     });
   }

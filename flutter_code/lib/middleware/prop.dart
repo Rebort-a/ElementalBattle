@@ -58,7 +58,7 @@ class PropCollection {
           elemental: elemental,
           onSelected: (index) {
             after();
-            elemental.recoverHealth(index, 32);
+            elemental.recoverEnergy(index, 32);
           },
           available: false);
     },

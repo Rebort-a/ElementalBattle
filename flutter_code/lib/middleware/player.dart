@@ -8,7 +8,7 @@ class PlayerElemental extends Elemental {
   late int money;
   late int experience;
   PlayerElemental({required super.id, required super.y, required super.x})
-      : super(name: "旅行者", count: EnergyType.values.length, levelTimes: 0) {
+      : super(name: "旅行者", count: EnergyType.values.length, upgradeTimes: 0) {
     money = 20;
     experience = 60;
     props = PropCollection.totalItems;

@@ -74,7 +74,7 @@ class Energy {
     return value;
   }
 
-  changeCapcityExtra(int value) {
+  void changeCapcityExtra(int value) {
     _capacityExtra += value;
     if (_capacityExtra < 0) {
       _capacityExtra = 0;
@@ -83,7 +83,7 @@ class Energy {
     }
   }
 
-  changeAttackOffset(int value) {
+  void changeAttackOffset(int value) {
     if (_health == (_capacityBase + _capacityExtra)) {
       _attackOffset = 0;
     } else {
@@ -91,7 +91,7 @@ class Energy {
     }
   }
 
-  changeDefenceOffset(int value) {
+  void changeDefenceOffset(int value) {
     if (_health == (_capacityBase + _capacityExtra)) {
       _defenceOffset = 0;
     } else {
@@ -112,7 +112,7 @@ class Energy {
   }
 
   // 从列表中获取初始属性
-  _initAttributes() {
+  void _initAttributes() {
     _capacityBase = _baseAttributes[type.index][AttributeType.hp.index];
     _attackBase = _baseAttributes[type.index][AttributeType.atk.index];
     _defenceBase = _baseAttributes[type.index][AttributeType.def.index];
@@ -121,7 +121,7 @@ class Energy {
   }
 
   // 清空技能，并将可学习技能列表的第一个技能作为初始技能
-  _initSkills() {
+  void _initSkills() {
     // 长度为本属性所有可用技能
     _skills =
         List.generate(SkillCollection.totalSkills[type.index].length, (index) {
@@ -133,7 +133,7 @@ class Energy {
   }
 
   // 清空效果
-  _initEffects() {
+  void _initEffects() {
     // 长度为所有效果，方便战斗时核查
     _effects = List.generate(EffectID.values.length, (index) {
       return CombatEffect(
@@ -145,8 +145,8 @@ class Energy {
     });
   }
 
-// 还原影响
-  restoreEffects() {
+  // 还原影响
+  void restoreEffects() {
     for (int i = 0; i < _effects.length; i++) {
       _effects[i] = CombatEffect(
         id: EffectID.values[i],
@@ -157,8 +157,8 @@ class Energy {
     }
   }
 
-// 还原属性
-  restoreAttributes() {
+  // 还原属性
+  void restoreAttributes() {
     _capacityExtra = 0; // 清除额外上限
     _attackOffset = 0; // 清除偏移
     _defenceOffset = 0;
@@ -177,7 +177,7 @@ class Energy {
   }
 
   // 升级属性
-  upgradeAttributes(AttributeType attribute) {
+  void upgradeAttributes(AttributeType attribute) {
     switch (attribute) {
       case AttributeType.hp:
         _capacityBase += 32;
@@ -206,6 +206,17 @@ class Energy {
   // 遭受技能
   void sufferSkill(CombatSkill skill) {
     skill.handler(skills, effects);
+  }
+
+  // 施加被动技能影响
+  void applyPassiveEffect() {
+    for (CombatSkill skill in _skills) {
+      if (skill.learned &&
+          (skill.type == SkillType.passive) &&
+          (skill.targetType == SkillTarget.selfFront)) {
+        sufferSkill(skill);
+      }
+    }
   }
 }
 

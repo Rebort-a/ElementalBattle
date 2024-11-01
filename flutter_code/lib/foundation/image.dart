@@ -165,15 +165,15 @@ class ImageManager {
       case EntityID.enter:
       case EntityID.exit:
         switch (index) {
-          case 1:
+          case 0:
             return const Color(0xFFC0C0C0);
-          case 2:
+          case 1:
             return Colors.blue;
-          case 3:
+          case 2:
             return Colors.lightGreen;
-          case 4:
+          case 3:
             return Colors.deepOrange;
-          case 5:
+          case 4:
             return Colors.brown;
           default:
             return Colors.blueGrey;

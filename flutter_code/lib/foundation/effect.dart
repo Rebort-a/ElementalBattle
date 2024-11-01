@@ -46,7 +46,7 @@ enum EffectID {
 // 效果类型
 enum EffectType {
   limited,
-  unlimited,
+  infinite,
 }
 
 // 效果
@@ -64,11 +64,11 @@ class CombatEffect {
   });
 
   bool check() {
-    return type == EffectType.unlimited || times > 0;
+    return type == EffectType.infinite || times > 0;
   }
 
   bool expend() {
-    if (type == EffectType.unlimited) {
+    if (type == EffectType.infinite) {
       return true;
     }
     if (times > 0) {

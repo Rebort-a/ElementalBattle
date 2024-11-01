@@ -157,7 +157,7 @@ class SkillCollection {
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.strengthen.index].type = EffectType.unlimited;
+      effects[EffectID.strengthen.index].type = EffectType.infinite;
       effects[EffectID.strengthen.index].value = 0.5;
     },
   );
@@ -170,19 +170,19 @@ class SkillCollection {
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.adjustAttribute.index].type = EffectType.unlimited;
+      effects[EffectID.adjustAttribute.index].type = EffectType.infinite;
       effects[EffectID.adjustAttribute.index].value = 0.82;
     },
   );
 
   static final CombatSkill woodPassive_0 = CombatSkill(
     id: SkillID.woodPassive_0,
-    name: "扎根",
+    name: "汲取",
     description: "造成伤害后，根据伤害量的40%，回复生命。\n\n吐垢纳新，师法天地。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.absorbBlood.index].type = EffectType.unlimited;
+      effects[EffectID.absorbBlood.index].type = EffectType.infinite;
       effects[EffectID.absorbBlood.index].value = 0.4;
     },
   );
@@ -194,7 +194,7 @@ class SkillCollection {
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.enchanting.index].type = EffectType.unlimited;
+      effects[EffectID.enchanting.index].type = EffectType.infinite;
       effects[EffectID.enchanting.index].value = 1;
     },
   );
@@ -206,7 +206,7 @@ class SkillCollection {
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.accumulateAnger.index].type = EffectType.unlimited;
+      effects[EffectID.accumulateAnger.index].type = EffectType.infinite;
       effects[EffectID.accumulateAnger.index].value = 0.5;
     },
   );
@@ -249,7 +249,7 @@ class SkillCollection {
 
   static final CombatSkill fireActive_0 = CombatSkill(
     id: SkillID.fireActive_0,
-    name: "爆裂魔法",
+    name: "火舞旋风",
     description: "生命值降为1，根据降低的比例，提高伤害系数，并进行一次攻击。\n\n Explosion！",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
@@ -306,8 +306,8 @@ class SkillCollection {
 
   static final CombatSkill firePassive_1 = CombatSkill(
     id: SkillID.firePassive_1,
-    name: "爆裂魔法",
-    description: "爆裂魔法可以施加给己方任一元素，并在生效后，切换其上场。\n\n Explosion！",
+    name: "火舞旋风",
+    description: "火舞旋风可以施加给己方任一元素，并在生效后，切换其上场。\n\n Explosion！",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -329,7 +329,7 @@ class SkillCollection {
   static final CombatSkill metalActive_1 = CombatSkill(
     id: SkillID.metalActive_1,
     name: "金属亲和力",
-    description: "可以施加给己方任一元素，使其战斗时，额外获得50%的攻击力和防御力，生效两次。",
+    description: "战斗时，额外获得50%的攻击力和防御力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -341,7 +341,7 @@ class SkillCollection {
   static final CombatSkill waterActive_1 = CombatSkill(
     id: SkillID.waterActive_1,
     name: "此起彼伏",
-    description: "可以施加给己方任一元素，使其受到伤害后，防御力减少，根据减少量的82%，提高攻击力，生效两次。",
+    description: "受到伤害后，防御力减少，根据减少量的82%，提高攻击力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -352,8 +352,8 @@ class SkillCollection {
 
   static final CombatSkill woodActive_1 = CombatSkill(
     id: SkillID.woodActive_1,
-    name: "扎根",
-    description: "可以施加给己方任一元素，使其造成伤害时，根据伤害量的40%，回复生命，生效两次。",
+    name: "汲取",
+    description: "造成伤害时，根据伤害量的40%，回复生命，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -365,7 +365,7 @@ class SkillCollection {
   static final CombatSkill fireActive_1 = CombatSkill(
     id: SkillID.fireActive_1,
     name: "燃烧吧",
-    description: "可以施加给己方任一元素，使其攻击时，获得100%附魔比例，造成无视防御的法术伤害，生效两次。",
+    description: "攻击时，获得100%附魔比例，造成无视防御的法术伤害，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -377,7 +377,7 @@ class SkillCollection {
   static final CombatSkill earthActive_1 = CombatSkill(
     id: SkillID.earthActive_1,
     name: "承天载物",
-    description: "可以施加给己方任一元素，使其受到伤害后，将物理伤害的50%和法术伤害的15%作为加成，提高下次攻击的攻击力，生效两次。",
+    description: "受到伤害后，将物理伤害的50%和法术伤害的15%作为加成，提高下次攻击的攻击力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -437,11 +437,11 @@ class SkillCollection {
   static final CombatSkill earthActive_2 = CombatSkill(
     id: SkillID.earthActive_2,
     name: "地刺",
-    description: "受到伤害时，将已损失生命值的50%作为攻击力，造成一次伤害系数为50%的物理伤害，生效两次。",
+    description: "受到伤害时，将已损失生命值的25%作为攻击力，造成一次伤害系数为25%的物理伤害，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
-      effects[EffectID.rugged.index].value = 0.5;
+      effects[EffectID.rugged.index].value = 0.25;
       effects[EffectID.rugged.index].times += 2;
     },
   );
