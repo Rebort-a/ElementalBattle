@@ -87,13 +87,14 @@ class _SkillsPageState extends State<SkillsPage> {
     );
   }
 
-  _showPlayerSkill(BuildContext context, int index) {
-    String targetText = _getTargetText(_playerSkills[index]);
+  void _showPlayerSkill(BuildContext context, int index) {
     final AlertDialog showPage = AlertDialog(
       title: Text(_playerSkills[index].name),
       content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('目标: $targetText'),
+          Text('目标: ${_getTargetText(_playerSkills[index])}'),
           Text('效果: ${_playerSkills[index].description}'),
         ],
       ),

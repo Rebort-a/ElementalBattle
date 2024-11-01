@@ -340,8 +340,8 @@ class _ScaleButtonState extends State<ScaleButton>
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      HapticFeedback.selectionClick();
       widget.onTap();
+      HapticFeedback.mediumImpact();
     });
   }
 
