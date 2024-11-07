@@ -477,7 +477,8 @@ class HomeLogic {
   }
 
   void _backToPrevious() {
-    if (_mapData.parent != null) {
+    final parent = _mapData.parent;
+    if (parent != null) {
       floorNum.value--;
 
       _clearPlayerCurrentCell();
@@ -487,16 +488,16 @@ class HomeLogic {
               (row) => row.map((valueNotifier) => valueNotifier.value).toList())
           .toList(); // 获取当前地图数据
 
-      if (_mapData.parent != null) {
-        _mapData = _mapData.parent!; // 更新当前地图
-      }
+      int playerY = _mapData.y;
+      int playerX = _mapData.x;
+
+      _mapData = parent; // 回退到上一层
 
       displayMap.value = _mapData.leaveMap
           .map((row) => row.map((value) => ValueNotifier(value)).toList())
           .toList(); // 从当前地图数据中恢复
 
-      _updatePlayerCell(_mapData.direction); // 更新方向
-      _setCellToPlayer(_mapData.leaveY, _mapData.leaveX, player.id); // 更新位置
+      _setCellToPlayer(playerY, playerX, EntityID.enter); // 更新位置
     }
   }
 
@@ -509,9 +510,9 @@ class HomeLogic {
     }
 
     floorNum.value++;
-    _mapData.leaveY = player.y; // 保存玩家坐标
-    _mapData.leaveX = player.x;
-    _mapData.direction = player.lastDirection;
+
+    _clearPlayerCurrentCell();
+
     _mapData.leaveMap = displayMap.value
         .map((row) => row.map((valueNotifier) => valueNotifier.value).toList())
         .toList(); // 获取当前地图数据

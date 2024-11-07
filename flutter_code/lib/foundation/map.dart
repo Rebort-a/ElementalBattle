@@ -55,8 +55,6 @@ class MapDataStack {
   final int y, x; // 地图在父地图的位置
   final MapDataStack? parent; // 父节点
   final List<MapDataStack> children = []; // 子节点列表
-  int leaveY = 0, leaveX = 0; // 玩家离开地图时的位置
-  Direction direction = Direction.down; // 玩家离开地图时的方向
   List<List<CellData>> leaveMap = []; // 玩家离开时的地图数据
   List<MovableEntity> entities = []; // 地图上的实体数据
 

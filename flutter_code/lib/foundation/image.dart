@@ -178,6 +178,7 @@ class ImageManager {
       case EntityID.wall:
         return Colors.brown; // 墙壁
       case EntityID.exit:
+      case EntityID.enter:
         switch (index) {
           case 1:
             return const Color(0xFFC0C0C0);
