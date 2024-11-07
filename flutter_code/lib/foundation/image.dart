@@ -127,7 +127,8 @@ class ImageManager {
 
   final Map<EntityID, ImageSplitter> _imageSplitters = {};
 
-  Widget getAssetsImage(EntityID id, int index, double proportion, bool fog) {
+  Widget _getAssetsImage(
+      EntityID id, int iconIndex, int colorIndex, bool fogFlag) {
     _imageSplitters.putIfAbsent(id, () {
       switch (id) {
         case EntityID.player:
@@ -138,21 +139,36 @@ class ImageManager {
               imagePath: 'assets/images/road.png', rows: 1, columns: 1);
       }
     });
-    return _imageSplitters[id]!.getImagePiece(index);
+
+    return Container(
+      color: getColor(id, colorIndex),
+      child: Center(
+        child: _imageSplitters[id]!.getImagePiece(iconIndex),
+      ),
+    );
   }
 
-  static Widget getPresetsImage(
-      EntityID id, int index, double proportion, bool fog) {
-    if (fog) {
+  Widget getWidgetImage(
+      EntityID id, int iconIndex, int colorIndex, bool fogFlag) {
+    if (fogFlag) {
       return Container(color: Colors.black);
     } else {
-      return Container(
-        color: getColor(id, index),
-        child: Center(
-          child: getIcon(id, proportion),
-        ),
-      );
+      if (id == EntityID.player) {
+        return _getAssetsImage(id, iconIndex, colorIndex, fogFlag);
+      } else {
+        return _getPresetsImage(id, iconIndex, colorIndex, fogFlag);
+      }
     }
+  }
+
+  static Widget _getPresetsImage(
+      EntityID id, int iconIndex, int colorIndex, bool fogFlag) {
+    return Container(
+      color: getColor(id, colorIndex),
+      child: Center(
+        child: getIcon(id, iconIndex),
+      ),
+    );
   }
 
   static Color getColor(EntityID id, int index) {
@@ -161,8 +177,6 @@ class ImageManager {
         return Colors.blueGrey; // 道路
       case EntityID.wall:
         return Colors.brown; // 墙壁
-      case EntityID.player:
-      case EntityID.enter:
       case EntityID.exit:
         switch (index) {
           case 1:
@@ -195,21 +209,28 @@ class ImageManager {
     }
   }
 
-  static Widget getIcon(EntityID id, double proportion) {
+  static Widget getIcon(EntityID id, int colorIndex) {
     switch (id) {
       case EntityID.road:
         return Container(); // 道路
       case EntityID.wall:
         return const Text('🧱'); // 墙壁
       case EntityID.player: // 玩家
-        if (proportion < 0.25) {
-          return const Text('😢');
-        } else if (proportion < 0.5) {
-          return const Text('😮');
-        } else if (proportion < 0.75) {
-          return const Text('😊');
-        } else {
-          return const Text('😎');
+        switch (colorIndex) {
+          case 0:
+            return const Text('😢');
+          case 1:
+            return const Text('😞');
+          case 2:
+            return const Text('😮');
+          case 3:
+            return const Text('😐');
+          case 4:
+            return const Text('😊');
+          case 5:
+            return const Text('😎');
+          default:
+            return const Text('😎');
         }
       case EntityID.enter:
         return const Icon(Icons.exit_to_app); // 入口

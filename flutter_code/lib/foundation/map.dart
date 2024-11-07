@@ -2,31 +2,38 @@ import 'entity.dart';
 
 const int mapLevel = 6; // 地图级数
 
+enum Direction {
+  down,
+  left,
+  up,
+  right,
+}
+
 // 地图单元信息
 class CellData {
   final EntityID id;
-  final int index;
-  final double proportion;
-  final bool fog;
+  final int iconIndex;
+  final int colorIndex;
+  final bool fogFlag;
 
   CellData({
     required this.id,
-    this.index = 0,
-    this.proportion = 1.0,
-    this.fog = true,
+    this.iconIndex = 0,
+    this.colorIndex = 0,
+    this.fogFlag = true,
   });
 
   CellData copyWith({
     EntityID? id,
-    int? index,
-    double? proportion,
-    bool? fog,
+    int? iconIndex,
+    int? colorIndex,
+    bool? fogFlag,
   }) {
     return CellData(
       id: id ?? this.id,
-      index: index ?? this.index,
-      proportion: proportion ?? this.proportion,
-      fog: fog ?? this.fog,
+      iconIndex: iconIndex ?? this.iconIndex,
+      colorIndex: colorIndex ?? this.colorIndex,
+      fogFlag: fogFlag ?? this.fogFlag,
     );
   }
 }
@@ -37,7 +44,7 @@ class MovableEntity {
   int y, x;
   MovableEntity({required this.id, required this.y, required this.x});
 
-  updatePosition(int newY, int newX) {
+  void updatePosition(int newY, int newX) {
     y = newY;
     x = newX;
   }
@@ -49,6 +56,7 @@ class MapDataStack {
   final MapDataStack? parent; // 父节点
   final List<MapDataStack> children = []; // 子节点列表
   int leaveY = 0, leaveX = 0; // 玩家离开地图时的位置
+  Direction direction = Direction.down; // 玩家离开地图时的方向
   List<List<CellData>> leaveMap = []; // 玩家离开时的地图数据
   List<MovableEntity> entities = []; // 地图上的实体数据
 

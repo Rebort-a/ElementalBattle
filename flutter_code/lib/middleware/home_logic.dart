@@ -62,9 +62,9 @@ class HomeLogic {
         _width,
         (x) => ValueNotifier(CellData(
           id: EntityID.road,
-          index: 0,
-          proportion: 1,
-          fog: false,
+          iconIndex: 0,
+          colorIndex: 0,
+          fogFlag: false,
         )),
       ),
     );
@@ -85,17 +85,16 @@ class HomeLogic {
         _width,
         (x) => ValueNotifier(CellData(
           id: EntityID.wall,
-          index: 0,
-          proportion: 1,
-          fog: true,
+          iconIndex: 0,
+          colorIndex: 0,
+          fogFlag: true,
         )),
       ),
     );
 
     // 使用深度优先搜索生成迷宫
     _generateMaze(mapLevel, mapLevel);
-    _setCellToPlayer(0, 0, EntityID.exit);
-    _setCellToEntity(mapLevel, mapLevel, EntityID.enter);
+    _setCellToPlayer(mapLevel, mapLevel, EntityID.exit);
   }
 
   void _generateMaze(int startY, int startX) {
@@ -143,16 +142,16 @@ class HomeLogic {
 
   EntityID _getRadomItem() {
     int randVal = _random.nextInt(100);
-    if (randVal < 20) {
-      return EntityID.enter;
-    } else if (randVal < 40) {
+    if (randVal < 15) {
+      return EntityID.purse;
+    } else if (randVal < 30) {
       return EntityID.hospital;
-    } else if (randVal < 60) {
+    } else if (randVal < 45) {
       return EntityID.sword;
-    } else if (randVal < 80) {
+    } else if (randVal < 60) {
       return EntityID.shield;
     } else {
-      return EntityID.purse;
+      return EntityID.enter;
     }
   }
 
@@ -260,23 +259,22 @@ class HomeLogic {
 
   void switchPlayerNext() {
     player.switchNext();
-    _updatePlayerCell();
   }
 
   void movePlayerUp() {
-    _movePlayer(player.y - 1, player.x + 0);
+    _movePlayer(Direction.up);
   }
 
   void movePlayerDown() {
-    _movePlayer(player.y + 1, player.x + 0);
+    _movePlayer(Direction.down);
   }
 
   void movePlayerLeft() {
-    _movePlayer(player.y + 0, player.x - 1);
+    _movePlayer(Direction.left);
   }
 
   void movePlayerRight() {
-    _movePlayer(player.y + 0, player.x + 1);
+    _movePlayer(Direction.right);
   }
 
   void navigateToPackagePage(BuildContext context) {
@@ -300,7 +298,6 @@ class HomeLogic {
       Navigator.push(context, MaterialPageRoute(builder: (context) => page))
           .then((_) {
         // 当页面弹出（即返回）时，这个回调会被执行
-        _updatePlayerCell(); // 更新玩家
         _startActive(); // 重新启动定时器
       });
     }
@@ -319,7 +316,6 @@ class HomeLogic {
                 )),
       ).then((value) {
         // 当页面弹出（即返回）时，这个回调会被执行
-        _updatePlayerCell(); // 更新玩家
         _startActive(); // 重新启动定时器
         if (value is ResultType) {
           if (value == ResultType.victory) {
@@ -337,6 +333,7 @@ class HomeLogic {
     while (_mapData.parent != null) {
       _backToPrevious();
     }
+    _updatePlayerCell(Direction.down); // 更新方向
     _setCellToPlayer(mapLevel, mapLevel, player.id);
     showPage.value = (BuildContext context) {
       SnackBarMessage(context, '你回到了主城');
@@ -380,18 +377,40 @@ class HomeLogic {
     }
   }
 
-  void _movePlayer(int newY, int newX) {
+  void _movePlayer(Direction direction) {
+    _updatePlayerCell(direction);
+
+    int newY = player.y;
+    int newX = player.x;
+
+    switch (direction) {
+      case Direction.up:
+        newY -= 1;
+        break;
+      case Direction.down:
+        newY += 1;
+        break;
+      case Direction.left:
+        newX -= 1;
+        break;
+      case Direction.right:
+        newX += 1;
+        break;
+    }
+
     if (_checkInMap(newY, newX)) {
       CellData cell = displayMap.value[newY][newX].value;
       switch (cell.id) {
         case EntityID.road:
           _setCellToPlayer(newY, newX, player.id);
           break;
+        case EntityID.wall:
+          break;
         case EntityID.enter:
           _enterNext(newY, newX);
           break;
         case EntityID.exit:
-          _setCellToPlayer(newY, newX, EntityID.exit);
+          _backToPrevious();
           break;
         case EntityID.train:
           showPage.value = (BuildContext context) {
@@ -454,33 +473,31 @@ class HomeLogic {
         default:
           break;
       }
-    } else {
-      if (displayMap.value[player.y][player.x].value.id == EntityID.exit) {
-        if (_mapData.parent != null) {
-          _backToPrevious();
-        }
-      }
     }
   }
 
   void _backToPrevious() {
-    floorNum.value--;
-
-    _clearPlayerCurrentCell();
-
-    _mapData.leaveMap = displayMap.value
-        .map((row) => row.map((valueNotifier) => valueNotifier.value).toList())
-        .toList(); // 获取当前地图数据
-
     if (_mapData.parent != null) {
-      _mapData = _mapData.parent!; // 更新当前地图
+      floorNum.value--;
+
+      _clearPlayerCurrentCell();
+
+      _mapData.leaveMap = displayMap.value
+          .map(
+              (row) => row.map((valueNotifier) => valueNotifier.value).toList())
+          .toList(); // 获取当前地图数据
+
+      if (_mapData.parent != null) {
+        _mapData = _mapData.parent!; // 更新当前地图
+      }
+
+      displayMap.value = _mapData.leaveMap
+          .map((row) => row.map((value) => ValueNotifier(value)).toList())
+          .toList(); // 从当前地图数据中恢复
+
+      _updatePlayerCell(_mapData.direction); // 更新方向
+      _setCellToPlayer(_mapData.leaveY, _mapData.leaveX, player.id); // 更新位置
     }
-
-    displayMap.value = _mapData.leaveMap
-        .map((row) => row.map((value) => ValueNotifier(value)).toList())
-        .toList(); // 从当前地图数据中恢复
-
-    _setCellToPlayer(_mapData.leaveY, _mapData.leaveX, player.id); // 更新位置
   }
 
   void _enterNext(int newY, int newX) {
@@ -494,6 +511,7 @@ class HomeLogic {
     floorNum.value++;
     _mapData.leaveY = player.y; // 保存玩家坐标
     _mapData.leaveX = player.x;
+    _mapData.direction = player.lastDirection;
     _mapData.leaveMap = displayMap.value
         .map((row) => row.map((valueNotifier) => valueNotifier.value).toList())
         .toList(); // 获取当前地图数据
@@ -503,7 +521,7 @@ class HomeLogic {
         displayMap.value = _mapData.leaveMap
             .map((row) => row.map((value) => ValueNotifier(value)).toList())
             .toList(); // 从当前地图数据中恢复
-        _setCellToPlayer(0, 0, EntityID.exit);
+        _setCellToPlayer(mapLevel, mapLevel, EntityID.exit);
         return;
       }
     }
@@ -513,14 +531,18 @@ class HomeLogic {
     _generateMap();
   }
 
-  void _updatePlayerCell() {
-    _setCellToPlayer(player.y, player.x,
-        displayMap.value[player.y][player.x].value.id); //更新地图上玩家所在位置
+  void _updatePlayerCell(Direction direction) {
+    player.updateDirection(direction); // 更新方向
+    displayMap.value[player.y][player.x].value = CellData(
+      id: displayMap.value[player.y][player.x].value.id,
+      iconIndex: player.col + player.row,
+      colorIndex: 1,
+      fogFlag: false,
+    ); // 设置新位置
   }
 
   void _restorePlayer() {
     player.restoreEnergies();
-    _updatePlayerCell();
   }
 
   void _upgradePlayer(int index, AttributeType attribute) {
@@ -538,18 +560,19 @@ class HomeLogic {
   }
 
   void _setCellToEntity(int y, int x, EntityID id) {
-    displayMap.value[y][x].value =
-        displayMap.value[y][x].value.copyWith(id: id, index: 0, proportion: 1);
+    displayMap.value[y][x].value = displayMap.value[y][x].value
+        .copyWith(id: id, iconIndex: 0, colorIndex: 0);
   }
 
   void _setCellToPlayer(int newY, int newX, EntityID id) {
     _clearPlayerCurrentCell();
+    player.updatePosition(newY, newX); // 更新位置
+    player.updateDirection(player.lastDirection); // 更新方向
     displayMap.value[newY][newX].value = CellData(
       id: id,
-      index: player.preview.type.value + 1,
-      proportion: player.preview.emoji.value,
+      iconIndex: player.col + player.row,
+      colorIndex: 1,
     ); // 设置新位置
-    player.updatePosition(newY, newX); // 更新位置
     _setAroundVisibility(player.y, player.x);
   }
 
@@ -575,7 +598,7 @@ class HomeLogic {
       int newX = x + around[i][1];
       if (_checkInMap(newY, newX)) {
         displayMap.value[newY][newX].value =
-            displayMap.value[newY][newX].value.copyWith(fog: false);
+            displayMap.value[newY][newX].value.copyWith(fogFlag: false);
       }
     }
   }

@@ -157,7 +157,7 @@ class BattleInfoRegion extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: info.emoji,
       builder: (context, value, child) {
-        return ImageManager.getIcon(EntityID.player, value);
+        return ImageManager.getIcon(EntityID.player, (value * 5).round());
       },
     );
   }
