@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_code/foundation/entity.dart';
 
 import '../foundation/energy.dart';
 import '../foundation/image.dart';
@@ -157,7 +156,7 @@ class BattleInfoRegion extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: info.emoji,
       builder: (context, value, child) {
-        return ImageManager.getIcon(EntityID.player, (value * 5).round());
+        return ImageManager.getCombatEmoji(value);
       },
     );
   }

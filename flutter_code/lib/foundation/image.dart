@@ -127,8 +127,29 @@ class ImageManager {
 
   final Map<EntityID, ImageSplitter> _imageSplitters = {};
 
-  Widget _getAssetsImage(
-      EntityID id, int iconIndex, int colorIndex, bool fogFlag) {
+  Widget getImage(EntityID id, int iconIndex, int colorIndex, bool fogFlag) {
+    if (fogFlag) {
+      return Container(color: Colors.black);
+    } else {
+      return Container(
+        color: _getBack(id, colorIndex),
+        child: Center(
+          child: _getFront(id, iconIndex),
+        ),
+      );
+    }
+  }
+
+  Widget _getFront(EntityID id, int iconIndex) {
+    switch (id) {
+      case EntityID.player:
+        return _getAssetsImage(id, iconIndex);
+      default:
+        return _getPresetsEmoji(id);
+    }
+  }
+
+  Widget _getAssetsImage(EntityID id, int iconIndex) {
     _imageSplitters.putIfAbsent(id, () {
       switch (id) {
         case EntityID.player:
@@ -140,41 +161,11 @@ class ImageManager {
       }
     });
 
-    return Container(
-      color: getColor(id, colorIndex),
-      child: Center(
-        child: _imageSplitters[id]!.getImagePiece(iconIndex),
-      ),
-    );
+    return _imageSplitters[id]!.getImagePiece(iconIndex);
   }
 
-  Widget getWidgetImage(
-      EntityID id, int iconIndex, int colorIndex, bool fogFlag) {
-    if (fogFlag) {
-      return Container(color: Colors.black);
-    } else {
-      if (id == EntityID.player) {
-        return _getAssetsImage(id, iconIndex, colorIndex, fogFlag);
-      } else {
-        return _getPresetsImage(id, iconIndex, colorIndex, fogFlag);
-      }
-    }
-  }
-
-  static Widget _getPresetsImage(
-      EntityID id, int iconIndex, int colorIndex, bool fogFlag) {
-    return Container(
-      color: getColor(id, colorIndex),
-      child: Center(
-        child: getIcon(id, iconIndex),
-      ),
-    );
-  }
-
-  static Color getColor(EntityID id, int index) {
+  static Color _getBack(EntityID id, int index) {
     switch (id) {
-      case EntityID.road:
-        return Colors.blueGrey; // 道路
       case EntityID.wall:
         return Colors.brown; // 墙壁
       case EntityID.exit:
@@ -182,14 +173,6 @@ class ImageManager {
         switch (index) {
           case 1:
             return const Color(0xFFC0C0C0);
-          case 2:
-            return Colors.blue;
-          case 3:
-            return Colors.lightGreen;
-          case 4:
-            return Colors.deepOrange;
-          case 5:
-            return Colors.brown;
           default:
             return Colors.blueGrey;
         }
@@ -197,42 +180,19 @@ class ImageManager {
       case EntityID.store:
       case EntityID.home:
         return Colors.teal;
-      case EntityID.weak:
-        return const Color.fromARGB(255, 255, 128, 128);
-      case EntityID.opponent:
-        return const Color.fromARGB(255, 255, 64, 64);
-      case EntityID.strong:
-        return const Color.fromARGB(255, 255, 32, 32);
-      case EntityID.boss:
-        return const Color.fromARGB(255, 255, 0, 0);
       default:
         return Colors.blueGrey; // 道路的背景
     }
   }
 
-  static Widget getIcon(EntityID id, int colorIndex) {
+  static Widget _getPresetsEmoji(EntityID id) {
     switch (id) {
       case EntityID.road:
-        return Container(); // 道路
+        return const SizedBox.shrink(); // 道路
       case EntityID.wall:
         return const Text('🧱'); // 墙壁
       case EntityID.player: // 玩家
-        switch (colorIndex) {
-          case 0:
-            return const Text('😢');
-          case 1:
-            return const Text('😞');
-          case 2:
-            return const Text('😮');
-          case 3:
-            return const Text('😐');
-          case 4:
-            return const Text('😊');
-          case 5:
-            return const Text('😎');
-          default:
-            return const Text('😎');
-        }
+        return const Text('😎');
       case EntityID.enter:
         return const Icon(Icons.exit_to_app); // 入口
       case EntityID.exit:
@@ -261,6 +221,22 @@ class ImageManager {
         return const Text('💀'); // 魔王
       default:
         return const Text('❓'); // 未知
+    }
+  }
+
+  static Widget getCombatEmoji(double emoji) {
+    if (emoji < 0.125) {
+      return const Text('😢');
+    } else if (emoji < 0.25) {
+      return const Text('😞');
+    } else if (emoji < 0.5) {
+      return const Text('😮');
+    } else if (emoji < 0.75) {
+      return const Text('😐');
+    } else if (emoji < 0.875) {
+      return const Text('😊');
+    } else {
+      return const Text('😎');
     }
   }
 }

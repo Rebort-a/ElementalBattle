@@ -234,7 +234,7 @@ class HomeMapRegion extends StatelessWidget {
                       return ValueListenableBuilder(
                         valueListenable: map[y][x],
                         builder: (context, value, child) {
-                          return imageManager.getWidgetImage(value.id,
+                          return imageManager.getImage(value.id,
                               value.iconIndex, value.colorIndex, value.fogFlag);
                         },
                       );
