@@ -164,7 +164,7 @@ class SkillCollection {
 
   static final CombatSkill waterPassive_0 = CombatSkill(
     id: SkillID.waterPassive_0,
-    name: "此起彼伏",
+    name: "此消彼长",
     description:
         "受到伤害后，防御力减少，根据减少量的82%，提高攻击力，如果是法术伤害，还会吸收其能量，提升一次附魔比例。\n\n你先开枪我也能先打死你。",
     type: SkillType.passive,
@@ -177,8 +177,8 @@ class SkillCollection {
 
   static final CombatSkill woodPassive_0 = CombatSkill(
     id: SkillID.woodPassive_0,
-    name: "汲取",
-    description: "造成伤害后，根据伤害量的40%，回复生命。\n\n吐垢纳新，师法天地。",
+    name: "就地取材",
+    description: "造成伤害后，根据伤害量的40%，回复生命。\n\n没有一滴血是原装的。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -202,7 +202,7 @@ class SkillCollection {
   static final CombatSkill earthPassive_0 = CombatSkill(
     id: SkillID.earthPassive_0,
     name: "承天载物",
-    description: "受到伤害后，将物理伤害的50%和法术伤害的15%作为加成，提高下次攻击的攻击力。\n\n力的作用是相互的。",
+    description: "受到伤害后，将物理伤害的50%和法术伤害的15%作为加成，提高下次攻击的攻击力。\n\n大地会记住一切。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -262,7 +262,7 @@ class SkillCollection {
   static final CombatSkill earthActive_0 = CombatSkill(
     id: SkillID.earthActive_0,
     name: "刚体",
-    description: "下次受到伤害时，进行一次攻击。",
+    description: "下次受到伤害时，进行一次攻击。\n力的作用是相互的。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -307,7 +307,7 @@ class SkillCollection {
   static final CombatSkill firePassive_1 = CombatSkill(
     id: SkillID.firePassive_1,
     name: "火舞旋风",
-    description: "火舞旋风可以施加给己方任一元素，并在生效后，切换其上场。\n\n Explosion！",
+    description: "火舞旋风可以施加给己方任一元素，并在生效后，切换其上场。",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -340,7 +340,7 @@ class SkillCollection {
 
   static final CombatSkill waterActive_1 = CombatSkill(
     id: SkillID.waterActive_1,
-    name: "此起彼伏",
+    name: "此消彼长",
     description: "受到伤害后，防御力减少，根据减少量的82%，提高攻击力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
@@ -352,7 +352,7 @@ class SkillCollection {
 
   static final CombatSkill woodActive_1 = CombatSkill(
     id: SkillID.woodActive_1,
-    name: "汲取",
+    name: "就地取材",
     description: "造成伤害时，根据伤害量的40%，回复生命，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
