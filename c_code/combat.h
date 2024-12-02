@@ -1,3 +1,3 @@
 #include "energy.h"
 
-int handleCombat(Energy *attacker, Energy *defender);
+extern int handleCombat(Energy *attacker, Energy *defender);

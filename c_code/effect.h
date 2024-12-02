@@ -1,3 +1,10 @@
+#ifndef EFFECT_H
+#define EFFECT_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
   restoreLife,
   multipleHit,
@@ -32,5 +39,11 @@ typedef struct {
   int times;
 } CombatEffect;
 
-int checkEffect(CombatEffect *effect);
-int expendEffect(CombatEffect *effect);
+extern int checkEffect(CombatEffect *effect);
+extern int expendEffect(CombatEffect *effect);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // EFFECT_H

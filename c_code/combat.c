@@ -1,65 +1,27 @@
 #include <math.h>
-#include <stdio.h>
 
 #include "combat.h"
+#include "custom.h"
 
 // 改变生命值
 int changeHealth(Energy *energy, int value) {
+
   energy->health += value;
   if (energy->health < 0) {
+
     value -= energy->health;
     energy->health = 0;
   } else if (energy->health > (energy->capacityBase + energy->capacityExtra)) {
+
     value -= energy->health - (energy->capacityBase + energy->capacityExtra);
     energy->health = (energy->capacityBase + energy->capacityExtra);
   }
+
   return value;
 }
 
-int handleCombat(Energy *attacker, Energy *defender);
-int handleAttack(Energy *attacker, Energy *defender, double attack, int defence,
-                 double coeff, int damageType);
-int handleDeductHealth(Energy *energy, int damage, int damageType);
 int handleRecoverHealth(Energy *energy, int recovery);
-
-// 处理增加容量效果
-void handleIncreaseCapacity(Energy *energy, int recovery) {
-  int checkHealth = energy->health + recovery;
-  int capacity = energy->capacityBase + energy->capacityExtra;
-
-  if (checkHealth > capacity) {
-    CombatEffect *effect = &energy->effects[increaseCapacity];
-    if (expendEffect(effect)) {
-      energy->capacityExtra += checkHealth - capacity;
-    }
-  }
-}
-
-// 根据恢复生命值调整属性
-void handleAdjustByRecovery(Energy *energy, int recovery) {
-  CombatEffect *effect = &energy->effects[adjustAttribute];
-  if (expendEffect(effect)) {
-    double recoveryRatio = recovery / (double)energy->capacityBase;
-    double healthRatio = energy->health / (double)energy->capacityBase;
-
-    int adjustValue = round((energy->defenceBase * recoveryRatio *
-                             pow(healthRatio + sqrt(2) - 1, 4)));
-
-    energy->defenceOffset += adjustValue;
-    energy->attackOffset -= round(adjustValue * effect->value);
-  }
-}
-
-// 回复生命值
-int handleRecoverHealth(Energy *energy, int recovery) {
-  handleIncreaseCapacity(energy, recovery);
-
-  recovery = changeHealth(energy, recovery);
-
-  handleAdjustByRecovery(energy, recovery);
-
-  return 0;
-}
+int handleDeductHealth(Energy *energy, int damage, int damageType);
 
 // 处理即时效果
 int handleInstantlyEffect(Energy *attacker, Energy *defender) {
@@ -71,10 +33,10 @@ int handleInstantlyEffect(Energy *attacker, Energy *defender) {
         (effect->value * (attacker->capacityBase + attacker->capacityExtra)));
 
     handleRecoverHealth(defender, recovery);
-    printf("${defender->name} 回复了 %d 生命值❤️‍🩹, "
-           "当前生命值为 "
-           "%d\n",
-           recovery, defender->health);
+    customPrintf("%s 回复了 %d 生命值❤️‍🩹, "
+                 "当前生命值为 "
+                 "%d\n",
+                 defender->name, recovery, defender->health);
     result = 1;
   }
 
@@ -136,9 +98,10 @@ double handleCoeffcientEffect(Energy *attacker, Energy *defender) {
 
     handleDeductHealth(attacker, deduction, 0); // 假设 0 为法术伤害类型
 
-    printf("${attacker->name} 对自身造成 %d ⚡法术伤害，伤害系数提高 %.0f%% "
-           "， 当前生命值为 %d\n",
-           deduction, (increaseCoeff * 100), attacker->health);
+    customPrintf("%s 对自身造成 %d ⚡法术伤害，伤害系数提高 %.0f%% "
+                 "， 当前生命值为 %d\n",
+                 attacker->name, deduction, (increaseCoeff * 100),
+                 attacker->health);
   }
 
   effect = &attacker->effects[coeffcient];
@@ -167,10 +130,50 @@ int handleCalculateDamage(double attack, int defence, double coeff) {
     damage = round((attack - defence) * coeff);
   }
 
-  printf("⚔️:%.1f 🛡️:%d %0.0f%% => 💔:%d\n", attack, defence, coeff * 100,
-         damage);
+  customPrintf("⚔️:%.1f 🛡️:%d %0.0f%% => 💔:%d\n", attack, defence, coeff * 100,
+               damage);
 
   return damage;
+}
+
+// 处理增加容量效果
+void handleIncreaseCapacity(Energy *energy, int recovery) {
+  int checkHealth = energy->health + recovery;
+  int capacity = energy->capacityBase + energy->capacityExtra;
+
+  if (checkHealth > capacity) {
+    CombatEffect *effect = &energy->effects[increaseCapacity];
+    if (expendEffect(effect)) {
+      energy->capacityExtra += checkHealth - capacity;
+    }
+  }
+}
+
+// 根据恢复生命值调整属性
+void handleAdjustByRecovery(Energy *energy, int recovery) {
+  CombatEffect *effect = &energy->effects[adjustAttribute];
+  if (expendEffect(effect)) {
+    double recoveryRatio = recovery / (double)energy->capacityBase;
+    double healthRatio = energy->health / (double)energy->capacityBase;
+
+    int adjustValue = round((energy->defenceBase * recoveryRatio *
+                             pow(healthRatio + sqrt(2) - 1, 4)));
+
+    energy->defenceOffset += adjustValue;
+    energy->attackOffset -= round(adjustValue * effect->value);
+  }
+}
+
+// 回复生命值
+int handleRecoverHealth(Energy *energy, int recovery) {
+
+  handleIncreaseCapacity(energy, recovery);
+
+  recovery = changeHealth(energy, recovery);
+
+  handleAdjustByRecovery(energy, recovery);
+
+  return 0;
 }
 
 // 处理伤害转化为生命值效果
@@ -179,10 +182,10 @@ void handleDamageToBlood(Energy *energy, int damage) {
   if (expendEffect(effect)) {
     int recovery = round(damage * effect->value);
     handleRecoverHealth(energy, recovery);
-    printf("${energy->name} 回复了 %d 生命值❤️‍🩹, "
-           "当前生命值为 "
-           "%d\n",
-           recovery, energy->health);
+    customPrintf("%s 回复了 %d 生命值❤️‍🩹, "
+                 "当前生命值为 "
+                 "%d\n",
+                 energy->name, recovery, energy->health);
   }
 }
 
@@ -197,6 +200,9 @@ void handleHotDamage(Energy *attacker, Energy *defender, int damage,
     }
   }
 }
+
+int handleAttack(Energy *attacker, Energy *defender, double attack, int defence,
+                 double coeff, int damageType);
 
 // 处理反击伤害效果
 int handleDamageToCounter(Energy *attacker, Energy *defender) {
@@ -233,6 +239,7 @@ int handleDamageToCounter(Energy *attacker, Energy *defender) {
 
 // 根据伤害调整属性
 void handleAdjustByDamage(Energy *energy, int damage, int damageType) {
+
   CombatEffect *effect = &energy->effects[adjustAttribute];
   if (expendEffect(effect)) {
     int health = energy->health + damage;
@@ -284,12 +291,16 @@ void handleDamageToAddition(Energy *energy, int damage, int damageType) {
 
 // 扣除生命值
 int handleDeductHealth(Energy *energy, int damage, int damageType) {
-  damage = changeHealth(energy, -damage);
+
+  damage = -changeHealth(energy, -damage);
   handleAdjustByDamage(energy, damage, damageType);
 
   handleExemptionDeath(energy);
 
   energy->capacityExtra -= damage;
+  if (energy->capacityExtra < 0) {
+    energy->capacityExtra = 0;
+  }
 
   handleDamageToAddition(energy, damage, damageType);
 
@@ -299,11 +310,13 @@ int handleDeductHealth(Energy *energy, int damage, int damageType) {
 // 处理伤害
 int handleDamage(Energy *attacker, Energy *defender, int damage,
                  int damageType) {
+
   int result = handleDeductHealth(defender, damage, damageType);
 
-  printf("${defender->name} 受到 %d ${damageType ? '⚡法术' : '🗡️物理'} 伤害, "
-         "当前生命值为 %d\n",
-         damage, defender->health);
+  customPrintf("%s 受到 %d %s 伤害, "
+               "当前生命值为 %d\n",
+               defender->name, damage, damageType ? "⚡法术" : "🗡️物理",
+               defender->health);
 
   handleDamageToBlood(attacker, damage);
 
