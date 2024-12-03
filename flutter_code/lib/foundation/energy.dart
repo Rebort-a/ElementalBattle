@@ -62,14 +62,20 @@ class Energy {
 
   int get level => _level;
 
-  int _changeHealth(int value) {
+  int _addHealth(int value) {
     _health += value;
-    if (_health < 0) {
-      value -= _health;
-      _health = 0;
-    } else if (_health > (_capacityBase + _capacityExtra)) {
+    if (_health > (_capacityBase + _capacityExtra)) {
       value -= _health - (_capacityBase + _capacityExtra);
       _health = (_capacityBase + _capacityExtra);
+    }
+    return value;
+  }
+
+  int _delHealth(int value) {
+    _health -= value;
+    if (_health < 0) {
+      value += _health;
+      _health = 0;
     }
     return value;
   }
@@ -167,13 +173,12 @@ class Energy {
 
   // 回复生命
   int recoverHealth(int value) {
-    return EnergyCombat.handleRecoverHealth(this, value, _changeHealth);
+    return EnergyCombat.handleRecoverHealth(this, value, _addHealth);
   }
 
   // 扣除生命
   int deductHealth(int value, bool damageType) {
-    return EnergyCombat.handleDeductHealth(
-        this, value, damageType, _changeHealth);
+    return EnergyCombat.handleDeductHealth(this, value, damageType, _delHealth);
   }
 
   // 升级属性
@@ -447,9 +452,9 @@ class EnergyCombat {
     }
   }
 
-  static int handleDeductHealth(Energy energy, int damage, bool damageType,
-      int Function(int) changeHealth) {
-    damage = -changeHealth(-damage);
+  static int handleDeductHealth(
+      Energy energy, int damage, bool damageType, int Function(int) delHealth) {
+    damage = delHealth(damage);
     _handleAdjustByDamage(energy, damage, damageType);
 
     _handleExemptionDeath(energy);
@@ -523,10 +528,10 @@ class EnergyCombat {
   }
 
   static int handleRecoverHealth(
-      Energy energy, int recovery, Function(int) changeHealth) {
+      Energy energy, int recovery, Function(int) addHealth) {
     _handleIncreaseCapacity(energy, recovery);
 
-    recovery = changeHealth(recovery);
+    recovery = addHealth(recovery);
 
     _handleAdjustByRecovery(energy, recovery);
 

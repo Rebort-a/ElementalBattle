@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
+
 extern bool flag_debug;
 extern int customPrintf(char *fmt, ...);
 

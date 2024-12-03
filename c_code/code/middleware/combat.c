@@ -4,19 +4,22 @@
 #include "custom.h"
 
 // 改变生命值
-int changeHealth(Energy *energy, int value) {
-
+int addHealth(Energy *energy, int value) {
   energy->health += value;
-  if (energy->health < 0) {
-
-    value -= energy->health;
-    energy->health = 0;
-  } else if (energy->health > (energy->capacityBase + energy->capacityExtra)) {
-
+  if (energy->health > (energy->capacityBase + energy->capacityExtra)) {
     value -= energy->health - (energy->capacityBase + energy->capacityExtra);
     energy->health = (energy->capacityBase + energy->capacityExtra);
   }
 
+  return value;
+}
+
+int delHealth(Energy *energy, int value) {
+  energy->health -= value;
+  if (energy->health < 0) {
+    value += energy->health;
+    energy->health = 0;
+  }
   return value;
 }
 
@@ -169,7 +172,7 @@ int handleRecoverHealth(Energy *energy, int recovery) {
 
   handleIncreaseCapacity(energy, recovery);
 
-  recovery = changeHealth(energy, recovery);
+  recovery = addHealth(energy, recovery);
 
   handleAdjustByRecovery(energy, recovery);
 
@@ -292,7 +295,7 @@ void handleDamageToAddition(Energy *energy, int damage, int damageType) {
 // 扣除生命值
 int handleDeductHealth(Energy *energy, int damage, int damageType) {
 
-  damage = -changeHealth(energy, -damage);
+  damage = delHealth(energy, damage);
   handleAdjustByDamage(energy, damage, damageType);
 
   handleExemptionDeath(energy);

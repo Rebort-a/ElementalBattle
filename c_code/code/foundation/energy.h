@@ -7,8 +7,8 @@ extern "C" {
 
 #include "effect.h"
 
-typedef enum { METAL, WATER, WOOD, FIRE, EARTH, ELEMENT_COUNT } EnergyType;
-extern const char *energyNames[ELEMENT_COUNT];
+typedef enum { METAL, WATER, WOOD, FIRE, EARTH, ENERGY_COUNT } EnergyType;
+extern const char *energyNames[ENERGY_COUNT];
 
 enum AttributeType { HP, ATK, DEF, ATTRIBUTE_COUNT };
 
@@ -25,6 +25,9 @@ typedef struct {
   int defenceOffset;
   CombatEffect effects[EFFECT_ID_COUNT];
 } Energy;
+
+extern void printAttributes(const Energy *energy);
+extern void printAttributesBattle(const Energy *source, const Energy *target);
 
 #ifdef __cplusplus
 }
