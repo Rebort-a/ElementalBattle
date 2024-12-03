@@ -12,13 +12,21 @@ void restoreAttributes(Energy *energy) {
   energy->health = energy->capacityBase;
 }
 
+void restoreEffects(Energy *energy) {
+  for (int i = 0; i < EFFECT_ID_COUNT; ++i) {
+    energy->effects[i].id = i;
+    energy->effects[i].type = limited;
+    energy->effects[i].times = 0;
+  }
+}
+
 void getPresetsAttributes(Energy *energy) {
+  restoreEffects(energy);
   switch (energy->type) {
   case METAL:
     energy->capacityBase = 128;
     energy->attackBase = 32;
     energy->defenceBase = 32;
-    energy->effects[strengthen].id = strengthen;
     energy->effects[strengthen].value = 0.5;
     energy->effects[strengthen].type = true;
     break;
@@ -26,7 +34,6 @@ void getPresetsAttributes(Energy *energy) {
     energy->capacityBase = 160;
     energy->attackBase = 16;
     energy->defenceBase = 64;
-    energy->effects[adjustAttribute].id = adjustAttribute;
     energy->effects[adjustAttribute].value = 0.82;
     energy->effects[adjustAttribute].type = true;
     break;
@@ -34,7 +41,6 @@ void getPresetsAttributes(Energy *energy) {
     energy->capacityBase = 256;
     energy->attackBase = 32;
     energy->defenceBase = 16;
-    energy->effects[absorbBlood].id = absorbBlood;
     energy->effects[absorbBlood].value = 0.4;
     energy->effects[absorbBlood].type = true;
     break;
@@ -42,7 +48,6 @@ void getPresetsAttributes(Energy *energy) {
     energy->capacityBase = 96;
     energy->attackBase = 64;
     energy->defenceBase = 16;
-    energy->effects[enchanting].id = enchanting;
     energy->effects[enchanting].value = 1.0;
     energy->effects[enchanting].type = true;
     break;
@@ -50,7 +55,6 @@ void getPresetsAttributes(Energy *energy) {
     energy->capacityBase = 384;
     energy->attackBase = 16;
     energy->defenceBase = 0;
-    energy->effects[accumulateAnger].id = accumulateAnger;
     energy->effects[accumulateAnger].value = 0.5;
     energy->effects[accumulateAnger].type = true;
     break;
@@ -58,7 +62,6 @@ void getPresetsAttributes(Energy *energy) {
     energy->capacityBase = 128;
     energy->attackBase = 32;
     energy->defenceBase = 32;
-    energy->effects[strengthen].id = strengthen;
     energy->effects[strengthen].value = 0.5;
     energy->effects[strengthen].type = true;
     break;
@@ -68,6 +71,7 @@ void getPresetsAttributes(Energy *energy) {
 }
 
 void upgradeAttributes(Energy *energy, enum AttributeType attribute) {
+  energy->level++;
   switch (attribute) {
   case HP:
     energy->capacityBase += 32;
@@ -89,7 +93,6 @@ void upgradeRandom(Energy *energy, int times) {
   for (int i = 0; i < times; i++) {
     upgradeAttributes(energy, rand() % ATTRIBUTE_COUNT);
   }
-  energy->level += times;
 }
 
 void upgradeChoose(Energy *energy) {

@@ -8,9 +8,13 @@
 #include "custom.h"
 #include "run.h"
 
-void runSimulation() { printAllResults(); }
+void runSimulation() {
+  flag_debug = false;
+  printAllResults();
+}
 
 void runInteractiveMode(EnergyType playerType) {
+  flag_debug = true;
   Energy player = {.name = "player", .type = playerType, .level = 0};
   getPresetsAttributes(&player);
   printAttributes(&player);
@@ -57,6 +61,7 @@ void runInteractiveMode(EnergyType playerType) {
 }
 
 void runBattle(EnergyType playerType, EnergyType enemyType) {
+  flag_debug = true;
   Energy player = {.name = "player", .type = playerType, .level = 0};
   Energy enemy = {.name = "enemy", .type = enemyType, .level = 0};
   getPresetsAttributes(&player);
