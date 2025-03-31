@@ -321,6 +321,7 @@ class HomeLogic {
           if (value == ResultType.victory) {
             _mapData.entities.remove(enemy);
             _setCellToEntity(enemy.y, enemy.x, EntityID.road); // 从地图上清除敌人
+            _restorePlayer(); // 恢复玩家状态
           } else if (value == ResultType.defeat) {
             _backToMain();
           }

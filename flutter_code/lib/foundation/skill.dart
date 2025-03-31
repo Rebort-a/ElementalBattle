@@ -152,7 +152,7 @@ class SkillCollection {
 
   static final CombatSkill metalPassive_0 = CombatSkill(
     id: SkillID.metalPassive_0,
-    name: "金属亲和力",
+    name: "武器大师",
     description: "战斗时，额外获得50%的攻击力和防御力。\n\n我将以高达形态出击。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
@@ -164,9 +164,8 @@ class SkillCollection {
 
   static final CombatSkill waterPassive_0 = CombatSkill(
     id: SkillID.waterPassive_0,
-    name: "此消彼长",
-    description:
-        "受到伤害后，防御力减少，根据减少量的82%，提高攻击力，如果是法术伤害，还会吸收其能量，提升一次附魔比例。\n\n你先开枪我也能先打死你。",
+    name: "此起彼伏",
+    description: "受到伤害后，防御力减少，根据减少量的82%，提高攻击力，并获取法术伤害的附魔。\n\n你先开枪我也能先打死你。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -237,8 +236,8 @@ class SkillCollection {
 
   static final CombatSkill woodActive_0 = CombatSkill(
     id: SkillID.woodActive_0,
-    name: "光合作用",
-    description: "根据生命上限的12.5%的回复生命，生效一次",
+    name: "根深蒂固",
+    description: "根据生命上限的12.5%的回复生命，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -249,7 +248,7 @@ class SkillCollection {
 
   static final CombatSkill fireActive_0 = CombatSkill(
     id: SkillID.fireActive_0,
-    name: "火舞旋风",
+    name: "爆裂魔法",
     description: "生命值降为1，根据降低的比例，提高伤害系数，并进行一次攻击。\n\n Explosion！",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
@@ -261,7 +260,7 @@ class SkillCollection {
 
   static final CombatSkill earthActive_0 = CombatSkill(
     id: SkillID.earthActive_0,
-    name: "刚体",
+    name: "以卵击石",
     description: "下次受到伤害时，进行一次攻击。\n力的作用是相互的。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
@@ -273,7 +272,7 @@ class SkillCollection {
 
   static final CombatSkill metalPassive_1 = CombatSkill(
     id: SkillID.metalPassive_1,
-    name: "双重打击",
+    name: "坚壁清野",
     description: "双重打击可以施加给己方任一元素。",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
@@ -284,7 +283,7 @@ class SkillCollection {
 
   static final CombatSkill waterPassive_1 = CombatSkill(
     id: SkillID.waterPassive_1,
-    name: "拖泥带水",
+    name: "逆水行舟",
     description: "拖泥带水可以施加给敌方任一元素。",
     type: SkillType.passive,
     targetType: SkillTarget.enemyAny,
@@ -295,8 +294,8 @@ class SkillCollection {
 
   static final CombatSkill woodPassive_1 = CombatSkill(
     id: SkillID.woodPassive_1,
-    name: "光合作用",
-    description: "光合作用可以施加给己方任一元素。",
+    name: "开枝散叶",
+    description: "根深蒂固可以施加给己方任一元素。",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -306,8 +305,8 @@ class SkillCollection {
 
   static final CombatSkill firePassive_1 = CombatSkill(
     id: SkillID.firePassive_1,
-    name: "火舞旋风",
-    description: "火舞旋风可以施加给己方任一元素，并在生效后，切换其上场。",
+    name: "薪火相传",
+    description: "爆裂魔法可以施加给己方任一元素，并在生效后，切换其上场。",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -317,8 +316,8 @@ class SkillCollection {
 
   static final CombatSkill earthPassive_1 = CombatSkill(
     id: SkillID.earthPassive_1,
-    name: "刚体",
-    description: "刚体可以施加给己方任一元素。",
+    name: "反击风暴",
+    description: "以卵击石可以施加给己方任一元素。",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -328,7 +327,7 @@ class SkillCollection {
 
   static final CombatSkill metalActive_1 = CombatSkill(
     id: SkillID.metalActive_1,
-    name: "金属亲和力",
+    name: "金属颤音",
     description: "战斗时，额外获得50%的攻击力和防御力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
@@ -340,7 +339,7 @@ class SkillCollection {
 
   static final CombatSkill waterActive_1 = CombatSkill(
     id: SkillID.waterActive_1,
-    name: "此消彼长",
+    name: "顺水推舟",
     description: "受到伤害后，防御力减少，根据减少量的82%，提高攻击力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
@@ -352,7 +351,7 @@ class SkillCollection {
 
   static final CombatSkill woodActive_1 = CombatSkill(
     id: SkillID.woodActive_1,
-    name: "就地取材",
+    name: "移花接木",
     description: "造成伤害时，根据伤害量的40%，回复生命，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
@@ -364,8 +363,8 @@ class SkillCollection {
 
   static final CombatSkill fireActive_1 = CombatSkill(
     id: SkillID.fireActive_1,
-    name: "燃烧吧",
-    description: "攻击时，获得100%附魔比例，造成无视防御的法术伤害，生效两次。",
+    name: "釜底抽薪",
+    description: "攻击时，获得100%附魔比例，造成无视防御的法术伤害，生效两次。\n\n对他使用炎拳吧！",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -376,7 +375,7 @@ class SkillCollection {
 
   static final CombatSkill earthActive_1 = CombatSkill(
     id: SkillID.earthActive_1,
-    name: "承天载物",
+    name: "固若金汤",
     description: "受到伤害后，将物理伤害的50%和法术伤害的15%作为加成，提高下次攻击的攻击力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
@@ -388,7 +387,7 @@ class SkillCollection {
 
   static final CombatSkill metalActive_2 = CombatSkill(
     id: SkillID.metalActive_2,
-    name: "巨人杀手",
+    name: "巨杀",
     description: "攻击时，基于敌方当前生命值的25%，提高自身攻击力，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
@@ -412,7 +411,7 @@ class SkillCollection {
 
   static final CombatSkill woodActive_2 = CombatSkill(
     id: SkillID.woodActive_2,
-    name: "拔苗助长",
+    name: "桎梏",
     description: "回复生命的溢出量可以超过基础生命上限，但是不能超过基础生命上限的100%，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
@@ -425,7 +424,7 @@ class SkillCollection {
   static final CombatSkill fireActive_2 = CombatSkill(
     id: SkillID.fireActive_2,
     name: "灼烧",
-    description: "造成的法术伤害，会使敌人烧伤，使其再次受到伤害时，将会追加本次伤害25%的伤害，生效两次。",
+    description: "造成的法术伤害，会使敌人烧伤，使其再次受到伤害时，将会追加本次伤害25%的伤害，生效两次。\n\n阿玛忒拉斯",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
