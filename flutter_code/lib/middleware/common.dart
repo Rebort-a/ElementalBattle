@@ -41,7 +41,7 @@ class SelectEnergy {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('选择一个元素'),
+          title: const Text('选择一个灵根'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: List.generate(elemental.count, (index) {
@@ -215,7 +215,7 @@ class UpgradeDialog {
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    const Text('选择元素:'),
+                    const Text('选择灵根:'),
                     ...elementsForDialog.map(
                       (elementIndex) => ListTile(
                         title: Text(
@@ -235,7 +235,7 @@ class UpgradeDialog {
                             : ListTileStyle.list,
                       ),
                     ),
-                    const SizedBox(height: 10), // 分隔元素和属性选择
+                    const SizedBox(height: 10), // 分隔灵根和属性选择
                     if (chosenElement != -1) ...[
                       const Text('选择属性:'),
                       ...attributesForDialog.map(
@@ -270,7 +270,7 @@ class UpgradeDialog {
                   ),
                   TextButton(
                     onPressed: () {
-                      // 如果用户没有选择属性或元素，则不继续执行
+                      // 如果用户没有选择属性或灵根，则不继续执行
                       if (chosenElement == -1) {
                       } else {
                         upgrade(chosenElement, chosenAttribute);

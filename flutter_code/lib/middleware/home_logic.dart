@@ -169,7 +169,7 @@ class HomeLogic {
       entityID = EntityID.boss;
     }
 
-    // 随机敌人元素数量
+    // 随机敌人灵根数量
     int elementCount = _random.nextInt(EnergyType.values.length) + 1;
 
     // 根据层数和敌人类型确定等级

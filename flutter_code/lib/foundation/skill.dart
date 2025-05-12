@@ -272,8 +272,8 @@ class SkillCollection {
 
   static final CombatSkill metalPassive_1 = CombatSkill(
     id: SkillID.metalPassive_1,
-    name: "坚壁清野",
-    description: "双重打击可以施加给己方任一元素。",
+    name: "攻守易形",
+    description: "双重打击可以施加给己方任一灵根，使其下次攻击时，额外进行一次。",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -284,7 +284,7 @@ class SkillCollection {
   static final CombatSkill waterPassive_1 = CombatSkill(
     id: SkillID.waterPassive_1,
     name: "逆水行舟",
-    description: "拖泥带水可以施加给敌方任一元素。",
+    description: "拖泥带水可以施加给敌方任一灵根，使其下次攻击时，减少50%的攻击力，生效两次。",
     type: SkillType.passive,
     targetType: SkillTarget.enemyAny,
     handler: (skills, effects) {
@@ -295,7 +295,7 @@ class SkillCollection {
   static final CombatSkill woodPassive_1 = CombatSkill(
     id: SkillID.woodPassive_1,
     name: "开枝散叶",
-    description: "根深蒂固可以施加给己方任一元素。",
+    description: "根深蒂固可以施加给己方任一灵根，根据生命上限的12.5%的回复其生命。",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -306,7 +306,7 @@ class SkillCollection {
   static final CombatSkill firePassive_1 = CombatSkill(
     id: SkillID.firePassive_1,
     name: "薪火相传",
-    description: "爆裂魔法可以施加给己方任一元素，并在生效后，切换其上场。",
+    description: "爆裂魔法可以施加给己方任一灵根，使其攻击时，获得100%附魔比例，造成无视防御的法术伤害。并在生效后，切换其上场。",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -317,7 +317,7 @@ class SkillCollection {
   static final CombatSkill earthPassive_1 = CombatSkill(
     id: SkillID.earthPassive_1,
     name: "反击风暴",
-    description: "以卵击石可以施加给己方任一元素。",
+    description: "以卵击石可以施加给己方任一灵根，使其下次受到伤害时，进行一次攻击。",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -387,7 +387,7 @@ class SkillCollection {
 
   static final CombatSkill metalActive_2 = CombatSkill(
     id: SkillID.metalActive_2,
-    name: "巨杀",
+    name: "巨人杀手",
     description: "攻击时，基于敌方当前生命值的25%，提高自身攻击力，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,

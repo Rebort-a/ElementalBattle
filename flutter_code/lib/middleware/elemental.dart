@@ -147,8 +147,8 @@ class Elemental extends MovableEntity {
     required super.y,
     required super.x,
   }) {
-    _energies = _getRandomEnergies(count); // 根据元素数量初始化元素列表
-    _current = _random.nextInt(count); // 当前元素为随机
+    _energies = _getRandomEnergies(count); // 根据灵根数量初始化灵根列表
+    _current = _random.nextInt(count); // 当前灵根为随机
     _updatePreview();
   }
 
@@ -297,7 +297,7 @@ class EnemyElemental extends Elemental {
   _upgradeRandom(int times) {
     times += 3 * (5 - count);
     for (int i = 0; i < times; i++) {
-      int elementIndex = _random.nextInt(count); // 随机选择一个元素
+      int elementIndex = _random.nextInt(count); // 随机选择一个灵根
       AttributeType attributeType = AttributeType
           .values[_random.nextInt(AttributeType.values.length)]; // 随机选择一个属性
       upgradeEnergy(elementIndex, attributeType); // 进行升级
