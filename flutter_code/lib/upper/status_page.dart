@@ -38,8 +38,8 @@ class _StatusPageState extends State<StatusPage> {
 
   Widget _buildStatusInfo() {
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: ListView(
+        padding: const EdgeInsets.all(16.0),
         children: [
           _buildPlayerInfo(),
           const Divider(),
