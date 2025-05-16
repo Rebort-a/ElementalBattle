@@ -69,7 +69,7 @@ class SelectEnergy {
                     ),
                     child: Text('$name $health/$capacity'),
                   ),
-                  const SizedBox(height: 5), // 添加间隙
+                  const SizedBox(height: 1), // 添加间隙
                 ],
               );
             }),
