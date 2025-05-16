@@ -42,37 +42,45 @@ class SelectEnergy {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('选择一个灵根'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(elemental.count, (index) {
-              String name = elemental.getAppointName(index);
-              int health = elemental.getAppointHealth(index);
-              int capacity = elemental.getAppointCapacity(index);
-              return Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: available
-                        ? health > 0
-                            ? () {
+          content: Container(
+            // 设置最大高度，超过时可滚动
+            constraints: const BoxConstraints(maxHeight: 300),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(elemental.count, (index) {
+                  String name = elemental.getAppointName(index);
+                  int health = elemental.getAppointHealth(index);
+                  int capacity = elemental.getAppointCapacity(index);
+                  return Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: available
+                            ? health > 0
+                                ? () {
+                                    onSelected(index);
+                                    Navigator.of(context).pop();
+                                  }
+                                : null
+                            : () {
                                 onSelected(index);
                                 Navigator.of(context).pop();
-                              }
-                            : null
-                        : () {
-                            onSelected(index);
-                            Navigator.of(context).pop();
-                          },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: health > 0 ? Colors.white : Colors.black,
-                      backgroundColor: health > 0 ? Colors.blue : Colors.grey,
-                      disabledBackgroundColor: Colors.grey,
-                    ),
-                    child: Text('$name $health/$capacity'),
-                  ),
-                  const SizedBox(height: 1), // 添加间隙
-                ],
-              );
-            }),
+                              },
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor:
+                              health > 0 ? Colors.white : Colors.black,
+                          backgroundColor:
+                              health > 0 ? Colors.blue : Colors.grey,
+                          disabledBackgroundColor: Colors.grey,
+                        ),
+                        child: Text('$name $health/$capacity'),
+                      ),
+                      const SizedBox(height: 5), // 添加间隙
+                    ],
+                  );
+                }),
+              ),
+            ),
           ),
         );
       },
@@ -188,6 +196,7 @@ class UpgradeDialog {
   final bool Function() before;
   final VoidCallback after;
   final void Function(int index, AttributeType attribute) upgrade;
+
   UpgradeDialog(this.context, this.before, this.after, this.upgrade) {
     _showUpgradeDialog(context, before, after, upgrade);
   }
@@ -212,54 +221,60 @@ class UpgradeDialog {
           return StatefulBuilder(
             builder: (context, setState) {
               return AlertDialog(
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    const Text('选择灵根:'),
-                    ...elementsForDialog.map(
-                      (elementIndex) => ListTile(
-                        title: Text(
-                          energyNames[elementIndex],
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        onTap: () {
-                          setState(() {
-                            chosenElement = elementIndex;
-                          });
-                        },
-                        trailing: chosenElement == elementIndex
-                            ? const Icon(Icons.check)
-                            : null,
-                        style: chosenElement == elementIndex
-                            ? ListTileStyle.drawer
-                            : ListTileStyle.list,
-                      ),
-                    ),
-                    const SizedBox(height: 10), // 分隔灵根和属性选择
-                    if (chosenElement != -1) ...[
-                      const Text('选择属性:'),
-                      ...attributesForDialog.map(
-                        (attributeIndex) => ListTile(
-                          title: Text(
-                            attributeNames[attributeIndex],
-                            style: Theme.of(context).textTheme.labelLarge,
+                content: Container(
+                  constraints: const BoxConstraints(maxHeight: 400),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const Text('选择灵根:'),
+                        ...elementsForDialog.map(
+                          (elementIndex) => ListTile(
+                            title: Text(
+                              energyNames[elementIndex],
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                            onTap: () {
+                              setState(() {
+                                chosenElement = elementIndex;
+                              });
+                            },
+                            trailing: chosenElement == elementIndex
+                                ? const Icon(Icons.check)
+                                : null,
+                            style: chosenElement == elementIndex
+                                ? ListTileStyle.drawer
+                                : ListTileStyle.list,
                           ),
-                          onTap: () {
-                            setState(() {
-                              chosenAttribute =
-                                  AttributeType.values[attributeIndex];
-                            });
-                          },
-                          trailing: chosenAttribute.index == attributeIndex
-                              ? const Icon(Icons.check)
-                              : null,
-                          style: chosenAttribute.index == attributeIndex
-                              ? ListTileStyle.drawer
-                              : ListTileStyle.list,
                         ),
-                      ),
-                    ]
-                  ],
+                        const SizedBox(height: 10), // 分隔灵根和属性选择
+                        if (chosenElement != -1) ...[
+                          const Text('选择属性:'),
+                          ...attributesForDialog.map(
+                            (attributeIndex) => ListTile(
+                              title: Text(
+                                attributeNames[attributeIndex],
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  chosenAttribute =
+                                      AttributeType.values[attributeIndex];
+                                });
+                              },
+                              trailing: chosenAttribute.index == attributeIndex
+                                  ? const Icon(Icons.check)
+                                  : null,
+                              style: chosenAttribute.index == attributeIndex
+                                  ? ListTileStyle.drawer
+                                  : ListTileStyle.list,
+                            ),
+                          ),
+                        ]
+                      ],
+                    ),
+                  ),
                 ),
                 actions: <Widget>[
                   TextButton(
@@ -272,10 +287,11 @@ class UpgradeDialog {
                     onPressed: () {
                       // 如果用户没有选择属性或灵根，则不继续执行
                       if (chosenElement == -1) {
+                        // 可以添加提示或日志
                       } else {
                         upgrade(chosenElement, chosenAttribute);
                       }
-                      Navigator.of(context).pop(); // 当属性被选择时，允许点击确定
+                      Navigator.of(context).pop();
                     },
                     child: const Text('确定'),
                   ),
@@ -285,7 +301,6 @@ class UpgradeDialog {
           );
         },
       ).then((value) {
-        // 对话框关闭后的回调
         after();
       });
     }
