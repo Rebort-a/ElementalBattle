@@ -55,6 +55,7 @@ class CombatPage extends StatelessWidget {
       builder: (context, value, child) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           value(context);
+          combatLogic.showPage.value = (BuildContext context) {};
         });
         return const SizedBox.shrink();
       },

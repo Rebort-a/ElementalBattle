@@ -17,6 +17,7 @@ class HomePage extends StatelessWidget {
       appBar: _buildAppBar(),
       body: OrientationBuilder(
         builder: (context, orientation) {
+          // 根据屏幕方向选择布局
           return orientation == Orientation.portrait
               ? _buildPortraitLayout(context)
               : _buildLandscapeLayout(context);
@@ -43,20 +44,24 @@ class HomePage extends StatelessWidget {
           Flexible(
             child: Column(
               children: [
-                Expanded(flex: 5, child: _buildMapRegion()),
+                // 地图区域
+                Expanded(flex: 8, child: _buildMapRegion()),
                 Expanded(
                   flex: 3,
                   child: Column(
                     children: [
-                      _buildPortraitInfoRegion(),
-                      _buildPortraitButtonRegion(context),
+                      // 信息区域
+                      _buildInfoRegion(Axis.horizontal),
+                      // 行为按钮区域
+                      _buildActionButtonRegion(context, Axis.horizontal),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          _buildDirectionRegion(),
+          // 方向按钮区域
+          _buildDirectionButtonRegion(),
           // 底部空白区域
           _buildBlankRegion(),
         ],
@@ -74,14 +79,20 @@ class HomePage extends StatelessWidget {
                 Expanded(
                   flex: 3,
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildLandscapeButtonRegion(context),
-                      _buildLandscapeInfoRegion(),
+                      // 行为按钮区域
+                      _buildActionButtonRegion(context, Axis.vertical),
+
+                      //信息区域
+                      _buildInfoRegion(Axis.vertical),
                     ],
                   ),
                 ),
+                // 地图区域
                 Expanded(flex: 5, child: _buildMapRegion()),
-                Expanded(flex: 3, child: _buildDirectionRegion()),
+                // 方向按钮区域
+                Expanded(flex: 3, child: _buildDirectionButtonRegion()),
               ],
             ),
           ),
@@ -108,54 +119,63 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildMapRegion() => AspectRatio(
-        aspectRatio: 1, // 宽高比为1:1，即正方形
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey, width: 8),
-          ),
-          child: ValueListenableBuilder<List<List<ValueNotifier<CellData>>>>(
-            valueListenable: homeLogic.displayMap,
-            builder: (context, map, _) => LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final cellWidth = constraints.maxHeight ~/ map.length;
-                final cellHeight = constraints.maxWidth ~/ map[0].length;
-                final cellSize =
-                    cellWidth < cellHeight ? cellWidth : cellHeight;
+        aspectRatio: 1.0, // 宽高比为1:1（正方形）
+        child: Center(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.blueGrey,
+              border: Border.all(color: Colors.grey, width: 8),
+            ),
+            child: ValueListenableBuilder<List<List<ValueNotifier<CellData>>>>(
+              valueListenable: homeLogic.displayMap,
+              builder: (context, map, _) {
+                if (map.isEmpty || map[0].isEmpty) {
+                  return const Center(child: Text('地图数据为空'));
+                }
 
-                // 计算地图的实际尺寸
-                final mapWidth = cellSize * map[0].length;
-                final mapHeight = cellSize * map.length;
+                final int rows = map.length; // 行数（y轴，纵向单元格数量）
+                final int cols = map[0].length; // 列数（x轴，横向单元格数量）
 
-                return Container(
-                  color: Colors.grey,
-                  child: Center(
-                    child: SizedBox(
-                      height: mapWidth.toDouble(),
-                      width: mapHeight.toDouble(),
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    //取像素整数
+                    int containerWidth = (constraints.maxWidth ~/ cols) * cols;
+                    int containerHeight =
+                        (constraints.maxHeight ~/ rows) * rows;
+
+                    int containerSize = containerWidth < containerHeight
+                        ? containerWidth
+                        : containerHeight;
+
+                    return SizedBox(
+                      width: containerSize.toDouble(),
+                      height: containerSize.toDouble(),
                       child: GridView.builder(
-                        physics: const NeverScrollableScrollPhysics(), // 禁止滚动
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: map.length,
-                          childAspectRatio: 1, // 保持单元格正方形
+                          crossAxisCount: cols, // 列数
+                          childAspectRatio: 1, // 单元格正方形
+                          mainAxisSpacing: 0, // 移除网格间距
+                          crossAxisSpacing: 0,
                         ),
-                        itemCount: map.length * map[0].length,
+                        itemCount: rows * cols, // 总单元格数
                         itemBuilder: (context, index) {
-                          final x = index % map.length;
-                          final y = index ~/ map.length;
+                          final x = index % cols; // x坐标（列）
+                          final y = index ~/ cols; // y坐标（行）
                           return ValueListenableBuilder(
                             valueListenable: map[y][x],
                             builder: (context, value, child) {
                               return ImageManager().getImage(
-                                  value.id,
-                                  value.iconIndex,
-                                  value.colorIndex,
-                                  value.fogFlag);
+                                value.id,
+                                value.iconIndex,
+                                value.colorIndex,
+                                value.fogFlag,
+                              );
                             },
                           );
                         },
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 );
               },
             ),
@@ -163,102 +183,68 @@ class HomePage extends StatelessWidget {
         ),
       );
 
-  Widget _buildPortraitInfoRegion() => Container(
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            _InfoItem(label: "🌈", value: homeLogic.player.preview.typeString),
-            _InfoItem(
-              label: attributeNames[AttributeType.hp.index],
-              value: homeLogic.player.preview.health,
-            ),
-            _InfoItem(
-              label: attributeNames[AttributeType.atk.index],
-              value: homeLogic.player.preview.attack,
-            ),
-            _InfoItem(
-              label: attributeNames[AttributeType.def.index],
-              value: homeLogic.player.preview.defence,
-            ),
-          ],
-        ),
-      );
+  Widget _buildInfoRegion(Axis direction) {
+    final infoItems = [
+      _InfoItem(label: "🌈", value: homeLogic.player.preview.typeString),
+      _InfoItem(
+        label: attributeNames[AttributeType.hp.index],
+        value: homeLogic.player.preview.health,
+      ),
+      _InfoItem(
+        label: attributeNames[AttributeType.atk.index],
+        value: homeLogic.player.preview.attack,
+      ),
+      _InfoItem(
+        label: attributeNames[AttributeType.def.index],
+        value: homeLogic.player.preview.defence,
+      ),
+    ];
 
-  Widget _buildLandscapeInfoRegion() => Container(
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          children: [
-            const Spacer(flex: 1),
-            _InfoItem(label: "🌈", value: homeLogic.player.preview.typeString),
-            _InfoItem(
-              label: attributeNames[AttributeType.hp.index],
-              value: homeLogic.player.preview.health,
-            ),
-            _InfoItem(
-              label: attributeNames[AttributeType.atk.index],
-              value: homeLogic.player.preview.attack,
-            ),
-            _InfoItem(
-              label: attributeNames[AttributeType.def.index],
-              value: homeLogic.player.preview.defence,
-            ),
-          ],
-        ),
-      );
+    final children = direction == Axis.horizontal
+        ? infoItems
+        : [const Spacer(flex: 1), ...infoItems];
 
-  Widget _buildPortraitButtonRegion(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _AppButton(
-            text: "背包",
-            onPressed: () => homeLogic.navigateToPackagePage(context),
-          ),
-          _AppButton(
-            text: "技能",
-            onPressed: () => homeLogic.navigateToSkillsPage(context),
-          ),
-          _AppButton(
-            text: "状态",
-            onPressed: () => homeLogic.navigateToStatusPage(context),
-          ),
-          _AppButton(
-            text: "切换",
-            onPressed: homeLogic.switchPlayerNext,
-          ),
-        ],
-      );
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: direction == Axis.horizontal
+          ? Row(children: children)
+          : Column(children: children),
+    );
+  }
 
-  Widget _buildLandscapeButtonRegion(BuildContext context) => Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _AppButton(
-            text: "背包",
-            onPressed: () => homeLogic.navigateToPackagePage(context),
-          ),
-          _AppButton(
-            text: "技能",
-            onPressed: () => homeLogic.navigateToSkillsPage(context),
-          ),
-          _AppButton(
-            text: "状态",
-            onPressed: () => homeLogic.navigateToStatusPage(context),
-          ),
-          _AppButton(
-            text: "切换",
-            onPressed: homeLogic.switchPlayerNext,
-          ),
-        ],
-      );
+  Widget _buildActionButtonRegion(BuildContext context, Axis direction) {
+    final buttons = [
+      _ActionButton(
+        text: "背包",
+        onPressed: () => homeLogic.navigateToPackagePage(context),
+      ),
+      _ActionButton(
+        text: "技能",
+        onPressed: () => homeLogic.navigateToSkillsPage(context),
+      ),
+      _ActionButton(
+        text: "状态",
+        onPressed: () => homeLogic.navigateToStatusPage(context),
+      ),
+      _ActionButton(
+        text: "切换",
+        onPressed: homeLogic.switchPlayerNext,
+      ),
+    ];
 
-  Widget _buildDirectionRegion() => Column(
+    return direction == Axis.horizontal
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: buttons)
+        : Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: buttons);
+  }
+
+  Widget _buildDirectionButtonRegion() => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 16),
@@ -299,6 +285,7 @@ class _InfoItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
+      flex: 1,
       child: ValueListenableBuilder(
         valueListenable: value,
         builder: (_, val, __) =>
@@ -308,11 +295,11 @@ class _InfoItem extends StatelessWidget {
   }
 }
 
-class _AppButton extends StatelessWidget {
+class _ActionButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
 
-  const _AppButton({required this.text, required this.onPressed});
+  const _ActionButton({required this.text, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
