@@ -320,9 +320,9 @@ class EnergyCombat {
           (effect.value * (attacker.capacityBase + attacker.capacityExtra))
               .round();
 
-      defender.recoverHealth(recovery);
+      int actualRecovery = defender.recoverHealth(recovery);
       message +=
-          ('${defender.name} 回复了 $recovery 生命值❤️‍🩹, 当前生命值为 ${defender.health}\n');
+          ('${defender.name} 回复了 $actualRecovery 生命值❤️‍🩹, 当前生命值为 ${defender.health}\n');
       result = 1;
     }
 
@@ -436,24 +436,24 @@ class EnergyCombat {
 
   int _handleDamage(
       Energy attacker, Energy defender, int damage, bool damageType) {
-    int result = defender.deductHealth(damage, damageType);
+    int actualDamage = defender.deductHealth(damage, damageType);
 
     message +=
-        ('${defender.name} 受到 $damage ${damageType ? '⚡法术' : '🗡️物理'} 伤害, 当前生命值为 ${defender.health}\n');
+        ('${defender.name} 受到 $actualDamage ${damageType ? '⚡法术' : '🗡️物理'} 伤害, 当前生命值为 ${defender.health}\n');
 
-    _handleDamageToBlood(attacker, damage);
+    _handleDamageToBlood(attacker, actualDamage);
 
-    _handleHotDamage(attacker, defender, damage, damageType);
-
-    if (result != 0) {
-      return result;
+    if (defender.health <= 0) {
+      return 1;
     } else {
+      _handleHotDamage(attacker, defender, damage, damageType);
       return _handleDamageToCounter(attacker, defender);
     }
   }
 
   static int handleDeductHealth(
       Energy energy, int damage, bool damageType, int Function(int) delHealth) {
+    // 获取实际伤害量
     damage = delHealth(damage);
     _handleAdjustByDamage(energy, damage, damageType);
 
@@ -463,7 +463,7 @@ class EnergyCombat {
 
     _handleDamageToAddition(energy, damage, damageType);
 
-    return energy.health > 0 ? 0 : 1;
+    return damage;
   }
 
   static void _handleAdjustByDamage(
@@ -521,9 +521,9 @@ class EnergyCombat {
     CombatEffect effect = energy.effects[EffectID.absorbBlood.index];
     if (effect.expend()) {
       int recovery = (damage * effect.value).round();
-      energy.recoverHealth(recovery);
+      int actualRecovery = energy.recoverHealth(recovery);
       message +=
-          ('${energy.name} 回复了 $recovery 生命值❤️‍🩹, 当前生命值为 ${energy.health}\n');
+          ('${energy.name} 回复了 $actualRecovery 生命值❤️‍🩹, 当前生命值为 ${energy.health}\n');
     }
   }
 
@@ -535,7 +535,7 @@ class EnergyCombat {
 
     _handleAdjustByRecovery(energy, recovery);
 
-    return 0;
+    return recovery;
   }
 
   static void _handleIncreaseCapacity(Energy energy, int recovery) {
