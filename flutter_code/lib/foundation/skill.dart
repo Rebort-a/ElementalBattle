@@ -140,7 +140,7 @@ class SkillCollection {
 
   static final CombatSkill baseParry = CombatSkill(
     id: SkillID.parry,
-    name: "基础格挡",
+    name: "格挡",
     description: "防守时，减少75%伤害，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,

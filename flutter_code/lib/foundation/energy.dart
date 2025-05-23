@@ -71,7 +71,7 @@ class Energy {
     return value;
   }
 
-  int _delHealth(int value) {
+  int _reduceHealth(int value) {
     _health -= value;
     if (_health < 0) {
       value += _health;
@@ -80,7 +80,7 @@ class Energy {
     return value;
   }
 
-  void changeCapcityExtra(int value) {
+  void changeCapacityExtra(int value) {
     _capacityExtra += value;
     if (_capacityExtra < 0) {
       _capacityExtra = 0;
@@ -178,7 +178,8 @@ class Energy {
 
   // 扣除生命
   int deductHealth(int value, bool damageType) {
-    return EnergyCombat.handleDeductHealth(this, value, damageType, _delHealth);
+    return EnergyCombat.handleDeductHealth(
+        this, value, damageType, _reduceHealth);
   }
 
   // 升级属性
@@ -223,6 +224,10 @@ class Energy {
       }
     }
   }
+
+  CombatEffect getEffect(EffectID id) {
+    return _effects[id.index];
+  }
 }
 
 class EnergyCombat {
@@ -241,17 +246,17 @@ class EnergyCombat {
     int attack = attacker.attackBase + attacker.attackOffset;
     CombatEffect effect;
 
-    effect = attacker.effects[EffectID.giantKiller.index];
+    effect = attacker.getEffect(EffectID.giantKiller);
     if (expend ? effect.expend() : effect.check()) {
       attack += (defender.health * effect.value).round();
     }
 
-    effect = attacker.effects[EffectID.strengthen.index];
+    effect = attacker.getEffect(EffectID.strengthen);
     if (expend ? effect.expend() : effect.check()) {
       attack += (attack * effect.value).round();
     }
 
-    effect = attacker.effects[EffectID.weakenAttack.index];
+    effect = attacker.getEffect(EffectID.weakenAttack);
     if (expend ? effect.expend() : effect.check()) {
       attack -= (attack * effect.value).round();
     }
@@ -263,12 +268,12 @@ class EnergyCombat {
     int defence = defender.defenceBase + defender.defenceOffset;
     CombatEffect effect;
 
-    effect = defender.effects[EffectID.strengthen.index];
+    effect = defender.getEffect(EffectID.strengthen);
     if (expend ? effect.expend() : effect.check()) {
       defence += (defence * effect.value).round();
     }
 
-    effect = defender.effects[EffectID.weakenDefence.index];
+    effect = defender.getEffect(EffectID.weakenDefence);
     if (expend ? effect.expend() : effect.check()) {
       defence -= (defence * effect.value).round();
     }
@@ -281,7 +286,7 @@ class EnergyCombat {
 
     CombatEffect effect;
 
-    effect = attacker.effects[EffectID.sacrificing.index];
+    effect = attacker.getEffect(EffectID.sacrificing);
     if (effect.expend()) {
       int deduction = attacker.health - effect.value.round();
 
@@ -295,7 +300,7 @@ class EnergyCombat {
           ('${attacker.name} 对自身造成 $deduction ⚡法术伤害，伤害系数提高 ${(increaseCoeff * 100).toStringAsFixed(0)}% ， 当前生命值为 ${attacker.health}\n');
     }
 
-    effect = attacker.effects[EffectID.coeffcient.index];
+    effect = attacker.getEffect(EffectID.coeffcient);
     if (effect.expend()) {
       coeff *= (1 + effect.value);
       if (!effect.check()) {
@@ -303,7 +308,7 @@ class EnergyCombat {
       }
     }
 
-    effect = defender.effects[EffectID.parryState.index];
+    effect = defender.getEffect(EffectID.parryState);
     if (effect.expend()) {
       coeff *= (1 - effect.value);
     }
@@ -311,10 +316,30 @@ class EnergyCombat {
     return coeff;
   }
 
+  double _handleEnchantRatio(Energy attacker, Energy defender) {
+    double enchantRatio = 0.0;
+
+    CombatEffect effect;
+    effect = attacker.getEffect(EffectID.enchanting);
+    if (effect.expend()) {
+      if (effect.value > 1) {
+        effect.value = 1;
+      } else if (effect.value < 0) {
+        effect.value = 0;
+      }
+      enchantRatio = effect.value;
+
+      if (!effect.check()) {
+        effect.value = 0;
+      }
+    }
+    return enchantRatio;
+  }
+
   int _handleInstantlyEffect(Energy attacker, Energy defender) {
     int result = 0;
 
-    CombatEffect effect = defender.effects[EffectID.restoreLife.index];
+    CombatEffect effect = defender.getEffect(EffectID.restoreLife);
     if (effect.expend()) {
       int recovery =
           (effect.value * (attacker.capacityBase + attacker.capacityExtra))
@@ -332,51 +357,38 @@ class EnergyCombat {
   int _handleCombat(Energy attacker, Energy defender) {
     int result = 0;
     int combatCount = 1;
-    CombatEffect effect;
 
     result = _handleInstantlyEffect(attacker, defender);
     if (result != 0) {
       return 0;
     }
 
-    effect = attacker.effects[EffectID.multipleHit.index];
+    int attack = handleAttackEffect(attacker, defender, true);
+
+    int defence = handleDefenceEffect(attacker, defender, true);
+
+    double coeff = _handleCoeffcientEffect(attacker, defender);
+
+    double enchantRatio = _handleEnchantRatio(attacker, defender);
+
+    CombatEffect effect;
+
+    effect = attacker.getEffect(EffectID.multipleHit);
     if (effect.expend()) {
       combatCount += effect.value.round();
     }
 
     for (int i = 0; i < combatCount; ++i) {
-      int attack = handleAttackEffect(attacker, defender, true);
-
-      int defence = handleDefenceEffect(attacker, defender, true);
-
-      double coeff = _handleCoeffcientEffect(attacker, defender);
-
-      double enchantRatio = 0.0;
-
-      effect = attacker.effects[EffectID.enchanting.index];
-      if (effect.expend()) {
-        if (effect.value > 1) {
-          effect.value = 1;
-        } else if (effect.value < 0) {
-          effect.value = 0;
-        }
-        enchantRatio = effect.value;
-
-        if (!effect.check()) {
-          effect.value = 0;
-        }
-      }
-
       double physicsAttack = attack * (1 - enchantRatio);
       double magicAttack = attack * enchantRatio;
 
-      effect = attacker.effects[EffectID.physicsAddition.index];
+      effect = attacker.getEffect(EffectID.physicsAddition);
       if (effect.expend()) {
         physicsAttack += effect.value;
         effect.value = 0;
       }
 
-      effect = attacker.effects[EffectID.magicAddition.index];
+      effect = attacker.getEffect(EffectID.magicAddition);
       if (effect.expend()) {
         magicAttack += effect.value;
         effect.value = 0;
@@ -425,7 +437,7 @@ class EnergyCombat {
   }
 
   int _handleDamageAddition(Energy energy, int damage) {
-    CombatEffect effect = energy.effects[EffectID.burnDamage.index];
+    CombatEffect effect = energy.getEffect(EffectID.burnDamage);
     if (effect.expend()) {
       damage += effect.value.round();
       effect.value = 0;
@@ -459,7 +471,7 @@ class EnergyCombat {
 
     _handleExemptionDeath(energy);
 
-    energy.changeCapcityExtra(-damage);
+    energy.changeCapacityExtra(-damage);
 
     _handleDamageToAddition(energy, damage, damageType);
 
@@ -468,7 +480,7 @@ class EnergyCombat {
 
   static void _handleAdjustByDamage(
       Energy energy, int damage, bool damageType) {
-    CombatEffect effect = energy.effects[EffectID.adjustAttribute.index];
+    CombatEffect effect = energy.getEffect(EffectID.adjustAttribute);
     if (effect.expend()) {
       int health = energy.health + damage;
 
@@ -483,7 +495,7 @@ class EnergyCombat {
       energy.changeAttackOffset((adjustValue * effect.value).round());
 
       if (damageType) {
-        effect = energy.effects[EffectID.enchanting.index];
+        effect = energy.getEffect(EffectID.enchanting);
         effect.value += damageRatio;
         effect.times += 1;
       }
@@ -492,7 +504,7 @@ class EnergyCombat {
 
   static void _handleExemptionDeath(Energy energy) {
     if (energy.health <= 0) {
-      CombatEffect effect = energy.effects[EffectID.exemptionDeath.index];
+      CombatEffect effect = energy.getEffect(EffectID.exemptionDeath);
       if (effect.expend()) {
         energy.recoverHealth(effect.value.round() - energy.health);
       }
@@ -501,16 +513,16 @@ class EnergyCombat {
 
   static void _handleDamageToAddition(
       Energy energy, int damage, bool damageType) {
-    CombatEffect effect = energy.effects[EffectID.accumulateAnger.index];
+    CombatEffect effect = energy.getEffect(EffectID.accumulateAnger);
     if (effect.expend()) {
       if (damageType) {
         int addition = (damage * effect.value * 0.3).round();
-        effect = energy.effects[EffectID.magicAddition.index];
+        effect = energy.getEffect(EffectID.magicAddition);
         effect.value += addition;
         effect.times = 1;
       } else {
         int addition = (damage * effect.value).round();
-        effect = energy.effects[EffectID.physicsAddition.index];
+        effect = energy.getEffect(EffectID.physicsAddition);
         effect.value += addition;
         effect.times = 1;
       }
@@ -518,7 +530,7 @@ class EnergyCombat {
   }
 
   void _handleDamageToBlood(Energy energy, int damage) {
-    CombatEffect effect = energy.effects[EffectID.absorbBlood.index];
+    CombatEffect effect = energy.getEffect(EffectID.absorbBlood);
     if (effect.expend()) {
       int recovery = (damage * effect.value).round();
       int actualRecovery = energy.recoverHealth(recovery);
@@ -543,15 +555,15 @@ class EnergyCombat {
     int capacity = energy.capacityBase + energy.capacityExtra;
 
     if (checkHealth > capacity) {
-      CombatEffect effect = energy.effects[EffectID.increaseCapacity.index];
+      CombatEffect effect = energy.getEffect(EffectID.increaseCapacity);
       if (effect.expend()) {
-        energy.changeCapcityExtra(checkHealth - capacity);
+        energy.changeCapacityExtra(checkHealth - capacity);
       }
     }
   }
 
   static void _handleAdjustByRecovery(Energy energy, int recovery) {
-    CombatEffect effect = energy.effects[EffectID.adjustAttribute.index];
+    CombatEffect effect = energy.getEffect(EffectID.adjustAttribute);
     if (effect.expend()) {
       double recoveryRatio = recovery / energy.capacityBase;
       double healthRatio = energy.health / energy.capacityBase;
@@ -569,11 +581,10 @@ class EnergyCombat {
   void _handleHotDamage(
       Energy attacker, Energy defender, int damage, bool damageType) {
     if (damageType) {
-      CombatEffect effect = attacker.effects[EffectID.hotDamage.index];
+      CombatEffect effect = attacker.getEffect(EffectID.hotDamage);
       if (effect.expend()) {
-        defender.effects[EffectID.burnDamage.index].value +=
-            damage * effect.value;
-        defender.effects[EffectID.burnDamage.index].times = 1;
+        defender.getEffect(EffectID.burnDamage).value += damage * effect.value;
+        defender.getEffect(EffectID.burnDamage).times = 1;
       }
     }
   }
@@ -581,7 +592,7 @@ class EnergyCombat {
   int _handleDamageToCounter(Energy attacker, Energy defender) {
     int result = 0;
 
-    CombatEffect effect = defender.effects[EffectID.rugged.index];
+    CombatEffect effect = defender.getEffect(EffectID.rugged);
     if (effect.expend()) {
       double attack =
           ((defender.capacityBase + defender.capacityExtra) - defender.health) *
@@ -596,7 +607,7 @@ class EnergyCombat {
       }
     }
 
-    effect = defender.effects[EffectID.revengeAtonce.index];
+    effect = defender.getEffect(EffectID.revengeAtonce);
     if (effect.expend()) {
       int counterCount = effect.value.round();
 
