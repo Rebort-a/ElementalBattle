@@ -56,13 +56,20 @@ int handleBattleOut(Energy *player, Energy *enemy) {
   while (fightTimes++ < 100) {
     result = handleCombat(player, enemy);
     if (result) {
-      return result;
+      break;
     }
     result = handleCombat(enemy, player);
     if (result) {
-      return -result;
+      break;
     }
   }
+
+  if (enemy->health <= 0) {
+    return player->health;
+  } else {
+    return -enemy->health;
+  }
+
   return 0;
 }
 

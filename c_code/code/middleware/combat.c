@@ -14,7 +14,7 @@ int addHealth(Energy *energy, int value) {
   return value;
 }
 
-int delHealth(Energy *energy, int value) {
+int reduceHealth(Energy *energy, int value) {
   energy->health -= value;
   if (energy->health < 0) {
     value += energy->health;
@@ -123,6 +123,28 @@ double handleCoeffcientEffect(Energy *attacker, Energy *defender) {
   return coeff;
 }
 
+double handleEnchantRatio(Energy *attacker, Energy *defender) {
+  CombatEffect *effect;
+
+  double enchantRatio = 0.0;
+
+  effect = &attacker->effects[enchanting];
+  if (expendEffect(effect)) {
+    if (effect->value > 1) {
+      effect->value = 1;
+    } else if (effect->value < 0) {
+      effect->value = 0;
+    }
+    enchantRatio = effect->value;
+
+    if (!checkEffect(effect)) {
+      effect->value = 0;
+    }
+  }
+
+  return enchantRatio;
+}
+
 // 计算伤害
 int handleCalculateDamage(double attack, int defence, double coeff) {
   int damage = 0;
@@ -172,11 +194,11 @@ int handleRecoverHealth(Energy *energy, int recovery) {
 
   handleIncreaseCapacity(energy, recovery);
 
-  recovery = addHealth(energy, recovery);
+  int ActualRecovery = addHealth(energy, recovery);
 
-  handleAdjustByRecovery(energy, recovery);
+  handleAdjustByRecovery(energy, ActualRecovery);
 
-  return 0;
+  return ActualRecovery;
 }
 
 // 处理伤害转化为生命值效果
@@ -184,11 +206,11 @@ void handleDamageToBlood(Energy *energy, int damage) {
   CombatEffect *effect = &energy->effects[absorbBlood];
   if (expendEffect(effect)) {
     int recovery = round(damage * effect->value);
-    handleRecoverHealth(energy, recovery);
+    int actualRecovery = handleRecoverHealth(energy, recovery);
     customPrintf("%s 回复了 %d 生命值❤️‍🩹, "
                  "当前生命值为 "
                  "%d\n",
-                 energy->name, recovery, energy->health);
+                 energy->name, actualRecovery, energy->health);
   }
 }
 
@@ -295,7 +317,7 @@ void handleDamageToAddition(Energy *energy, int damage, int damageType) {
 // 扣除生命值
 int handleDeductHealth(Energy *energy, int damage, int damageType) {
 
-  damage = delHealth(energy, damage);
+  damage = reduceHealth(energy, damage);
   handleAdjustByDamage(energy, damage, damageType);
 
   handleExemptionDeath(energy);
@@ -307,27 +329,26 @@ int handleDeductHealth(Energy *energy, int damage, int damageType) {
 
   handleDamageToAddition(energy, damage, damageType);
 
-  return energy->health > 0 ? 0 : 1;
+  return damage;
 }
 
 // 处理伤害
 int handleDamage(Energy *attacker, Energy *defender, int damage,
                  int damageType) {
 
-  int result = handleDeductHealth(defender, damage, damageType);
+  int ActualDamage = handleDeductHealth(defender, damage, damageType);
 
   customPrintf("%s 受到 %d %s 伤害, "
                "当前生命值为 %d\n",
-               defender->name, damage, damageType ? "⚡法术" : "🗡️物理",
+               defender->name, ActualDamage, damageType ? "⚡法术" : "🗡️物理",
                defender->health);
 
-  handleDamageToBlood(attacker, damage);
+  handleDamageToBlood(attacker, ActualDamage);
 
-  handleHotDamage(attacker, defender, damage, damageType);
-
-  if (result != 0) {
-    return result;
+  if (defender->health <= 0) {
+    return 1;
   } else {
+    handleHotDamage(attacker, defender, damage, damageType);
     return handleDamageToCounter(attacker, defender);
   }
 }
@@ -348,12 +369,21 @@ int handleAttack(Energy *attacker, Energy *defender, double attack, int defence,
 int handleCombat(Energy *attacker, Energy *defender) {
   int result = 0;
   int combatCount = 1;
-  CombatEffect *effect;
 
   result = handleInstantlyEffect(attacker, defender);
   if (result != 0) {
     return 0;
   }
+
+  int attack = handleAttackEffect(attacker, defender, 1);
+
+  int defence = handleDefenceEffect(attacker, defender, 1);
+
+  double coeff = handleCoeffcientEffect(attacker, defender);
+
+  double enchantRatio = handleEnchantRatio(attacker, defender);
+
+  CombatEffect *effect;
 
   effect = &attacker->effects[multipleHit];
   if (expendEffect(effect)) {
@@ -361,27 +391,6 @@ int handleCombat(Energy *attacker, Energy *defender) {
   }
 
   for (int i = 0; i < combatCount; ++i) {
-    int attack = handleAttackEffect(attacker, defender, 1);
-
-    int defence = handleDefenceEffect(attacker, defender, 1);
-
-    double coeff = handleCoeffcientEffect(attacker, defender);
-
-    double enchantRatio = 0.0;
-
-    effect = &attacker->effects[enchanting];
-    if (expendEffect(effect)) {
-      if (effect->value > 1) {
-        effect->value = 1;
-      } else if (effect->value < 0) {
-        effect->value = 0;
-      }
-      enchantRatio = effect->value;
-
-      if (!checkEffect(effect)) {
-        effect->value = 0;
-      }
-    }
 
     double physicsAttack = attack * (1 - enchantRatio);
     double magicAttack = attack * enchantRatio;
