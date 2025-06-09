@@ -70,9 +70,14 @@ class HomeLogic {
     );
 
     // 添加玩家、NPC和入口
+    _setCellToEntity(0, 0, EntityID.enter);
+    _setCellToEntity(0, _width - 1, EntityID.enter);
+
+    _setCellToEntity(mapLevel, 0, EntityID.store);
     _setCellToPlayer(mapLevel, mapLevel, player.id);
     _setCellToEntity(mapLevel, _width - 1, EntityID.train);
-    _setCellToEntity(mapLevel, 0, EntityID.store);
+
+    _setCellToEntity(_height - 1, 0, EntityID.enter);
     _setCellToEntity(_height - 1, mapLevel, EntityID.home);
     _setCellToEntity(_height - 1, _width - 1, EntityID.enter);
   }
@@ -569,7 +574,7 @@ class HomeLogic {
   void _setCellToPlayer(int newY, int newX, EntityID id) {
     _clearPlayerCurrentCell();
     player.updatePosition(newY, newX); // 更新位置
-    player.updateDirection(player.lastDirection); // 更新方向
+    // player.updateDirection(player.lastDirection); // 更新方向
     displayMap.value[newY][newX].value = CellData(
       id: id,
       iconIndex: player.col + player.row,

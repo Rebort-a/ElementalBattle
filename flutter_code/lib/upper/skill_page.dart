@@ -13,7 +13,7 @@ class SkillsPage extends StatefulWidget {
 }
 
 class _SkillsPageState extends State<SkillsPage> {
-  late List<CombatSkill> _playerSkills;
+  late List<CombatSkill> _showSkills;
   late int _index;
 
   @override
@@ -24,7 +24,18 @@ class _SkillsPageState extends State<SkillsPage> {
   }
 
   _updateSkills() {
-    _playerSkills = widget.player.getAppointSkills(_index);
+    _showSkills = _filterSkills(widget.player.getAppointSkills(_index));
+  }
+
+  List<CombatSkill> _filterSkills(List<CombatSkill> skills) {
+    List<CombatSkill> showSkills = [];
+    for (CombatSkill skill in skills) {
+      showSkills.add(skill);
+      if (!skill.learned) {
+        break;
+      }
+    }
+    return showSkills;
   }
 
   @override
@@ -49,7 +60,7 @@ class _SkillsPageState extends State<SkillsPage> {
         padding: const EdgeInsets.all(16.0),
         child: GridView.count(
           crossAxisCount: 2,
-          children: List.generate(_playerSkills.length, _buildSkillNode),
+          children: List.generate(_showSkills.length, _buildSkillNode),
         ),
       ),
     );
@@ -61,10 +72,10 @@ class _SkillsPageState extends State<SkillsPage> {
       child: Container(
         margin: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
-          color: _playerSkills[index].learned ? Colors.blue : Colors.grey,
+          color: _showSkills[index].learned ? Colors.blue : Colors.grey,
           borderRadius: BorderRadius.circular(8.0),
         ),
-        child: Center(child: _buildSkillText(_playerSkills[index])),
+        child: Center(child: _buildSkillText(_showSkills[index])),
       ),
     );
   }
@@ -89,17 +100,17 @@ class _SkillsPageState extends State<SkillsPage> {
 
   void _showPlayerSkill(BuildContext context, int index) {
     final AlertDialog showPage = AlertDialog(
-      title: Text(_playerSkills[index].name),
+      title: Text(_showSkills[index].name),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('目标: ${_getTargetText(_playerSkills[index])}'),
-          Text('效果: ${_playerSkills[index].description}'),
+          Text('目标: ${_getTargetText(_showSkills[index])}'),
+          Text('效果: ${_showSkills[index].description}'),
         ],
       ),
       actions: [
-        if (!_playerSkills[index].learned)
+        if (!_showSkills[index].learned)
           TextButton(
             child: const Text('学习'),
             onPressed: () {
@@ -107,7 +118,8 @@ class _SkillsPageState extends State<SkillsPage> {
                 widget.player.experience -= 30;
                 SnackBarMessage(context, '学习成功！');
                 setState(() {
-                  _playerSkills[index].learned = true;
+                  _showSkills[index].learned = true;
+                  _updateSkills();
                 });
               } else {
                 SnackBarMessage(context, '经验不足！');
@@ -116,7 +128,7 @@ class _SkillsPageState extends State<SkillsPage> {
             },
           ),
         TextButton(
-          child: Text(_playerSkills[index].learned ? '关闭' : '取消'),
+          child: Text(_showSkills[index].learned ? '关闭' : '取消'),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ],

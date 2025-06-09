@@ -64,7 +64,7 @@ class CombatLogic {
         _navigateToHomePage(context, combatResult);
       };
     } else {
-      combatMessage.value += ('\n玩家选择了$command\n');
+      combatMessage.value += ('\n${player.name} 选择了 $command\n');
       switch (command) {
         case ActionType.attack:
           _handleActionResult(
@@ -168,7 +168,7 @@ class CombatLogic {
 
   void _handleEnemyAction() {
     ActionType command = _getEnemyAction();
-    combatMessage.value += ('敌人选择了$command\n');
+    combatMessage.value += ('${enemy.name} 选择了 $command\n');
     switch (command) {
       case ActionType.attack:
         _handleActionResult(
