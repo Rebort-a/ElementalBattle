@@ -16,6 +16,7 @@ void restoreEffects(Energy *energy) {
   for (int i = 0; i < EFFECT_ID_COUNT; ++i) {
     energy->effects[i].id = i;
     energy->effects[i].type = limited;
+    energy->effects[i].value = 0;
     energy->effects[i].times = 0;
   }
 }
@@ -41,7 +42,7 @@ void getPresetsAttributes(Energy *energy) {
     energy->capacityBase = 256;
     energy->attackBase = 32;
     energy->defenceBase = 16;
-    energy->effects[absorbBlood].value = 0.125;
+    energy->effects[absorbBlood].value = 0.25;
     energy->effects[absorbBlood].type = true;
     break;
   case FIRE:

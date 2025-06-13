@@ -491,10 +491,9 @@ class EnergyCombat {
       double damageRatio = damage / energy.capacityBase;
       double healthRatio = health / energy.capacityBase;
 
-      int adjustValue = (energy.defenceBase *
-              damageRatio *
-              pow(healthRatio + sqrt(2) - 1, 3.05))
-          .round();
+      int adjustValue =
+          (energy.defenceBase * damageRatio * pow(healthRatio + 0.3, 6.2))
+              .round();
 
       energy.changeDefenceOffset(-adjustValue);
       energy.changeAttackOffset((adjustValue * effect.value).round());
@@ -573,10 +572,9 @@ class EnergyCombat {
       double recoveryRatio = recovery / energy.capacityBase;
       double healthRatio = energy.health / energy.capacityBase;
 
-      int adjustValue = (energy.defenceBase *
-              recoveryRatio *
-              pow(healthRatio + sqrt(2) - 1, 3.05))
-          .round();
+      int adjustValue =
+          (energy.defenceBase * recoveryRatio * pow(healthRatio + 0.3, 6.2))
+              .round();
 
       energy.changeDefenceOffset(adjustValue);
       energy.changeAttackOffset(-(adjustValue * effect.value).round());

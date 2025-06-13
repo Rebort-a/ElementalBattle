@@ -165,7 +165,7 @@ class SkillCollection {
   static final CombatSkill waterPassive_0 = CombatSkill(
     id: SkillID.waterPassive_0,
     name: "因地制流",
-    description: "受到伤害后，防御力减少，根据减少量的75%，提高攻击力，并获取法术伤害的附魔。\n\n你先开枪我也能先打死你。",
+    description: "受到伤害后，防御力减少，根据减少量的75%，提高攻击力，并获取法术伤害的附魔。\n\n水因地而制流，兵因敌而制胜。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -177,12 +177,12 @@ class SkillCollection {
   static final CombatSkill woodPassive_0 = CombatSkill(
     id: SkillID.woodPassive_0,
     name: "就地取材",
-    description: "造成伤害后，根据伤害量的12.5%，回复生命。\n\n没有一滴血是原装的。",
+    description: "造成伤害后，根据伤害量的25%，回复生命。\n\n没有一滴血是原装的。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
       effects[EffectID.absorbBlood.index].type = EffectType.infinite;
-      effects[EffectID.absorbBlood.index].value = 0.125;
+      effects[EffectID.absorbBlood.index].value = 0.25;
     },
   );
 
@@ -200,7 +200,7 @@ class SkillCollection {
 
   static final CombatSkill earthPassive_0 = CombatSkill(
     id: SkillID.earthPassive_0,
-    name: "承天载物",
+    name: "厚积薄发",
     description: "受到伤害后，将物理伤害的50%和法术伤害的15%作为加成，提高下次攻击的攻击力。\n\n大地会记住一切。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
@@ -340,7 +340,7 @@ class SkillCollection {
   static final CombatSkill waterActive_1 = CombatSkill(
     id: SkillID.waterActive_1,
     name: "水无常形",
-    description: "受到伤害后，防御力减少，根据减少量的75%，提高攻击力，生效两次。",
+    description: "受到伤害后，防御力减少，根据减少量的75%，提高攻击力，生效两次。\n\n 兵无常势，水无常形。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -352,11 +352,11 @@ class SkillCollection {
   static final CombatSkill woodActive_1 = CombatSkill(
     id: SkillID.woodActive_1,
     name: "移花接木",
-    description: "造成伤害时，根据伤害量的12.5%，回复生命，生效两次。",
+    description: "造成伤害时，根据伤害量的25%，回复生命，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
-      effects[EffectID.absorbBlood.index].value = 0.125;
+      effects[EffectID.absorbBlood.index].value = 0.25;
       effects[EffectID.absorbBlood.index].times += 2;
     },
   );
