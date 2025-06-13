@@ -368,7 +368,7 @@ class SkillCollection {
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
-      effects[EffectID.enchanting.index].value = 1;
+      effects[EffectID.enchanting.index].value = 1.0;
       effects[EffectID.enchanting.index].times += 2;
     },
   );

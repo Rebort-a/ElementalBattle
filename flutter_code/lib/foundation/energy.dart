@@ -157,7 +157,7 @@ class Energy {
       _effects[i] = CombatEffect(
         id: EffectID.values[i],
         type: EffectType.limited,
-        value: 1,
+        value: 0,
         times: 0,
       );
     }
