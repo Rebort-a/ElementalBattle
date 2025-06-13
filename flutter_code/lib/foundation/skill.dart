@@ -164,7 +164,7 @@ class SkillCollection {
 
   static final CombatSkill waterPassive_0 = CombatSkill(
     id: SkillID.waterPassive_0,
-    name: "此起彼伏",
+    name: "因地制流",
     description: "受到伤害后，防御力减少，根据减少量的75%，提高攻击力，并获取法术伤害的附魔。\n\n你先开枪我也能先打死你。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
