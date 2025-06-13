@@ -182,7 +182,7 @@ void handleAdjustByRecovery(Energy *energy, int recovery) {
     double healthRatio = energy->health / (double)energy->capacityBase;
 
     int adjustValue = round((energy->defenceBase * recoveryRatio *
-                             pow(healthRatio + sqrt(2) - 1, 4)));
+                             pow(healthRatio + sqrt(2) - 1, 3.05)));
 
     energy->defenceOffset += adjustValue;
     energy->attackOffset -= round(adjustValue * effect->value);
@@ -272,8 +272,27 @@ void handleAdjustByDamage(Energy *energy, int damage, int damageType) {
     double damageRatio = damage / (double)energy->capacityBase;
     double healthRatio = health / (double)energy->capacityBase;
 
-    int adjustValue = round((energy->defenceBase * damageRatio *
-                             pow(healthRatio + sqrt(2) - 1, 4)));
+    // 方案0
+    // int adjustValue = round(energy->defenceBase * damageRatio *
+    //                         pow(healthRatio + sqrt(2) - 1, 4));
+    // energy->effects[absorbBlood].value = 0.4;
+
+    // 方案1
+    // int adjustValue = round(energy->defenceBase * damageRatio *
+    //                         pow(healthRatio + sqrt(2) - 1, 1.75));
+    // energy->effects[absorbBlood].value = 0.32;
+
+    // 方案2
+    // damage = round(attack * (attack / (attack + (defence * 2))) * coeff);
+    // int adjustValue =
+    // round(energy->defenceBase * damageRatio * pow(healthRatio + 0.28, 3));
+    // energy->effects[adjustAttribute].value = 1;
+    // energy->defenceBase = 24;
+    // energy->effects[absorbBlood].value = 0.8;
+    // energy->effects[accumulateAnger].value = 0.75;
+
+    int adjustValue = round(energy->defenceBase * damageRatio *
+                            pow(healthRatio + sqrt(2) - 1, 3.05));
 
     energy->defenceOffset -= adjustValue;
     energy->attackOffset += round(adjustValue * effect->value);

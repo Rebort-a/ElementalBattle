@@ -34,14 +34,14 @@ void getPresetsAttributes(Energy *energy) {
     energy->capacityBase = 160;
     energy->attackBase = 16;
     energy->defenceBase = 64;
-    energy->effects[adjustAttribute].value = 0.82;
+    energy->effects[adjustAttribute].value = 0.75;
     energy->effects[adjustAttribute].type = true;
     break;
   case WOOD:
     energy->capacityBase = 256;
     energy->attackBase = 32;
     energy->defenceBase = 16;
-    energy->effects[absorbBlood].value = 0.4;
+    energy->effects[absorbBlood].value = 0.125;
     energy->effects[absorbBlood].type = true;
     break;
   case FIRE:

@@ -165,24 +165,24 @@ class SkillCollection {
   static final CombatSkill waterPassive_0 = CombatSkill(
     id: SkillID.waterPassive_0,
     name: "此起彼伏",
-    description: "受到伤害后，防御力减少，根据减少量的82%，提高攻击力，并获取法术伤害的附魔。\n\n你先开枪我也能先打死你。",
+    description: "受到伤害后，防御力减少，根据减少量的75%，提高攻击力，并获取法术伤害的附魔。\n\n你先开枪我也能先打死你。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
       effects[EffectID.adjustAttribute.index].type = EffectType.infinite;
-      effects[EffectID.adjustAttribute.index].value = 0.82;
+      effects[EffectID.adjustAttribute.index].value = 0.75;
     },
   );
 
   static final CombatSkill woodPassive_0 = CombatSkill(
     id: SkillID.woodPassive_0,
     name: "就地取材",
-    description: "造成伤害后，根据伤害量的40%，回复生命。\n\n没有一滴血是原装的。",
+    description: "造成伤害后，根据伤害量的12.5%，回复生命。\n\n没有一滴血是原装的。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
       effects[EffectID.absorbBlood.index].type = EffectType.infinite;
-      effects[EffectID.absorbBlood.index].value = 0.4;
+      effects[EffectID.absorbBlood.index].value = 0.125;
     },
   );
 
@@ -194,7 +194,7 @@ class SkillCollection {
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
       effects[EffectID.enchanting.index].type = EffectType.infinite;
-      effects[EffectID.enchanting.index].value = 1;
+      effects[EffectID.enchanting.index].value = 1.0;
     },
   );
 
@@ -237,7 +237,7 @@ class SkillCollection {
   static final CombatSkill woodActive_0 = CombatSkill(
     id: SkillID.woodActive_0,
     name: "根深蒂固",
-    description: "根据生命上限的12.5%的回复生命，生效一次。",
+    description: "根据自身生命上限的12.5%的回复生命，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -283,7 +283,7 @@ class SkillCollection {
 
   static final CombatSkill waterPassive_1 = CombatSkill(
     id: SkillID.waterPassive_1,
-    name: "逆水行舟",
+    name: "水泄不通",
     description: "拖泥带水可以施加给敌方任一灵根，使其下次攻击时，减少50%的攻击力，生效两次。",
     type: SkillType.passive,
     targetType: SkillTarget.enemyAny,
@@ -295,7 +295,7 @@ class SkillCollection {
   static final CombatSkill woodPassive_1 = CombatSkill(
     id: SkillID.woodPassive_1,
     name: "开枝散叶",
-    description: "根深蒂固可以施加给己方任一灵根，根据生命上限的12.5%的回复其生命。",
+    description: "根深蒂固可以施加给己方任一灵根，根据自身生命上限的12.5%的回复其生命。",
     type: SkillType.passive,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
@@ -339,12 +339,12 @@ class SkillCollection {
 
   static final CombatSkill waterActive_1 = CombatSkill(
     id: SkillID.waterActive_1,
-    name: "顺水推舟",
-    description: "受到伤害后，防御力减少，根据减少量的82%，提高攻击力，生效两次。",
+    name: "水无常形",
+    description: "受到伤害后，防御力减少，根据减少量的75%，提高攻击力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
-      effects[EffectID.adjustAttribute.index].value = 0.82;
+      effects[EffectID.adjustAttribute.index].value = 0.75;
       effects[EffectID.adjustAttribute.index].times += 2;
     },
   );
@@ -352,18 +352,18 @@ class SkillCollection {
   static final CombatSkill woodActive_1 = CombatSkill(
     id: SkillID.woodActive_1,
     name: "移花接木",
-    description: "造成伤害时，根据伤害量的40%，回复生命，生效两次。",
+    description: "造成伤害时，根据伤害量的12.5%，回复生命，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
     handler: (skills, effects) {
-      effects[EffectID.absorbBlood.index].value = 0.4;
+      effects[EffectID.absorbBlood.index].value = 0.125;
       effects[EffectID.absorbBlood.index].times += 2;
     },
   );
 
   static final CombatSkill fireActive_1 = CombatSkill(
     id: SkillID.fireActive_1,
-    name: "釜底抽薪",
+    name: "火力全开",
     description: "攻击时，获得100%附魔比例，造成无视防御的法术伤害，生效两次。\n\n对他使用炎拳吧！",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
@@ -375,7 +375,7 @@ class SkillCollection {
 
   static final CombatSkill earthActive_1 = CombatSkill(
     id: SkillID.earthActive_1,
-    name: "固若金汤",
+    name: "卧薪尝胆",
     description: "受到伤害后，将物理伤害的50%和法术伤害的15%作为加成，提高下次攻击的攻击力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
@@ -400,7 +400,7 @@ class SkillCollection {
   static final CombatSkill waterActive_2 = CombatSkill(
     id: SkillID.waterActive_2,
     name: "止水",
-    description: "受到致命伤害时，生命值保持为1点，生效一次。\n\n区区致命伤。",
+    description: "受到致命伤害时，生命值回复到1，生效一次。\n\n区区致命伤。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -412,7 +412,7 @@ class SkillCollection {
   static final CombatSkill woodActive_2 = CombatSkill(
     id: SkillID.woodActive_2,
     name: "桎梏",
-    description: "回复生命的溢出量可以超过基础生命上限，但是不能超过基础生命上限的100%，生效一次。",
+    description: "回复生命时，溢出生命值上限的部分会形成抵消伤害的护盾，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -435,7 +435,7 @@ class SkillCollection {
 
   static final CombatSkill earthActive_2 = CombatSkill(
     id: SkillID.earthActive_2,
-    name: "地刺",
+    name: "地砥",
     description: "受到伤害时，将已损失生命值的25%作为攻击力，造成一次伤害系数为25%的物理伤害，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
