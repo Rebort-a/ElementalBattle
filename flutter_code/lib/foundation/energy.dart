@@ -217,10 +217,14 @@ class Energy {
   // 施加被动技能影响
   void applyPassiveEffect() {
     for (CombatSkill skill in _skills) {
-      if (skill.learned &&
-          (skill.type == SkillType.passive) &&
-          (skill.targetType == SkillTarget.selfFront)) {
-        sufferSkill(skill);
+      if (skill.learned) {
+        if (skill.type == SkillType.passive) {
+          if (skill.targetType == SkillTarget.selfFront) {
+            sufferSkill(skill);
+          }
+        }
+      } else {
+        break;
       }
     }
   }

@@ -275,7 +275,7 @@ class SkillCollection {
     name: "攻守易形",
     description: "双重打击可以施加给己方任一灵根，使其下次攻击时，额外进行一次。",
     type: SkillType.passive,
-    targetType: SkillTarget.selfAny,
+    targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
       skills[1].targetType = SkillTarget.selfAny;
     },
@@ -286,7 +286,7 @@ class SkillCollection {
     name: "水泄不通",
     description: "拖泥带水可以施加给敌方任一灵根，使其下次攻击时，减少50%的攻击力，生效两次。",
     type: SkillType.passive,
-    targetType: SkillTarget.enemyAny,
+    targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
       skills[1].targetType = SkillTarget.enemyAny;
     },
@@ -297,7 +297,7 @@ class SkillCollection {
     name: "开枝散叶",
     description: "根深蒂固可以施加给己方任一灵根，根据自身生命上限的12.5%的回复其生命。",
     type: SkillType.passive,
-    targetType: SkillTarget.selfAny,
+    targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
       skills[1].targetType = SkillTarget.selfAny;
     },
@@ -308,7 +308,7 @@ class SkillCollection {
     name: "薪火相传",
     description: "爆裂魔法可以施加给己方任一灵根，使其攻击时，获得100%附魔比例，造成无视防御的法术伤害。并在生效后，切换其上场。",
     type: SkillType.passive,
-    targetType: SkillTarget.selfAny,
+    targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
       skills[1].targetType = SkillTarget.selfAny;
     },
@@ -319,7 +319,7 @@ class SkillCollection {
     name: "反击风暴",
     description: "以卵击石可以施加给己方任一灵根，使其下次受到伤害时，进行一次攻击。",
     type: SkillType.passive,
-    targetType: SkillTarget.selfAny,
+    targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
       skills[1].targetType = SkillTarget.selfAny;
     },
