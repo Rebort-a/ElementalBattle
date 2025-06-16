@@ -72,6 +72,7 @@ class Energy {
   }
 
   int _reduceHealth(int value) {
+    changeCapacityExtra(-value);
     _health -= value;
     if (_health < 0) {
       value += _health;
@@ -257,7 +258,7 @@ class EnergyCombat {
 
     effect = attacker.getEffect(EffectID.strengthen);
     if (expend ? effect.expend() : effect.check()) {
-      attack += (attack * effect.value).round();
+      attack += (attacker.attackBase * effect.value).round();
     }
 
     effect = attacker.getEffect(EffectID.weakenAttack);
@@ -274,7 +275,7 @@ class EnergyCombat {
 
     effect = defender.getEffect(EffectID.strengthen);
     if (expend ? effect.expend() : effect.check()) {
-      defence += (defence * effect.value).round();
+      defence += (defender.defenceBase * effect.value).round();
     }
 
     effect = defender.getEffect(EffectID.weakenDefence);
@@ -367,14 +368,6 @@ class EnergyCombat {
       return 0;
     }
 
-    int attack = handleAttackEffect(attacker, defender, true);
-
-    int defence = handleDefenceEffect(attacker, defender, true);
-
-    double coeff = _handleCoeffcientEffect(attacker, defender);
-
-    double enchantRatio = _handleEnchantRatio(attacker, defender);
-
     CombatEffect effect;
 
     effect = attacker.getEffect(EffectID.multipleHit);
@@ -383,6 +376,14 @@ class EnergyCombat {
     }
 
     for (int i = 0; i < combatCount; ++i) {
+      int attack = handleAttackEffect(attacker, defender, true);
+
+      int defence = handleDefenceEffect(attacker, defender, true);
+
+      double coeff = _handleCoeffcientEffect(attacker, defender);
+
+      double enchantRatio = _handleEnchantRatio(attacker, defender);
+
       double physicsAttack = attack * (1 - enchantRatio);
       double magicAttack = attack * enchantRatio;
 
@@ -469,13 +470,12 @@ class EnergyCombat {
 
   static int handleDeductHealth(
       Energy energy, int damage, bool damageType, int Function(int) delHealth) {
-    // 获取实际伤害量
+    // 扣除生命并获取实际伤害量
     damage = delHealth(damage);
+
     _handleAdjustByDamage(energy, damage, damageType);
 
     _handleExemptionDeath(energy);
-
-    energy.changeCapacityExtra(-damage);
 
     _handleDamageToAddition(energy, damage, damageType);
 
@@ -486,7 +486,7 @@ class EnergyCombat {
       Energy energy, int damage, bool damageType) {
     CombatEffect effect = energy.getEffect(EffectID.adjustAttribute);
     if (effect.expend()) {
-      int health = energy.health + damage;
+      int health = energy.health + damage; // 计算受到伤害前的生命值
 
       double damageRatio = damage / energy.capacityBase;
       double healthRatio = health / energy.capacityBase;
@@ -547,6 +547,7 @@ class EnergyCombat {
       Energy energy, int recovery, Function(int) addHealth) {
     _handleIncreaseCapacity(energy, recovery);
 
+    // 恢复生命并获取实际恢复量
     recovery = addHealth(recovery);
 
     _handleAdjustByRecovery(energy, recovery);

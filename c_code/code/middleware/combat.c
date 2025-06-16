@@ -267,7 +267,7 @@ void handleAdjustByDamage(Energy *energy, int damage, int damageType) {
 
   CombatEffect *effect = &energy->effects[adjustAttribute];
   if (expendEffect(effect)) {
-    int health = energy->health + damage;
+    int health = energy->health + damage; // 计算受到伤害前的生命值
 
     double damageRatio = damage / (double)energy->capacityBase;
     double healthRatio = health / (double)energy->capacityBase;
@@ -400,14 +400,6 @@ int handleCombat(Energy *attacker, Energy *defender) {
     return 0;
   }
 
-  int attack = handleAttackEffect(attacker, defender, 1);
-
-  int defence = handleDefenceEffect(attacker, defender, 1);
-
-  double coeff = handleCoeffcientEffect(attacker, defender);
-
-  double enchantRatio = handleEnchantRatio(attacker, defender);
-
   CombatEffect *effect;
 
   effect = &attacker->effects[multipleHit];
@@ -416,6 +408,14 @@ int handleCombat(Energy *attacker, Energy *defender) {
   }
 
   for (int i = 0; i < combatCount; ++i) {
+
+    int attack = handleAttackEffect(attacker, defender, 1);
+
+    int defence = handleDefenceEffect(attacker, defender, 1);
+
+    double coeff = handleCoeffcientEffect(attacker, defender);
+
+    double enchantRatio = handleEnchantRatio(attacker, defender);
 
     double physicsAttack = attack * (1 - enchantRatio);
     double magicAttack = attack * enchantRatio;

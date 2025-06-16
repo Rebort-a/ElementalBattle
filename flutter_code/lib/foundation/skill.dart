@@ -176,7 +176,7 @@ class SkillCollection {
 
   static final CombatSkill woodPassive_0 = CombatSkill(
     id: SkillID.woodPassive_0,
-    name: "就地取材",
+    name: "叶落归根",
     description: "造成伤害后，根据伤害量的25%，回复生命。\n\n没有一滴血是原装的。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
@@ -260,7 +260,7 @@ class SkillCollection {
 
   static final CombatSkill earthActive_0 = CombatSkill(
     id: SkillID.earthActive_0,
-    name: "以卵击石",
+    name: "不动如山",
     description: "下次受到伤害时，进行一次攻击。\n力的作用是相互的。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
@@ -316,8 +316,8 @@ class SkillCollection {
 
   static final CombatSkill earthPassive_1 = CombatSkill(
     id: SkillID.earthPassive_1,
-    name: "反击风暴",
-    description: "以卵击石可以施加给己方任一灵根，使其下次受到伤害时，进行一次攻击。",
+    name: "无懈可击",
+    description: "不动如山可以施加给己方任一灵根，使其下次受到伤害时，进行一次攻击。",
     type: SkillType.passive,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
@@ -375,7 +375,7 @@ class SkillCollection {
 
   static final CombatSkill earthActive_1 = CombatSkill(
     id: SkillID.earthActive_1,
-    name: "卧薪尝胆",
+    name: "卷土重来",
     description: "受到伤害后，将物理伤害的50%和法术伤害的15%作为加成，提高下次攻击的攻击力，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfAny,
@@ -435,7 +435,7 @@ class SkillCollection {
 
   static final CombatSkill earthActive_2 = CombatSkill(
     id: SkillID.earthActive_2,
-    name: "地砥",
+    name: "砥砺",
     description: "受到伤害时，将已损失生命值的25%作为攻击力，造成一次伤害系数为25%的物理伤害，生效两次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
