@@ -368,7 +368,9 @@ int handleDamage(Energy *attacker, Energy *defender, int damage,
                defender->name, ActualDamage, damageType ? "⚡法术" : "🗡️物理",
                defender->health);
 
-  handleDamageToBlood(attacker, ActualDamage);
+  if (damageType == 0) {
+    handleDamageToBlood(attacker, ActualDamage);
+  }
 
   if (defender->health <= 0) {
     return 1;

@@ -458,7 +458,9 @@ class EnergyCombat {
     message +=
         ('${defender.name} 受到 $actualDamage ${damageType ? '⚡法术' : '🗡️物理'} 伤害, 当前生命值为 ${defender.health}\n');
 
-    _handleDamageToBlood(attacker, actualDamage);
+    if (!damageType) {
+      _handleDamageToBlood(attacker, actualDamage);
+    }
 
     if (defender.health <= 0) {
       return 1;
