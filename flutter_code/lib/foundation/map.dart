@@ -39,10 +39,9 @@ class CellData {
 }
 
 // 可移动的实体
-class MovableEntity {
-  final EntityID id;
-  int y, x;
-  MovableEntity({required this.id, required this.y, required this.x});
+mixin MovableEntity {
+  late final EntityID id;
+  late int y, x;
 
   void updatePosition(int newY, int newX) {
     y = newY;

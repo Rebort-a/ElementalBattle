@@ -6,6 +6,7 @@ enum EntityID {
   enter, // 入口
   exit, // 出口
 
+  gym, // 健身房
   train, // 训练场
   store, // 商店
   home, // 家

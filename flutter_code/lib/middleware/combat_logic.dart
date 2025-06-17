@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../foundation/skill.dart';
 import 'common.dart';
 import 'elemental.dart';
-import 'player.dart';
 
 // 战斗行为类型
 enum ActionType { attack, parry, skill, escape }
@@ -18,8 +17,8 @@ class CombatLogic {
   final ValueNotifier<String> combatMessage =
       ValueNotifier<String>(' '.padRight(100)); // 供消息区域使用
 
-  final PlayerElemental player; // 玩家
-  final EnemyElemental enemy; // 敌人
+  final Elemental player; // 玩家
+  final Elemental enemy; // 敌人
   final bool offensive; // 先手
 
   ResultType combatResult = ResultType.continued; // 保存战斗结果
@@ -64,7 +63,7 @@ class CombatLogic {
         _navigateToHomePage(context, combatResult);
       };
     } else {
-      combatMessage.value += ('\n${player.name} 选择了 $command\n');
+      combatMessage.value += ('\n${player.baseName} 选择了 $command\n');
       switch (command) {
         case ActionType.attack:
           _handleActionResult(
@@ -80,7 +79,7 @@ class CombatLogic {
           showPage.value = (BuildContext context) {
             SelectSkill(
               context: context,
-              skills: player.getCurrentSkills(),
+              skills: player.getAppointSkills(player.current),
               handleSkill: _handlePlayerSkillTarget,
             );
           };
@@ -134,7 +133,7 @@ class CombatLogic {
     targetElemental.sufferSkill(targetIndex, skill);
 
     combatMessage.value +=
-        ('${player.getCurrentName()} 施放了 ${skill.name}, ${targetElemental.getAppointName(targetIndex)} 获得效果 ${skill.description}\n');
+        ('${player.getAppointName(player.current)} 施放了 ${skill.name}, ${targetElemental.getAppointName(targetIndex)} 获得效果 ${skill.description}\n');
 
     if (skill.id == SkillID.parry) {
       _switchAppoint(targetElemental, targetIndex);
@@ -168,7 +167,8 @@ class CombatLogic {
 
   void _handleEnemyAction() {
     ActionType command = _getEnemyAction();
-    combatMessage.value += ('${enemy.name} 选择了 $command\n');
+    combatMessage.value +=
+        ('${enemy.getAppointAttack(enemy.current)} 选择了 $command\n');
     switch (command) {
       case ActionType.attack:
         _handleActionResult(
@@ -178,8 +178,7 @@ class CombatLogic {
         _handleEnemySkill(SkillCollection.baseParry);
         break;
       case ActionType.skill:
-        _handleEnemySkill(
-            SkillCollection.totalSkills[enemy.getCurrentType().index][1]);
+        _handleEnemySkill(SkillCollection.totalSkills[enemy.current][1]);
         break;
       case ActionType.escape:
         _handleActionResult(2);
@@ -218,17 +217,17 @@ class CombatLogic {
     switch (result) {
       case 1:
         combatResult = ResultType.victory;
-        player.experience += 10 + 2 * enemy.upgradeTimes;
+
         showPage.value = _showCombatResult;
         break;
       case -1:
         combatResult = ResultType.defeat;
-        player.experience -= 5;
+
         showPage.value = _showCombatResult;
         break;
       case -2:
         combatResult = ResultType.escape;
-        player.experience -= 2;
+
         showPage.value = _showCombatResult;
         break;
       case 2:
@@ -241,7 +240,7 @@ class CombatLogic {
   void _switchAppoint(Elemental elemental, int index) {
     elemental.switchAppoint(index);
     combatMessage.value +=
-        '${elemental.name} 切换为 ${elemental.preview.name.value}\n';
+        '${elemental.baseName} 切换为 ${elemental.preview.name.value}\n';
     _handleUpdatePrediction();
   }
 
@@ -250,7 +249,7 @@ class CombatLogic {
     elemental.switchNext();
     if (elemental.preview.health.value > 0) {
       combatMessage.value +=
-          '${elemental.name} 切换为 ${elemental.preview.name.value}\n';
+          '${elemental.baseName} 切换为 ${elemental.preview.name.value}\n';
 
       showPage.value = (BuildContext context) {
         SnackBarMessage(context,

@@ -4,7 +4,7 @@ import '../foundation/effect.dart';
 import '../middleware/player.dart';
 
 class StatusPage extends StatefulWidget {
-  final PlayerElemental player;
+  final NormalPlayer player;
   const StatusPage({super.key, required this.player});
 
   @override
@@ -56,7 +56,7 @@ class _StatusPageState extends State<StatusPage> {
   Widget _buildPlayerInfo() {
     return Column(
       children: [
-        Text(widget.player.name,
+        Text(widget.player.baseName,
             style: Theme.of(context).textTheme.titleMedium),
         Text('经验: ${widget.player.experience}',
             style: Theme.of(context).textTheme.labelLarge),
@@ -119,13 +119,13 @@ class _StatusPageState extends State<StatusPage> {
       children: [
         _buildNavigationButton(Icons.arrow_left, () {
           setState(() {
-            _index = (_index + widget.player.count - 1) % widget.player.count;
+            _index = widget.player.findNextIndex(_index, -1);
           });
         }),
         _buildElementName(),
         _buildNavigationButton(Icons.arrow_right, () {
           setState(() {
-            _index = (_index + 1) % widget.player.count;
+            _index = widget.player.findNextIndex(_index, 1);
           });
         }),
       ],

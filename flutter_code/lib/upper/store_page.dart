@@ -5,7 +5,7 @@ import '../middleware/prop.dart';
 import '../middleware/player.dart';
 
 class StorePage extends StatefulWidget {
-  final PlayerElemental player;
+  final NormalPlayer player;
   const StorePage({super.key, required this.player});
 
   @override

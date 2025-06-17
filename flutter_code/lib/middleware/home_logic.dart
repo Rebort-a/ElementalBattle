@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../foundation/energy.dart';
 import '../foundation/entity.dart';
 import '../foundation/map.dart';
+import '../upper/practice_page.dart';
 import 'elemental.dart';
 import 'common.dart';
 import 'player.dart';
@@ -14,9 +15,6 @@ import '../upper/package_page.dart';
 import '../upper/skill_page.dart';
 import '../upper/status_page.dart';
 import '../upper/store_page.dart';
-
-// 敌人名称
-const List<String> enemyNames = ["小鬼", "小丑", "恶魔", "鬼王"];
 
 class HomeLogic {
   bool _routed = true; // 是可跳转到其他页面或进行弹窗
@@ -27,8 +25,8 @@ class HomeLogic {
 
   MapDataStack _mapData = MapDataStack(y: 0, x: 0, parent: null); // 初始化主城的地图数据栈
 
-  final player = PlayerElemental(
-      id: EntityID.player, y: mapLevel, x: mapLevel); // 创建并初始化玩家
+  final player =
+      NormalPlayer(id: EntityID.player, y: mapLevel, x: mapLevel); // 创建并初始化玩家
 
   late Timer _activeTimer; // 活动定时器
 
@@ -71,11 +69,12 @@ class HomeLogic {
 
     // 添加玩家、NPC和入口
     _setCellToEntity(0, 0, EntityID.enter);
+    _setCellToPlayer(0, mapLevel, EntityID.train);
     _setCellToEntity(0, _width - 1, EntityID.enter);
 
     _setCellToEntity(mapLevel, 0, EntityID.store);
     _setCellToPlayer(mapLevel, mapLevel, player.id);
-    _setCellToEntity(mapLevel, _width - 1, EntityID.train);
+    _setCellToEntity(mapLevel, _width - 1, EntityID.gym);
 
     _setCellToEntity(_height - 1, 0, EntityID.enter);
     _setCellToEntity(_height - 1, mapLevel, EntityID.home);
@@ -174,18 +173,14 @@ class HomeLogic {
       entityID = EntityID.boss;
     }
 
-    // 随机敌人灵根数量
-    int elementCount = _random.nextInt(EnergyType.values.length) + 1;
-
     // 根据层数和敌人类型确定等级
     // 添加到地图数据的实体列表中
-    _mapData.entities.add(EnemyElemental(
-        name: enemyNames[entityID.index - EntityID.weak.index],
-        count: elementCount,
-        upgradeTimes: floorNum.value + entityID.index - EntityID.weak.index,
-        id: entityID,
-        y: y,
-        x: x));
+    _mapData.entities.add(RandomEnemy.generate(
+      id: entityID,
+      y: y,
+      x: x,
+      grade: floorNum.value,
+    ));
 
     return entityID;
   }
@@ -298,6 +293,10 @@ class HomeLogic {
     _navigateAndSetActive(context, StatusPage(player: player));
   }
 
+  void navigateToPracticePage(BuildContext context) {
+    _navigateAndSetActive(context, PracticePage(player: player));
+  }
+
   void _navigateAndSetActive(BuildContext context, Widget page) {
     if (_stopActive()) {
       Navigator.push(context, MaterialPageRoute(builder: (context) => page))
@@ -309,7 +308,7 @@ class HomeLogic {
   }
 
   void navigateToCombatPage(
-      BuildContext context, EnemyElemental enemy, bool offensive) {
+      BuildContext context, RandomEnemy enemy, bool offensive) {
     if (_stopActive()) {
       Navigator.push(
         context,
@@ -324,11 +323,15 @@ class HomeLogic {
         _startActive(); // 重新启动定时器
         if (value is ResultType) {
           if (value == ResultType.victory) {
+            player.experience += 10 + 2 * enemy.grade;
             _mapData.entities.remove(enemy);
             _setCellToEntity(enemy.y, enemy.x, EntityID.road); // 从地图上清除敌人
             _restorePlayer(); // 恢复玩家状态
           } else if (value == ResultType.defeat) {
+            player.experience -= 5;
             _backToMain();
+          } else if (value == ResultType.escape) {
+            player.experience -= 2;
           }
         }
       });
@@ -348,7 +351,7 @@ class HomeLogic {
 
   void _moveEntities() {
     for (var entity in _mapData.entities) {
-      if (entity is EnemyElemental) {
+      if (entity is RandomEnemy) {
         List<List<int>> directions = [
           [0, -1], // 向左
           [-1, 0], // 向上
@@ -419,6 +422,9 @@ class HomeLogic {
           _backToPrevious();
           break;
         case EntityID.train:
+          showPage.value = navigateToPracticePage;
+          break;
+        case EntityID.gym:
           showPage.value = (BuildContext context) {
             UpgradeDialog(context, _stopActive, _startActive, _upgradePlayer);
           };
@@ -468,7 +474,7 @@ class HomeLogic {
         case EntityID.boss:
           for (var entity in _mapData.entities) {
             if ((entity.y == newY) && (entity.x == newX)) {
-              if (entity is EnemyElemental) {
+              if (entity is RandomEnemy) {
                 showPage.value = (BuildContext context) {
                   navigateToCombatPage(context, entity, true);
                 };

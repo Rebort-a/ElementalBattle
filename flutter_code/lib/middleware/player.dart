@@ -1,10 +1,9 @@
-import '../foundation/energy.dart';
 import '../foundation/entity.dart';
 import '../foundation/map.dart';
 import 'elemental.dart';
 import 'prop.dart';
 
-class PlayerElemental extends Elemental {
+class NormalPlayer extends ElementalEntity {
   late final Map<EntityID, MapProp> props;
   late int money;
   late int experience;
@@ -12,8 +11,11 @@ class PlayerElemental extends Elemental {
   int col = 0;
   int row = 0;
 
-  PlayerElemental({required super.id, required super.y, required super.x})
-      : super(name: "旅行者", count: EnergyType.values.length, upgradeTimes: 0) {
+  NormalPlayer({required super.id, required super.y, required super.x})
+      : super(
+          baseName: "旅行者",
+          config: Elemental.getDefaultConfig(),
+        ) {
     money = 20;
     experience = 60;
     props = PropCollection.totalItems;

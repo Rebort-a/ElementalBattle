@@ -5,7 +5,7 @@ import '../middleware/common.dart';
 import '../middleware/player.dart';
 
 class SkillsPage extends StatefulWidget {
-  final PlayerElemental player;
+  final NormalPlayer player;
   const SkillsPage({super.key, required this.player});
 
   @override
@@ -118,7 +118,7 @@ class _SkillsPageState extends State<SkillsPage> {
                 widget.player.experience -= 30;
                 SnackBarMessage(context, '学习成功！');
                 setState(() {
-                  _showSkills[index].learned = true;
+                  widget.player.upgradeSkill(_index);
                   _updateSkills();
                 });
               } else {
@@ -156,14 +156,14 @@ class _SkillsPageState extends State<SkillsPage> {
       children: [
         _buildNavigationButton(Icons.arrow_left, () {
           setState(() {
-            _index = (_index + widget.player.count - 1) % widget.player.count;
+            _index = widget.player.findNextIndex(_index, -1);
             _updateSkills();
           });
         }),
         _buildElementName(),
         _buildNavigationButton(Icons.arrow_right, () {
           setState(() {
-            _index = (_index + 1) % widget.player.count;
+            _index = widget.player.findNextIndex(_index, 1);
             _updateSkills();
           });
         }),

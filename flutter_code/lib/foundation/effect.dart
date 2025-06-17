@@ -77,4 +77,10 @@ class CombatEffect {
     }
     return false;
   }
+
+  void reset() {
+    type = EffectType.limited;
+    times = 0;
+    value = 0;
+  }
 }

@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import '../foundation/energy.dart';
 import '../foundation/image.dart';
 import '../middleware/elemental.dart';
-import '../middleware/player.dart';
 import '../middleware/combat_logic.dart';
 
 class CombatPage extends StatelessWidget {
   late final CombatLogic combatLogic;
-  final PlayerElemental player;
-  final EnemyElemental enemy;
+  final Elemental player;
+  final Elemental enemy;
   final bool offensive;
 
   CombatPage(

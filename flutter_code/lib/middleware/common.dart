@@ -48,7 +48,12 @@ class SelectEnergy {
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: List.generate(elemental.count, (index) {
+                children: List.generate(elemental.config.length, (index) {
+                  // 仅处理enable为true的Energy
+                  if (!elemental.isEnable(index)) {
+                    return const SizedBox();
+                  }
+
                   String name = elemental.getAppointName(index);
                   int health = elemental.getAppointHealth(index);
                   int capacity = elemental.getAppointCapacity(index);

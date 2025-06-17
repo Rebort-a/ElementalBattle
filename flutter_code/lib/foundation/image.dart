@@ -177,6 +177,7 @@ class ImageManager {
             return Colors.blueGrey;
         }
       case EntityID.train:
+      case EntityID.gym:
       case EntityID.store:
       case EntityID.home:
         return Colors.teal;
@@ -199,6 +200,8 @@ class ImageManager {
         return const Icon(Icons.door_sliding); // 出口
       case EntityID.train:
         return const Text('🏟️'); // 训练场
+      case EntityID.gym:
+        return const Text('💪'); // 健身房
       case EntityID.store:
         return const Text('🏦'); // 商店
       case EntityID.home:
