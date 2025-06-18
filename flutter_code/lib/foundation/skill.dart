@@ -412,7 +412,7 @@ class SkillCollection {
   static final CombatSkill woodActive_2 = CombatSkill(
     id: SkillID.woodActive_2,
     name: "桎梏",
-    description: "回复生命时，溢出生命值上限的部分会形成抵消伤害的护盾，生效一次。",
+    description: "回复生命时，溢出治疗量会提升生命值上限，生效一次。",
     type: SkillType.active,
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {

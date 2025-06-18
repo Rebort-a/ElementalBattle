@@ -19,19 +19,19 @@ class _PracticePageState extends State<PracticePage> {
       TextEditingController(text: "假人");
   int _totalPoints = 30;
   final Map<EnergyType, bool> _energyEnabled = {
-    for (var type in EnergyType.values) type: true
+    for (EnergyType type in EnergyType.values) type: true
   };
   final Map<EnergyType, int> _healthPoints = {
-    for (var type in EnergyType.values) type: 0
+    for (EnergyType type in EnergyType.values) type: 0
   };
   final Map<EnergyType, int> _attackPoints = {
-    for (var type in EnergyType.values) type: 0
+    for (EnergyType type in EnergyType.values) type: 0
   };
   final Map<EnergyType, int> _defencePoints = {
-    for (var type in EnergyType.values) type: 0
+    for (EnergyType type in EnergyType.values) type: 0
   };
   final Map<EnergyType, List<bool>> _skillsLearned = {
-    for (var type in EnergyType.values)
+    for (EnergyType type in EnergyType.values)
       type: List.filled(SkillCollection.totalSkills[type.index].length, false)
   };
 
@@ -510,6 +510,7 @@ class _PracticePageState extends State<PracticePage> {
               )),
     ).then((value) {
       // 当页面弹出（即返回）时，这个回调会被执行
+      widget.player.restoreEnergies();
     });
   }
 }

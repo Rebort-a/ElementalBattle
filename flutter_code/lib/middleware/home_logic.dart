@@ -350,7 +350,7 @@ class HomeLogic {
   }
 
   void _moveEntities() {
-    for (var entity in _mapData.entities) {
+    for (MovableEntity entity in _mapData.entities) {
       if (entity is RandomEnemy) {
         List<List<int>> directions = [
           [0, -1], // 向左
@@ -472,7 +472,7 @@ class HomeLogic {
         case EntityID.opponent:
         case EntityID.strong:
         case EntityID.boss:
-          for (var entity in _mapData.entities) {
+          for (MovableEntity entity in _mapData.entities) {
             if ((entity.y == newY) && (entity.x == newX)) {
               if (entity is RandomEnemy) {
                 showPage.value = (BuildContext context) {
@@ -528,7 +528,7 @@ class HomeLogic {
     _mapData.leaveMap = displayMap.value
         .map((row) => row.map((valueNotifier) => valueNotifier.value).toList())
         .toList(); // 获取当前地图数据
-    for (var child in _mapData.children) {
+    for (MapDataStack child in _mapData.children) {
       if (child.y == newY && child.x == newX) {
         _mapData = child;
         displayMap.value = _mapData.leaveMap

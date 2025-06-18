@@ -168,7 +168,7 @@ class CombatLogic {
   void _handleEnemyAction() {
     ActionType command = _getEnemyAction();
     combatMessage.value +=
-        ('${enemy.getAppointAttack(enemy.current)} 选择了 $command\n');
+        ('${enemy.getAppointName(enemy.current)} 选择了 $command\n');
     switch (command) {
       case ActionType.attack:
         _handleActionResult(
@@ -214,20 +214,18 @@ class CombatLogic {
     } else if (result == -1) {
       result = _switchNext(player, result);
     }
+
     switch (result) {
       case 1:
         combatResult = ResultType.victory;
-
         showPage.value = _showCombatResult;
         break;
       case -1:
         combatResult = ResultType.defeat;
-
         showPage.value = _showCombatResult;
         break;
       case -2:
         combatResult = ResultType.escape;
-
         showPage.value = _showCombatResult;
         break;
       case 2:

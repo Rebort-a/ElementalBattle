@@ -26,7 +26,7 @@ class EnergyManager extends Energy with EnergyConfigMixin {
 
   void _applyConfig() {
     void applyPoints(AttributeType type, int count) {
-      for (var i = 0; i < count; i++) {
+      for (int i = 0; i < count; i++) {
         upgradeAttributes(type);
       }
     }
@@ -35,7 +35,7 @@ class EnergyManager extends Energy with EnergyConfigMixin {
     applyPoints(AttributeType.atk, attackPoints);
     applyPoints(AttributeType.def, defencePoints);
 
-    for (var i = 0; i < skillPoints; i++) {
+    for (int i = 0; i < skillPoints; i++) {
       learnSkill(i);
     }
   }
@@ -43,7 +43,7 @@ class EnergyManager extends Energy with EnergyConfigMixin {
   void _updateAttribute(AttributeType type, int value) {
     final diff = value - _getCurrentValue(type);
     if (diff > 0) {
-      for (var i = 0; i < diff; i++) {
+      for (int i = 0; i < diff; i++) {
         upgradeAttributes(type);
       }
     }
@@ -69,7 +69,7 @@ class EnergyManager extends Energy with EnergyConfigMixin {
   @override
   set skillPoints(int value) {
     if (value > skillPoints) {
-      for (var i = skillPoints; i < value; i++) {
+      for (int i = skillPoints; i < value; i++) {
         learnSkill(i);
       }
     }
@@ -183,14 +183,11 @@ class Elemental {
 
   EnergyManager _energyAt(int index) => _strategy[EnergyType.values[index]]!;
 
-  void _updatePreview() =>
-      preview.updateInfo(_strategy, EnergyType.values[_current]);
-
   int get current => _current;
 
   int findNextIndex(int start, int step) {
     final count = EnergyType.values.length;
-    for (var i = 1; i <= count; i++) {
+    for (int i = 1; i <= count; i++) {
       final index = (start + step * i) % count;
       final energy = _energyAt(index);
       if (energy.energySwitch && energy.health > 0) return index;
@@ -223,7 +220,7 @@ class Elemental {
   List<CombatEffect> getAppointEffects(int index) => _energyAt(index).effects;
 
   void restoreEnergies() {
-    for (var e in _strategy.values) {
+    for (Energy e in _strategy.values) {
       e.restoreAttributes();
       e.restoreEffects();
     }
@@ -239,16 +236,23 @@ class Elemental {
       case AttributeType.def:
         _energyAt(index).defencePoints++;
     }
+    _updatePreview();
   }
 
   void upgradeSkill(int index) => _energyAt(index).skillPoints++;
-  void recoverEnergy(int index, int value) =>
-      _energyAt(index).recoverHealth(value);
-  void sufferSkill(int index, CombatSkill skill) =>
-      _energyAt(index).sufferSkill(skill);
+
+  void recoverEnergy(int index, int value) {
+    _energyAt(index).recoverHealth(value);
+    _updatePreview();
+  }
+
+  void sufferSkill(int index, CombatSkill skill) {
+    _energyAt(index).sufferSkill(skill);
+    _updatePreview();
+  }
 
   void applyPassiveEffect() {
-    for (var e in _strategy.values) {
+    for (Energy e in _strategy.values) {
       e.applyPassiveEffect();
     }
     _updatePreview();
@@ -259,10 +263,10 @@ class Elemental {
 
   void confrontRequest(Elemental elemental) {
     final attackValue = elemental.confrontReply(
-        (e) => EnergyCombat.calculateAttack(_energyAt(_current), e, false));
+        (e) => EnergyCombat.handleAttackEffect(_energyAt(_current), e, false));
 
     final defenceValue = elemental.confrontReply(
-        (e) => EnergyCombat.calculateDefence(e, _energyAt(_current), false));
+        (e) => EnergyCombat.handleDefenceEffect(e, _energyAt(_current), false));
 
     preview.updatePredictedInfo(attackValue, defenceValue);
   }
@@ -270,7 +274,7 @@ class Elemental {
   EnergyCombat battleReply(
       int index, EnergyCombat Function(EnergyManager) handler) {
     final combat = handler(_energyAt(index));
-    combat.battle();
+    combat.execute();
     _updatePreview();
     return combat;
   }
@@ -284,6 +288,9 @@ class Elemental {
     message.value += combat.message;
     return combat.record;
   }
+
+  void _updatePreview() =>
+      preview.updateInfo(_strategy, EnergyType.values[_current]);
 }
 
 class ElementalEntity extends Elemental with MovableEntity {
@@ -354,7 +361,7 @@ class RandomEnemy extends ElementalEntity {
         _distributePoints(enabledTypes.length, upgradePoints, random);
 
     // 分配属性点
-    for (var i = 0; i < enabledTypes.length; i++) {
+    for (int i = 0; i < enabledTypes.length; i++) {
       final config = configs[enabledTypes[i]]!;
       final points = pointsPerType[i];
       _allocateAttributes(config, points, random);
@@ -365,7 +372,7 @@ class RandomEnemy extends ElementalEntity {
 
   static List<int> _distributePoints(int count, int total, Random random) {
     final points = List.filled(count, 0);
-    for (var i = 0; i < total; i++) {
+    for (int i = 0; i < total; i++) {
       points[random.nextInt(count)]++;
     }
     return points;
@@ -379,7 +386,7 @@ class RandomEnemy extends ElementalEntity {
       () => config.defencePoints++,
     ];
 
-    for (var i = 0; i < points; i++) {
+    for (int i = 0; i < points; i++) {
       attributes[random.nextInt(attributes.length)]();
     }
   }
