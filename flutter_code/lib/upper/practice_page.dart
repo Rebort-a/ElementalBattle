@@ -30,9 +30,8 @@ class _PracticePageState extends State<PracticePage> {
   final Map<EnergyType, int> _defencePoints = {
     for (EnergyType type in EnergyType.values) type: 0
   };
-  final Map<EnergyType, List<bool>> _skillsLearned = {
-    for (EnergyType type in EnergyType.values)
-      type: List.filled(SkillCollection.totalSkills[type.index].length, false)
+  final Map<EnergyType, int> _skillsLearned = {
+    for (EnergyType type in EnergyType.values) type: 1 // 默认学习第一个技能
   };
 
   int _currentEnergyIndex = 0;
@@ -44,6 +43,7 @@ class _PracticePageState extends State<PracticePage> {
   @override
   void dispose() {
     _pageController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -302,7 +302,10 @@ class _PracticePageState extends State<PracticePage> {
   }
 
   Widget _buildSkillTree(bool isEnergyEnabled) {
-    final skills = SkillCollection.totalSkills[_currentEnergy.index];
+    final allSkills = SkillCollection.totalSkills[_currentEnergy.index];
+    final learnedCount = _skillsLearned[_currentEnergy]!;
+    final totalSkillsCount = allSkills.length;
+
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -311,12 +314,25 @@ class _PracticePageState extends State<PracticePage> {
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
       ),
-      itemCount: skills.length,
+      itemCount: totalSkillsCount,
       itemBuilder: (context, index) {
-        final skill = skills[index];
-        final isLearned = _skillsLearned[_currentEnergy]![index];
+        final skill = allSkills[index];
+        final isLearned = index < learnedCount;
+        // 仅允许学习下一个技能（最后一个已学习技能的下一个）
+        final canLearn = isEnergyEnabled &&
+            index == learnedCount &&
+            index < totalSkillsCount;
+        // 仅允许遗忘最后一个已学习技能，且不是第一个技能
+        final canForget = isEnergyEnabled &&
+            isLearned &&
+            index == learnedCount - 1 &&
+            index > 0;
+
         return GestureDetector(
-          onTap: isEnergyEnabled ? () => _showSkillDialog(index) : null,
+          onTap:
+              canLearn || canForget || (isLearned && index == 0) // 第一个技能始终可点击查看
+                  ? () => _showSkillDialog(index, canLearn, canForget)
+                  : null,
           child: Container(
             decoration: BoxDecoration(
               color: isLearned
@@ -348,9 +364,11 @@ class _PracticePageState extends State<PracticePage> {
     );
   }
 
-  void _showSkillDialog(int skillIndex) {
-    final skill = SkillCollection.totalSkills[_currentEnergy.index][skillIndex];
-    final isLearned = _skillsLearned[_currentEnergy]![skillIndex];
+  void _showSkillDialog(int skillIndex, bool canLearn, bool canForget) {
+    final allSkills = SkillCollection.totalSkills[_currentEnergy.index];
+    CombatSkill skill = allSkills[skillIndex];
+    final isLearned = skillIndex < _skillsLearned[_currentEnergy]!;
+    final totalSkillsCount = allSkills.length;
 
     showDialog(
       context: context,
@@ -367,12 +385,13 @@ class _PracticePageState extends State<PracticePage> {
           ],
         ),
         actions: [
-          if (!isLearned)
+          if (!isLearned && canLearn && skillIndex < totalSkillsCount)
             TextButton(
               onPressed: _totalPoints > 0
                   ? () {
                       setState(() {
-                        _skillsLearned[_currentEnergy]![skillIndex] = true;
+                        _skillsLearned[_currentEnergy] =
+                            _skillsLearned[_currentEnergy]! + 1;
                         _totalPoints--;
                         Navigator.pop(context);
                       });
@@ -380,12 +399,13 @@ class _PracticePageState extends State<PracticePage> {
                   : null,
               child: const Text('学习'),
             ),
-          if (isLearned)
+          if (isLearned && canForget)
             TextButton(
               child: const Text('遗忘'),
               onPressed: () {
                 setState(() {
-                  _skillsLearned[_currentEnergy]![skillIndex] = false;
+                  _skillsLearned[_currentEnergy] =
+                      _skillsLearned[_currentEnergy]! - 1;
                   _totalPoints++;
                   Navigator.pop(context);
                 });
@@ -423,14 +443,14 @@ class _PracticePageState extends State<PracticePage> {
         _totalPoints += _healthPoints[energyType]!;
         _totalPoints += _attackPoints[energyType]!;
         _totalPoints += _defencePoints[energyType]!;
-        _totalPoints += _skillsLearned[energyType]!.where((l) => l).length;
-        _totalPoints += 3;
+        _totalPoints += _skillsLearned[energyType]! - 1; // 扣除第一个强制技能
+        _totalPoints += 3; // 启用时扣除的3点
 
+        // 重置该灵根的所有属性，但保留第一个技能
         _healthPoints[energyType] = 0;
         _attackPoints[energyType] = 0;
         _defencePoints[energyType] = 0;
-        _skillsLearned[energyType] = List.filled(
-            SkillCollection.totalSkills[energyType.index].length, false);
+        _skillsLearned[energyType] = 1; // 始终保留第一个技能
       } else {
         // 启用灵根，扣除3点
         if (_totalPoints >= 3) {
@@ -445,32 +465,39 @@ class _PracticePageState extends State<PracticePage> {
 
   void _updateAttribute(AttributeType attribute, int delta) {
     setState(() {
-      final currentPoints = switch (attribute) {
-        AttributeType.hp => _healthPoints[_currentEnergy]!,
-        AttributeType.atk => _attackPoints[_currentEnergy]!,
-        AttributeType.def => _defencePoints[_currentEnergy]!,
-      };
-
       if (delta > 0 && _totalPoints > 0) {
         // 加点
         switch (attribute) {
           case AttributeType.hp:
-            _healthPoints[_currentEnergy] = currentPoints + 1;
+            _healthPoints[_currentEnergy] = _healthPoints[_currentEnergy]! + 1;
           case AttributeType.atk:
-            _attackPoints[_currentEnergy] = currentPoints + 1;
+            _attackPoints[_currentEnergy] = _attackPoints[_currentEnergy]! + 1;
           case AttributeType.def:
-            _defencePoints[_currentEnergy] = currentPoints + 1;
+            _defencePoints[_currentEnergy] =
+                _defencePoints[_currentEnergy]! + 1;
         }
         _totalPoints--;
-      } else if (delta < 0 && currentPoints > 0) {
+      } else if (delta < 0 &&
+          (_healthPoints[_currentEnergy]! > 0 ||
+              _attackPoints[_currentEnergy]! > 0 ||
+              _defencePoints[_currentEnergy]! > 0)) {
         // 减点
         switch (attribute) {
           case AttributeType.hp:
-            _healthPoints[_currentEnergy] = currentPoints - 1;
+            if (_healthPoints[_currentEnergy]! > 0) {
+              _healthPoints[_currentEnergy] =
+                  _healthPoints[_currentEnergy]! - 1;
+            }
           case AttributeType.atk:
-            _attackPoints[_currentEnergy] = currentPoints - 1;
+            if (_attackPoints[_currentEnergy]! > 0) {
+              _attackPoints[_currentEnergy] =
+                  _attackPoints[_currentEnergy]! - 1;
+            }
           case AttributeType.def:
-            _defencePoints[_currentEnergy] = currentPoints - 1;
+            if (_defencePoints[_currentEnergy]! > 0) {
+              _defencePoints[_currentEnergy] =
+                  _defencePoints[_currentEnergy]! - 1;
+            }
         }
         _totalPoints++;
       }
@@ -486,7 +513,7 @@ class _PracticePageState extends State<PracticePage> {
       config.healthPoints = _healthPoints[type]!;
       config.attackPoints = _attackPoints[type]!;
       config.defencePoints = _defencePoints[type]!;
-      config.skillPoints = _skillsLearned[type]!.where((l) => l).length;
+      config.skillPoints = _skillsLearned[type]!;
     }
 
     final enemy = Elemental(

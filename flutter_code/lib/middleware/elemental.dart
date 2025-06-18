@@ -16,7 +16,21 @@ mixin EnergyConfigMixin {
   int skillPoints = 1;
 }
 
-class EnergyConfig with EnergyConfigMixin {}
+class EnergyConfig with EnergyConfigMixin {
+  EnergyConfig({
+    bool? energySwitch,
+    int? healthPoints,
+    int? attackPoints,
+    int? defencePoints,
+    int? skillPoints,
+  }) {
+    this.energySwitch = energySwitch ?? this.energySwitch;
+    this.healthPoints = healthPoints ?? this.healthPoints;
+    this.attackPoints = attackPoints ?? this.attackPoints;
+    this.defencePoints = defencePoints ?? this.defencePoints;
+    this.skillPoints = skillPoints ?? this.skillPoints;
+  }
+}
 
 class EnergyManager extends Energy with EnergyConfigMixin {
   EnergyManager({required super.type, required String baseName})
@@ -156,8 +170,28 @@ class Elemental {
   late final Map<EnergyType, EnergyManager> _strategy;
   late int _current;
 
-  static Map<EnergyType, EnergyConfig> getDefaultConfig() => Map.fromEntries(
-      EnergyType.values.map((t) => MapEntry(t, EnergyConfig())));
+  static Map<EnergyType, EnergyConfig> getDefaultConfig({
+    bool? energySwitch,
+    int? healthPoints,
+    int? attackPoints,
+    int? defencePoints,
+    int? skillPoints,
+  }) {
+    return Map.fromEntries(
+      EnergyType.values.map(
+        (t) => MapEntry(
+          t,
+          EnergyConfig(
+            energySwitch: energySwitch,
+            healthPoints: healthPoints,
+            attackPoints: attackPoints,
+            defencePoints: defencePoints,
+            skillPoints: skillPoints,
+          ),
+        ),
+      ),
+    );
+  }
 
   Elemental({required this.baseName, required this.config}) {
     _initStrategy();
@@ -343,7 +377,7 @@ class RandomEnemy extends ElementalEntity {
 
   static Map<EnergyType, EnergyConfig> _generateRandomConfig(
       int upgradePoints) {
-    final configs = Elemental.getDefaultConfig();
+    final configs = Elemental.getDefaultConfig(skillPoints: 2);
     final random = Random();
     final types = List.of(EnergyType.values);
 

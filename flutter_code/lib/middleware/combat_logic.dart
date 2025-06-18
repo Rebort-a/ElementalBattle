@@ -166,7 +166,12 @@ class CombatLogic {
   }
 
   void _handleEnemyAction() {
-    ActionType command = _getEnemyAction();
+    ActionType command = ActionType.attack;
+
+    if (enemy.getAppointSkills(enemy.current)[1].learned) {
+      command = _getEnemyAction();
+    }
+
     combatMessage.value +=
         ('${enemy.getAppointName(enemy.current)} 选择了 $command\n');
     switch (command) {
