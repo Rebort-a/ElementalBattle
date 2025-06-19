@@ -14,7 +14,7 @@ class NormalPlayer extends ElementalEntity {
   NormalPlayer({required super.id, required super.y, required super.x})
       : super(
           baseName: "旅行者",
-          config: Elemental.getDefaultConfig(),
+          configs: Elemental.getDefaultConfig(),
         ) {
     money = 20;
     experience = 60;

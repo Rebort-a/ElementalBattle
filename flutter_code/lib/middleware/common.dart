@@ -48,7 +48,7 @@ class SelectEnergy {
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: List.generate(elemental.config.length, (index) {
+                children: List.generate(EnergyType.values.length, (index) {
                   // 仅处理enable为true的Energy
                   if (!elemental.isEnable(index)) {
                     return const SizedBox();

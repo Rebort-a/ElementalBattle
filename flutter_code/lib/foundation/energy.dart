@@ -17,6 +17,15 @@ enum AttributeType { hp, atk, def }
 // 属性名称
 const List<String> attributeNames = ["❤️", "⚔️", "🛡️"];
 
+// 初始数值
+const List<List<int>> _baseAttributes = [
+  [128, 32, 32], // metal
+  [160, 16, 64], // water
+  [256, 32, 16], // wood
+  [96, 64, 16], // fire
+  [384, 16, 0] // earth
+];
+
 // 灵根类
 class Energy {
   final String name;
@@ -33,15 +42,6 @@ class Energy {
 
   late final List<CombatSkill> _skills;
   late final List<CombatEffect> _effects;
-
-  // 初始数值
-  static final List<List<int>> _baseAttributes = [
-    [128, 32, 32], // metal
-    [160, 16, 64], // water
-    [256, 32, 16], // wood
-    [96, 64, 16], // fire
-    [384, 16, 0] // earth
-  ];
 
   Energy({required this.name, required this.type}) {
     _initAttributes();
@@ -62,11 +62,17 @@ class Energy {
   int get defenceTotal => defenceBase + defenceOffset;
   List<CombatSkill> get skills => _skills;
   List<CombatEffect> get effects => _effects;
+
+  static List<List<int>> get baseAttributes => _baseAttributes;
+  static int get healthStep => 32;
+  static int get attackStep => 8;
+  static int get defenceStep => 8;
+
   int get level => _level;
 
   // 初始化属性
   void _initAttributes() {
-    List<int> attributes = _baseAttributes[type.index];
+    List<int> attributes = baseAttributes[type.index];
     _capacityBase = attributes[0];
     _attackBase = attributes[1];
     _defenceBase = attributes[2];
@@ -139,14 +145,14 @@ class Energy {
   void upgradeAttributes(AttributeType attribute) {
     switch (attribute) {
       case AttributeType.hp:
-        _capacityBase += 32;
-        _changeHealth(32);
+        _capacityBase += healthStep;
+        _changeHealth(healthStep);
         break;
       case AttributeType.atk:
-        _attackBase += 8;
+        _attackBase += attackStep;
         break;
       case AttributeType.def:
-        _defenceBase += 8;
+        _defenceBase += defenceStep;
         break;
     }
     _level++;

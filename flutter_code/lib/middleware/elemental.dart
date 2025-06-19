@@ -166,7 +166,7 @@ class ElementalPreview {
 class Elemental {
   final ElementalPreview preview = ElementalPreview();
   final String baseName;
-  final Map<EnergyType, EnergyConfig> config;
+  final Map<EnergyType, EnergyConfig> configs;
   late final Map<EnergyType, EnergyManager> _strategy;
   late int _current;
 
@@ -193,13 +193,13 @@ class Elemental {
     );
   }
 
-  Elemental({required this.baseName, required this.config}) {
+  Elemental({required this.baseName, required this.configs}) {
     _initStrategy();
     _initCurrent();
   }
 
   void _initStrategy() {
-    _strategy = Map.fromEntries(config.entries.map((e) {
+    _strategy = Map.fromEntries(configs.entries.map((e) {
       final manager = EnergyManager(type: e.key, baseName: baseName)
         ..energySwitch = e.value.energySwitch
         ..healthPoints = e.value.healthPoints
@@ -330,7 +330,7 @@ class Elemental {
 class ElementalEntity extends Elemental with MovableEntity {
   ElementalEntity({
     required super.baseName,
-    required super.config,
+    required super.configs,
     required EntityID id,
     required int y,
     required int x,
@@ -348,7 +348,7 @@ class RandomEnemy extends ElementalEntity {
 
   RandomEnemy._({
     required super.baseName,
-    required super.config,
+    required super.configs,
     required super.id,
     required super.y,
     required super.x,
@@ -363,14 +363,14 @@ class RandomEnemy extends ElementalEntity {
   }) {
     final typeIndex = Random().nextInt(enemyNames.length - 1);
     final baseName = enemyNames[typeIndex];
-    final config = _generateRandomConfig(grade + typeIndex);
+    final configs = _generateRandomConfig(grade + typeIndex);
 
     return RandomEnemy._(
       id: id,
       y: y,
       x: x,
       baseName: baseName,
-      config: config,
+      configs: configs,
       grade: grade,
     );
   }

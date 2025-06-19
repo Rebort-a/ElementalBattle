@@ -105,7 +105,8 @@ class _SkillsPageState extends State<SkillsPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('目标: ${_getTargetText(_showSkills[index])}'),
+          Text(
+              '目标: ${CombatSkill.getTargetText(_showSkills[index].targetType)}'),
           Text('效果: ${_showSkills[index].description}'),
         ],
       ),
@@ -135,19 +136,6 @@ class _SkillsPageState extends State<SkillsPage> {
     );
 
     showDialog(context: context, builder: (context) => showPage);
-  }
-
-  String _getTargetText(CombatSkill skill) {
-    switch (skill.targetType) {
-      case SkillTarget.selfFront:
-        return '已方前台角色';
-      case SkillTarget.selfAny:
-        return '己方任一角色';
-      case SkillTarget.enemyFront:
-        return '敌方前台角色';
-      case SkillTarget.enemyAny:
-        return '敌方任一角色';
-    }
   }
 
   Widget _buildNavigationButtons() {

@@ -87,6 +87,19 @@ class CombatSkill {
       handler: handler ?? this.handler,
     );
   }
+
+  static String getTargetText(SkillTarget target) {
+    switch (target) {
+      case SkillTarget.selfFront:
+        return '已方前台角色';
+      case SkillTarget.selfAny:
+        return '己方任一角色';
+      case SkillTarget.enemyFront:
+        return '敌方前台角色';
+      case SkillTarget.enemyAny:
+        return '敌方任一角色';
+    }
+  }
 }
 
 class SkillCollection {
