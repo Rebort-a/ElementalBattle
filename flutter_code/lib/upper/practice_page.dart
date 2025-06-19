@@ -16,11 +16,14 @@ class PracticePage extends StatefulWidget {
 class _PracticePageState extends State<PracticePage> {
   final TextEditingController _nameController =
       TextEditingController(text: "假人");
-  final PageController _pageController = PageController();
-  int _totalPoints = 30;
-  EnergyType _currentEnergy = EnergyType.wood;
+
+  final PageController _pageController =
+      PageController(initialPage: 2, viewportFraction: 0.6);
 
   final Map<EnergyType, EnergyConfig> _configs = Elemental.getDefaultConfig();
+
+  int _totalPoints = 30;
+  EnergyType _currentEnergy = EnergyType.wood;
 
   @override
   void dispose() {
@@ -32,7 +35,7 @@ class _PracticePageState extends State<PracticePage> {
   @override
   Widget build(BuildContext context) {
     final config = _configs[_currentEnergy]!;
-    final isEnabled = config.energySwitch;
+    final isEnabled = config.aptitude;
 
     return Scaffold(
       appBar: AppBar(
@@ -46,17 +49,17 @@ class _PracticePageState extends State<PracticePage> {
       ),
       body: Column(
         children: [
-          _buildPointCounter(),
-          _buildNameInput(),
-          _buildEnergySelector(isEnabled),
-          _buildAttributeControls(config, isEnabled),
-          _buildSkillTree(config, isEnabled),
+          _buildPointRegion(),
+          _buildNameRegion(),
+          _buildEnergyRegion(isEnabled),
+          _buildAttributeRegion(config, isEnabled),
+          _buildSkillTreeRegion(config, isEnabled),
         ],
       ),
     );
   }
 
-  Widget _buildPointCounter() => Padding(
+  Widget _buildPointRegion() => Padding(
         padding: const EdgeInsets.all(8.0),
         child: Text(
           '剩余点数: $_totalPoints',
@@ -64,7 +67,7 @@ class _PracticePageState extends State<PracticePage> {
         ),
       );
 
-  Widget _buildNameInput() => Padding(
+  Widget _buildNameRegion() => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
         child: TextField(
           controller: _nameController,
@@ -75,54 +78,57 @@ class _PracticePageState extends State<PracticePage> {
         ),
       );
 
-  Widget _buildEnergySelector(bool isEnabled) => Container(
+  Widget _buildEnergyRegion(bool isEnabled) => Container(
         height: 120,
         margin: const EdgeInsets.symmetric(vertical: 8),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            PageView.builder(
-              controller: _pageController,
-              itemCount: EnergyType.values.length,
-              onPageChanged: (index) =>
-                  setState(() => _currentEnergy = EnergyType.values[index]),
-              itemBuilder: (_, index) =>
-                  _buildEnergyCard(EnergyType.values[index]),
-            ),
-            Positioned(
-              left: 0,
-              child: _buildNavButton(Icons.arrow_back_ios, -1),
-            ),
-            Positioned(
-              right: 0,
-              child: _buildNavButton(Icons.arrow_forward_ios, 1),
-            ),
-          ],
+        child: PageView.custom(
+          controller: _pageController,
+          onPageChanged: (index) =>
+              setState(() => _currentEnergy = EnergyType.values[index]),
+          childrenDelegate: SliverChildBuilderDelegate(
+            (context, index) => _buildTransformedCard(index, isEnabled),
+            childCount: EnergyType.values.length,
+          ),
         ),
       );
 
-  Widget _buildNavButton(IconData icon, int delta) => Container(
-        width: 40,
-        height: 40,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.blue,
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
-          ],
-        ),
-        child: IconButton(
-          icon: Icon(icon, color: Colors.white),
-          onPressed: () => _changeEnergy(delta),
-          padding: EdgeInsets.zero,
-        ),
-      );
+  Widget _buildTransformedCard(int index, bool isEnabled) {
+    const double scaleFactor = 0.8; // 缩放因子
+    Matrix4 matrix = Matrix4.identity();
 
-  Widget _buildEnergyCard(EnergyType type) {
-    final config = _configs[type]!;
-    final isEnabled = config.energySwitch;
+    // 计算变换效果
+    if (index == _currentEnergy.index) {
+      // 当前页
+      double currScale = 1 - (_currentEnergy.index - index) * (1 - scaleFactor);
+      double currTrans = 120.0 * (1 - currScale) / 2;
+      matrix = Matrix4.diagonal3Values(1.0, currScale, 1.0)
+        ..setTranslationRaw(0.0, currTrans, 0.0);
+    } else if (index == _currentEnergy.index + 1) {
+      // 下一页
+      double currScale =
+          scaleFactor + (_currentEnergy.index - index + 1) * (1 - scaleFactor);
+      double currTrans = 120.0 * (1 - currScale) / 2;
+      matrix = Matrix4.diagonal3Values(1.0, currScale, 1.0)
+        ..setTranslationRaw(0.0, currTrans, 0.0);
+    } else if (index == _currentEnergy.index - 1) {
+      // 上一页
+      double currScale = 1 - (_currentEnergy.index - index) * (1 - scaleFactor);
+      double currTrans = 120.0 * (1 - currScale) / 2;
+      matrix = Matrix4.diagonal3Values(1.0, currScale, 1.0)
+        ..setTranslationRaw(0.0, currTrans, 0.0);
+    } else {
+      // 其他页
+      matrix = Matrix4.diagonal3Values(1.0, scaleFactor, 1.0)
+        ..setTranslationRaw(0.0, 120.0 * (1 - scaleFactor) / 2, 0.0);
+    }
 
+    return Transform(
+      transform: matrix,
+      child: _buildEnergyCard(EnergyType.values[index], isEnabled),
+    );
+  }
+
+  Widget _buildEnergyCard(EnergyType type, bool isEnabled) {
     return Card(
       elevation: 4,
       margin: const EdgeInsets.all(8),
@@ -172,7 +178,7 @@ class _PracticePageState extends State<PracticePage> {
     );
   }
 
-  Widget _buildAttributeControls(EnergyConfig config, bool isEnabled) {
+  Widget _buildAttributeRegion(EnergyConfig config, bool isEnabled) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
@@ -206,10 +212,10 @@ class _PracticePageState extends State<PracticePage> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: Text(
-            '属性值: $value',
+            '$value',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: isEnabled ? Colors.blue : Colors.grey,
+              color: isEnabled ? Colors.black : Colors.grey,
             ),
           ),
         ),
@@ -236,7 +242,7 @@ class _PracticePageState extends State<PracticePage> {
     );
   }
 
-  Widget _buildSkillTree(EnergyConfig config, bool isEnabled) {
+  Widget _buildSkillTreeRegion(EnergyConfig config, bool isEnabled) {
     final skills = SkillCollection.totalSkills[_currentEnergy.index];
     final learnedCount = config.skillPoints;
 
@@ -294,25 +300,11 @@ class _PracticePageState extends State<PracticePage> {
     );
   }
 
-  void _changeEnergy(int delta) {
-    final newIndex = _currentEnergy.index + delta;
-    if (newIndex >= 0 && newIndex < EnergyType.values.length) {
-      setState(() {
-        _currentEnergy = EnergyType.values[newIndex];
-        _pageController.animateToPage(
-          newIndex,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      });
-    }
-  }
-
   void _toggleEnergy(EnergyType type) {
     setState(() {
       final config = _configs[type]!;
-      final wasEnabled = config.energySwitch;
-      config.energySwitch = !wasEnabled;
+      final wasEnabled = config.aptitude;
+      config.aptitude = !wasEnabled;
 
       if (wasEnabled) {
         // 返还点数
@@ -330,7 +322,7 @@ class _PracticePageState extends State<PracticePage> {
       } else if (_totalPoints >= 3) {
         _totalPoints -= 3;
       } else {
-        config.energySwitch = false; // 点数不足，恢复状态
+        config.aptitude = false; // 点数不足，恢复状态
       }
     });
   }
@@ -371,8 +363,6 @@ class _PracticePageState extends State<PracticePage> {
   void _showSkillDialog(
       CombatSkill skill, int index, bool canLearn, bool canForget) {
     final config = _configs[_currentEnergy]!;
-    final learnedCount = config.skillPoints;
-    final isLearned = index < learnedCount;
 
     showDialog(
       context: context,
@@ -382,14 +372,12 @@ class _PracticePageState extends State<PracticePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('类型: ${skill.type == SkillType.active ? '主动' : '被动'}'),
             Text('目标: ${CombatSkill.getTargetText(skill.targetType)}'),
-            const SizedBox(height: 8),
-            Text(skill.description),
+            Text('效果: ${skill.description}'),
           ],
         ),
         actions: [
-          if (!isLearned && canLearn)
+          if (canLearn)
             TextButton(
               onPressed: _totalPoints > 0
                   ? () {

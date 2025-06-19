@@ -91,13 +91,13 @@ class CombatSkill {
   static String getTargetText(SkillTarget target) {
     switch (target) {
       case SkillTarget.selfFront:
-        return '已方前台角色';
+        return '所属灵根';
       case SkillTarget.selfAny:
-        return '己方任一角色';
+        return '任一灵根';
       case SkillTarget.enemyFront:
-        return '敌方前台角色';
+        return '敌方当前灵根';
       case SkillTarget.enemyAny:
-        return '敌方任一角色';
+        return '敌方任一灵根';
     }
   }
 }

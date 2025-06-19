@@ -9,7 +9,7 @@ import '../foundation/map.dart';
 import '../foundation/skill.dart';
 
 mixin EnergyConfigMixin {
-  bool energySwitch = true;
+  bool aptitude = true;
   int healthPoints = 0;
   int attackPoints = 0;
   int defencePoints = 0;
@@ -18,13 +18,13 @@ mixin EnergyConfigMixin {
 
 class EnergyConfig with EnergyConfigMixin {
   EnergyConfig({
-    bool? energySwitch,
+    bool? aptitude,
     int? healthPoints,
     int? attackPoints,
     int? defencePoints,
     int? skillPoints,
   }) {
-    this.energySwitch = energySwitch ?? this.energySwitch;
+    this.aptitude = aptitude ?? this.aptitude;
     this.healthPoints = healthPoints ?? this.healthPoints;
     this.attackPoints = attackPoints ?? this.attackPoints;
     this.defencePoints = defencePoints ?? this.defencePoints;
@@ -118,7 +118,7 @@ class ElementalPreview {
   void _updateResumesInfo(
       Map<EnergyType, EnergyManager> strategy, EnergyType current) {
     final enabledTypes = strategy.entries
-        .where((e) => e.value.energySwitch)
+        .where((e) => e.value.aptitude)
         .map((e) => e.key)
         .toList();
 
@@ -171,7 +171,7 @@ class Elemental {
   late int _current;
 
   static Map<EnergyType, EnergyConfig> getDefaultConfig({
-    bool? energySwitch,
+    bool? aptitude,
     int? healthPoints,
     int? attackPoints,
     int? defencePoints,
@@ -182,7 +182,7 @@ class Elemental {
         (t) => MapEntry(
           t,
           EnergyConfig(
-            energySwitch: energySwitch,
+            aptitude: aptitude,
             healthPoints: healthPoints,
             attackPoints: attackPoints,
             defencePoints: defencePoints,
@@ -201,7 +201,7 @@ class Elemental {
   void _initStrategy() {
     _strategy = Map.fromEntries(configs.entries.map((e) {
       final manager = EnergyManager(type: e.key, baseName: baseName)
-        ..energySwitch = e.value.energySwitch
+        ..aptitude = e.value.aptitude
         ..healthPoints = e.value.healthPoints
         ..attackPoints = e.value.attackPoints
         ..defencePoints = e.value.defencePoints
@@ -224,7 +224,7 @@ class Elemental {
     for (int i = 1; i <= count; i++) {
       final index = (start + step * i) % count;
       final energy = _energyAt(index);
-      if (energy.energySwitch && energy.health > 0) return index;
+      if (energy.aptitude && energy.health > 0) return index;
     }
     return _current;
   }
@@ -239,7 +239,7 @@ class Elemental {
     }
   }
 
-  bool isEnable(int index) => _energyAt(index).energySwitch;
+  bool isEnable(int index) => _energyAt(index).aptitude;
   String getAppointName(int index) => _energyAt(index).name;
   int getAppointLevel(int index) => _energyAt(index).level;
   int getAppointCapacity(int index) => _energyAt(index).capacityBase;
@@ -385,7 +385,7 @@ class RandomEnemy extends ElementalEntity {
     types.shuffle();
     final disableCount = random.nextInt(5);
     types.take(disableCount).forEach((t) {
-      configs[t]!.energySwitch = false;
+      configs[t]!.aptitude = false;
       upgradePoints += 3;
     });
 
