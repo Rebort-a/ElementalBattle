@@ -168,11 +168,6 @@ class ElementalPreview {
       count++;
     }
 
-    // 如果还有未添加的启用灵根（理论上不应该发生），按原顺序添加
-    final remainingTypes =
-        enabledTypes.where((t) => !orderedTypes.contains(t)).toList();
-    orderedTypes.addAll(remainingTypes);
-
     return orderedTypes;
   }
 
