@@ -111,19 +111,19 @@ class SkillCollection {
     SkillCollection.metalActive_1,
     SkillCollection.metalActive_2,
   ];
-  static final List<CombatSkill> waterAvailableSkills = [
-    SkillCollection.waterPassive_0,
-    SkillCollection.waterActive_0,
-    SkillCollection.waterPassive_1,
-    SkillCollection.waterActive_1,
-    SkillCollection.waterActive_2,
-  ];
   static final List<CombatSkill> woodAvailableSkills = [
     SkillCollection.woodPassive_0,
     SkillCollection.woodActive_0,
     SkillCollection.woodPassive_1,
     SkillCollection.woodActive_1,
     SkillCollection.woodActive_2,
+  ];
+  static final List<CombatSkill> waterAvailableSkills = [
+    SkillCollection.waterPassive_0,
+    SkillCollection.waterActive_0,
+    SkillCollection.waterPassive_1,
+    SkillCollection.waterActive_1,
+    SkillCollection.waterActive_2,
   ];
   static final List<CombatSkill> fireAvailableSkills = [
     SkillCollection.firePassive_0,
@@ -143,8 +143,8 @@ class SkillCollection {
   // 总的技能列表，包含所有被动和主动技能
   static final List<List<CombatSkill>> totalSkills = [
     SkillCollection.metalAvailableSkills,
-    SkillCollection.waterAvailableSkills,
     SkillCollection.woodAvailableSkills,
+    SkillCollection.waterAvailableSkills,
     SkillCollection.fireAvailableSkills,
     SkillCollection.earthAvailableSkills,
   ];
@@ -175,18 +175,6 @@ class SkillCollection {
     },
   );
 
-  static final CombatSkill waterPassive_0 = CombatSkill(
-    id: SkillID.waterPassive_0,
-    name: "因地制流",
-    description: "受到伤害后，防御力减少，根据减少量的75%，提高攻击力，并获取法术伤害的附魔。\n\n水因地而制流，兵因敌而制胜。",
-    type: SkillType.passive,
-    targetType: SkillTarget.selfFront,
-    handler: (skills, effects) {
-      effects[EffectID.adjustAttribute.index].type = EffectType.infinite;
-      effects[EffectID.adjustAttribute.index].value = 0.75;
-    },
-  );
-
   static final CombatSkill woodPassive_0 = CombatSkill(
     id: SkillID.woodPassive_0,
     name: "叶落归根",
@@ -196,6 +184,18 @@ class SkillCollection {
     handler: (skills, effects) {
       effects[EffectID.absorbBlood.index].type = EffectType.infinite;
       effects[EffectID.absorbBlood.index].value = 0.25;
+    },
+  );
+
+  static final CombatSkill waterPassive_0 = CombatSkill(
+    id: SkillID.waterPassive_0,
+    name: "因地制流",
+    description: "受到伤害后，防御力减少，根据减少量的75%，提高攻击力，并获取法术伤害的附魔。\n\n水因地而制流，兵因敌而制胜。",
+    type: SkillType.passive,
+    targetType: SkillTarget.selfFront,
+    handler: (skills, effects) {
+      effects[EffectID.adjustAttribute.index].type = EffectType.infinite;
+      effects[EffectID.adjustAttribute.index].value = 0.75;
     },
   );
 
@@ -235,18 +235,6 @@ class SkillCollection {
     },
   );
 
-  static final CombatSkill waterActive_0 = CombatSkill(
-    id: SkillID.waterActive_0,
-    name: "拖泥带水",
-    description: "下次攻击时，减少50%的攻击力，生效两次。",
-    type: SkillType.active,
-    targetType: SkillTarget.enemyFront,
-    handler: (skills, effects) {
-      effects[EffectID.weakenAttack.index].value = 0.5;
-      effects[EffectID.weakenAttack.index].times += 2;
-    },
-  );
-
   static final CombatSkill woodActive_0 = CombatSkill(
     id: SkillID.woodActive_0,
     name: "根深蒂固",
@@ -256,6 +244,18 @@ class SkillCollection {
     handler: (skills, effects) {
       effects[EffectID.restoreLife.index].value = 0.125;
       effects[EffectID.restoreLife.index].times += 1;
+    },
+  );
+
+  static final CombatSkill waterActive_0 = CombatSkill(
+    id: SkillID.waterActive_0,
+    name: "拖泥带水",
+    description: "下次攻击时，减少50%的攻击力，生效两次。",
+    type: SkillType.active,
+    targetType: SkillTarget.enemyFront,
+    handler: (skills, effects) {
+      effects[EffectID.weakenAttack.index].value = 0.5;
+      effects[EffectID.weakenAttack.index].times += 2;
     },
   );
 
@@ -294,17 +294,6 @@ class SkillCollection {
     },
   );
 
-  static final CombatSkill waterPassive_1 = CombatSkill(
-    id: SkillID.waterPassive_1,
-    name: "水泄不通",
-    description: "拖泥带水可以施加给敌方任一灵根，使其下次攻击时，减少50%的攻击力，生效两次。",
-    type: SkillType.passive,
-    targetType: SkillTarget.selfFront,
-    handler: (skills, effects) {
-      skills[1].targetType = SkillTarget.enemyAny;
-    },
-  );
-
   static final CombatSkill woodPassive_1 = CombatSkill(
     id: SkillID.woodPassive_1,
     name: "开枝散叶",
@@ -313,6 +302,17 @@ class SkillCollection {
     targetType: SkillTarget.selfFront,
     handler: (skills, effects) {
       skills[1].targetType = SkillTarget.selfAny;
+    },
+  );
+
+  static final CombatSkill waterPassive_1 = CombatSkill(
+    id: SkillID.waterPassive_1,
+    name: "水泄不通",
+    description: "拖泥带水可以施加给敌方任一灵根，使其下次攻击时，减少50%的攻击力，生效两次。",
+    type: SkillType.passive,
+    targetType: SkillTarget.selfFront,
+    handler: (skills, effects) {
+      skills[1].targetType = SkillTarget.enemyAny;
     },
   );
 
@@ -350,18 +350,6 @@ class SkillCollection {
     },
   );
 
-  static final CombatSkill waterActive_1 = CombatSkill(
-    id: SkillID.waterActive_1,
-    name: "水无常形",
-    description: "受到伤害后，防御力减少，根据减少量的75%，提高攻击力，生效两次。\n\n 兵无常势，水无常形。",
-    type: SkillType.active,
-    targetType: SkillTarget.selfAny,
-    handler: (skills, effects) {
-      effects[EffectID.adjustAttribute.index].value = 0.75;
-      effects[EffectID.adjustAttribute.index].times += 2;
-    },
-  );
-
   static final CombatSkill woodActive_1 = CombatSkill(
     id: SkillID.woodActive_1,
     name: "移花接木",
@@ -371,6 +359,18 @@ class SkillCollection {
     handler: (skills, effects) {
       effects[EffectID.absorbBlood.index].value = 0.25;
       effects[EffectID.absorbBlood.index].times += 2;
+    },
+  );
+
+  static final CombatSkill waterActive_1 = CombatSkill(
+    id: SkillID.waterActive_1,
+    name: "水无常形",
+    description: "受到伤害后，防御力减少，根据减少量的75%，提高攻击力，生效两次。\n\n 兵无常势，水无常形。",
+    type: SkillType.active,
+    targetType: SkillTarget.selfAny,
+    handler: (skills, effects) {
+      effects[EffectID.adjustAttribute.index].value = 0.75;
+      effects[EffectID.adjustAttribute.index].times += 2;
     },
   );
 
@@ -410,18 +410,6 @@ class SkillCollection {
     },
   );
 
-  static final CombatSkill waterActive_2 = CombatSkill(
-    id: SkillID.waterActive_2,
-    name: "止水",
-    description: "受到致命伤害时，生命值回复到1，生效一次。\n\n区区致命伤。",
-    type: SkillType.active,
-    targetType: SkillTarget.selfFront,
-    handler: (skills, effects) {
-      effects[EffectID.exemptionDeath.index].value = 1;
-      effects[EffectID.exemptionDeath.index].times += 1;
-    },
-  );
-
   static final CombatSkill woodActive_2 = CombatSkill(
     id: SkillID.woodActive_2,
     name: "桎梏",
@@ -431,6 +419,18 @@ class SkillCollection {
     handler: (skills, effects) {
       effects[EffectID.increaseCapacity.index].value = 1;
       effects[EffectID.increaseCapacity.index].times += 1;
+    },
+  );
+
+  static final CombatSkill waterActive_2 = CombatSkill(
+    id: SkillID.waterActive_2,
+    name: "止水",
+    description: "受到致命伤害时，生命值回复到1，生效一次。\n\n区区致命伤。",
+    type: SkillType.active,
+    targetType: SkillTarget.selfFront,
+    handler: (skills, effects) {
+      effects[EffectID.exemptionDeath.index].value = 1;
+      effects[EffectID.exemptionDeath.index].times += 1;
     },
   );
 

@@ -5,11 +5,11 @@ import 'skill.dart';
 
 // 灵根：特征，体系，潜力的统称（实在找不到更合适的单词[允悲]），灵根拥有独立的属性，技能和效果
 
-// 五灵根枚举类型，按照相生顺序排列
-enum EnergyType { metal, water, wood, fire, earth }
+// 五灵根枚举类型
+enum EnergyType { metal, wood, water, fire, earth }
 
 // 五灵根名称
-const List<String> energyNames = ["🔩", "🌊", "🪵", "🔥", "🪨"];
+const List<String> energyNames = ["🔩", "🪵", "🌊", "🔥", "🪨"];
 
 // 属性枚举类型
 enum AttributeType { hp, atk, def }
@@ -20,8 +20,8 @@ const List<String> attributeNames = ["❤️", "⚔️", "🛡️"];
 // 初始数值
 const List<List<int>> _baseAttributes = [
   [128, 32, 32], // metal
-  [160, 16, 64], // water
   [256, 32, 16], // wood
+  [160, 16, 64], // water
   [96, 64, 16], // fire
   [384, 16, 0] // earth
 ];

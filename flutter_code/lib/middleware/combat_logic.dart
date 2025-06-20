@@ -249,7 +249,7 @@ class CombatLogic {
 
   int _switchNext(Elemental elemental, int result) {
     String lastName = elemental.preview.name.value;
-    elemental.switchNext();
+    elemental.switchByOrder();
     if (elemental.preview.health.value > 0) {
       combatMessage.value +=
           '${elemental.baseName} 切换为 ${elemental.preview.name.value}\n';

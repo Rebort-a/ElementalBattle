@@ -128,11 +128,13 @@ class ElementalPreview {
       return;
     }
 
-    final startIndex = enabledTypes.indexOf(current);
+    // 按照五行相生顺序排列启用的灵根
+    final orderedTypes = _arrangeByGenerationOrder(enabledTypes, current);
+
     resumes.value = List.generate(
-      enabledTypes.length,
+      orderedTypes.length,
       (i) {
-        final type = enabledTypes[(startIndex + i) % enabledTypes.length];
+        final type = orderedTypes[i];
         return EnergyResume(type: type, health: strategy[type]!.health);
       },
     );
@@ -144,6 +146,34 @@ class ElementalPreview {
     emoji.value = (capacityValue > 0 && enabledTypes.isNotEmpty)
         ? (survivalCount / enabledTypes.length) * (healthValue / capacityValue)
         : 0;
+  }
+
+// 按照五行相生顺序排列灵根
+  List<EnergyType> _arrangeByGenerationOrder(
+      List<EnergyType> enabledTypes, EnergyType startType) {
+    final orderedTypes = <EnergyType>[];
+    EnergyType currentType = startType;
+    int count = 0;
+
+    // 最多遍历五行灵根数量次
+    while (orderedTypes.length < enabledTypes.length &&
+        count < EnergyType.values.length) {
+      // 如果当前灵根是启用的，添加到有序列表
+      if (enabledTypes.contains(currentType)) {
+        orderedTypes.add(currentType);
+      }
+
+      // 按五行相生顺序获取下一个灵根
+      currentType = Elemental.generationOrder[currentType]!;
+      count++;
+    }
+
+    // 如果还有未添加的启用灵根（理论上不应该发生），按原顺序添加
+    final remainingTypes =
+        enabledTypes.where((t) => !orderedTypes.contains(t)).toList();
+    orderedTypes.addAll(remainingTypes);
+
+    return orderedTypes;
   }
 
   void _updateCurrentInfo(Energy energy) {
@@ -219,6 +249,16 @@ class Elemental {
 
   int get current => _current;
 
+  void switchPrevious() => switchAppoint(findNextIndex(_current, -1));
+  void switchNext() => switchAppoint(findNextIndex(_current, 1));
+
+  void switchAppoint(int index) {
+    if (index != _current) {
+      _current = index;
+      _updatePreview();
+    }
+  }
+
   int findNextIndex(int start, int step) {
     final count = EnergyType.values.length;
     for (int i = 1; i <= count; i++) {
@@ -229,13 +269,28 @@ class Elemental {
     return _current;
   }
 
-  void switchPrevious() => switchAppoint(findNextIndex(_current, -1));
-  void switchNext() => switchAppoint(findNextIndex(_current, 1));
+// 五行相生的映射表，key为当前元素，value为相生顺序的下一个元素
+  static Map<EnergyType, EnergyType> generationOrder = {
+    EnergyType.metal: EnergyType.water, // 金生水
+    EnergyType.water: EnergyType.wood, // 水生木
+    EnergyType.wood: EnergyType.fire, // 木生火
+    EnergyType.fire: EnergyType.earth, // 火生土
+    EnergyType.earth: EnergyType.metal, // 土生金
+  };
 
-  void switchAppoint(int index) {
-    if (index != _current) {
-      _current = index;
-      _updatePreview();
+// 根据五行相生顺序切换到下一个有效灵根
+  void switchByOrder() {
+    EnergyType currentType = EnergyType.values[_current];
+
+    for (int i = 1; i < EnergyType.values.length; i++) {
+      currentType = generationOrder[currentType]!;
+
+      // 检查下一个灵根是否有效
+      if (_strategy[currentType]!.aptitude &&
+          _strategy[currentType]!.health > 0) {
+        switchAppoint(currentType.index);
+        break;
+      }
     }
   }
 

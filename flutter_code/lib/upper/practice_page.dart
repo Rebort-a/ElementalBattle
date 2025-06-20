@@ -23,7 +23,7 @@ class _PracticePageState extends State<PracticePage> {
   final Map<EnergyType, EnergyConfig> _configs = Elemental.getDefaultConfig();
 
   int _totalPoints = 30;
-  EnergyType _currentEnergy = EnergyType.wood;
+  EnergyType _currentEnergy = EnergyType.water;
 
   @override
   void dispose() {
@@ -51,7 +51,7 @@ class _PracticePageState extends State<PracticePage> {
         children: [
           _buildPointRegion(),
           _buildNameRegion(),
-          _buildEnergyRegion(isEnabled),
+          _buildEnergyRegion(),
           _buildAttributeRegion(config, isEnabled),
           _buildSkillTreeRegion(config, isEnabled),
         ],
@@ -78,7 +78,7 @@ class _PracticePageState extends State<PracticePage> {
         ),
       );
 
-  Widget _buildEnergyRegion(bool isEnabled) => Container(
+  Widget _buildEnergyRegion() => Container(
         height: 120,
         margin: const EdgeInsets.symmetric(vertical: 8),
         child: PageView.custom(
@@ -86,13 +86,13 @@ class _PracticePageState extends State<PracticePage> {
           onPageChanged: (index) =>
               setState(() => _currentEnergy = EnergyType.values[index]),
           childrenDelegate: SliverChildBuilderDelegate(
-            (context, index) => _buildTransformedCard(index, isEnabled),
+            (context, index) => _buildTransformedCard(index),
             childCount: EnergyType.values.length,
           ),
         ),
       );
 
-  Widget _buildTransformedCard(int index, bool isEnabled) {
+  Widget _buildTransformedCard(int index) {
     const double scaleFactor = 0.8; // 缩放因子
     Matrix4 matrix = Matrix4.identity();
 
@@ -122,9 +122,20 @@ class _PracticePageState extends State<PracticePage> {
         ..setTranslationRaw(0.0, 120.0 * (1 - scaleFactor) / 2, 0.0);
     }
 
-    return Transform(
-      transform: matrix,
-      child: _buildEnergyCard(EnergyType.values[index], isEnabled),
+    return GestureDetector(
+      onTap: () {
+        _pageController.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+        setState(() => _currentEnergy = EnergyType.values[index]);
+      },
+      child: Transform(
+        transform: matrix,
+        child: _buildEnergyCard(EnergyType.values[index],
+            _configs[EnergyType.values[index]]!.aptitude),
+      ),
     );
   }
 
