@@ -47,7 +47,6 @@ class SocketService {
     _discovery.startSending(
       NetworkMessage(
               clientIdentify: record,
-              timestamp: DateTime.now().toIso8601String(),
               type: MessageType.service,
               source: roomName,
               content: '${_server.port}')
@@ -59,7 +58,6 @@ class SocketService {
   void _sendAcceptMessage(Socket client, int clientId) {
     client.add(NetworkMessage(
       clientIdentify: clientId,
-      timestamp: DateTime.now().toIso8601String(),
       type: MessageType.accept,
       source: roomName,
       content: 'none',
@@ -89,7 +87,6 @@ class SocketService {
     // 发送停止信息
     _discovery.sendMessage(NetworkMessage(
             clientIdentify: record,
-            timestamp: DateTime.now().toIso8601String(),
             type: MessageType.service,
             source: roomName,
             content: 'stop')

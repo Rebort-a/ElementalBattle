@@ -612,7 +612,6 @@ class GameManager extends ChangeNotifier {
   void _sendInputMessage(MessageType type, String text) {
     final message = NetworkMessage(
       clientIdentify: playerIdentify,
-      timestamp: DateTime.now().toString(),
       type: type,
       source: userName,
       content: text,
@@ -634,7 +633,6 @@ class GameManager extends ChangeNotifier {
 
     final message = NetworkMessage(
       clientIdentify: playerIdentify,
-      timestamp: DateTime.now().toString(),
       type: type,
       source: userName,
       content: content,
