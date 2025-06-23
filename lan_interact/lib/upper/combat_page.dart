@@ -317,12 +317,12 @@ class BattleInfoRegion extends StatelessWidget {
   Widget _buildGlobalStatus() {
     return ValueListenableBuilder(
       valueListenable: info.resumes,
-      builder: (context, List<EnergyResume> resumes, child) {
-        final front = resumes.isNotEmpty
-            ? _buildElementBox(resumes.first)
+      builder: (context, value, child) {
+        final front = value.isNotEmpty
+            ? _buildElementBox(value.first)
             : const SizedBox.shrink();
-        final backend = resumes.length > 1
-            ? Wrap(children: resumes.skip(1).map(_buildElementBox).toList())
+        final backend = value.length > 1
+            ? Wrap(children: value.skip(1).map(_buildElementBox).toList())
             : const SizedBox.shrink();
 
         return Column(children: [front, backend]);

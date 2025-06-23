@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../foundation/network.dart';
 import '../foundation/discovery.dart';
 import '../foundation/models.dart';
 import '../foundation/service.dart';
@@ -44,21 +45,18 @@ class HomeManager {
     othersRooms.clear();
   }
 
-  void _handleReceivedMessage(String address, String message) {
-    // Parse the message to extract room name and port
-    // Example message format: "RoomName,stop" "RoomName,1234"
-    final parts = message.split(SocketService.split);
-    if (parts.length == 2) {
-      if (parts[1] == 'stop') {
+  void _handleReceivedMessage(String address, List<int> data) {
+    NetworkMessage message = NetworkMessage.fromSocket(data);
+    if (message.type == MessageType.service) {
+      if (message.content == 'stop') {
         othersRooms.removeWhere(
-            (room) => room.name == parts[0] && room.address == address);
+            (room) => room.name == message.source && room.address == address);
       } else {
-        int port = int.parse(parts[1]);
+        int port = int.parse(message.content);
         RoomInfo newRoom =
-            RoomInfo(name: parts[0], address: address, port: port);
+            RoomInfo(name: message.source, address: address, port: port);
         bool isMyRoom = createdRooms.value.any(
             (room) => room.name == newRoom.name && room.port == newRoom.port);
-
         bool isOtherRoom = othersRooms.value.any((room) =>
             room.name == newRoom.name &&
             room.address == newRoom.address &&

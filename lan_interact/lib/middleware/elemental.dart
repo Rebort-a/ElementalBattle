@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../foundation/effect.dart';
@@ -165,7 +167,6 @@ class Elemental {
   late final Map<EnergyType, EnergyManager> _strategy;
 
   late String _baseName;
-  late final Map<EnergyType, EnergyConfig> _configs;
   late int _current;
 
   Elemental({
@@ -173,16 +174,22 @@ class Elemental {
     required Map<EnergyType, EnergyConfig> configs,
     required int current,
   }) {
-    _initStrategy(baseName, configs);
-    _initCurrent(current);
+    _initElemental(baseName, configs, current);
   }
 
-  void _initStrategy(String baseName, Map<EnergyType, EnergyConfig> configs) {
+  void _initElemental(
+      String baseName, Map<EnergyType, EnergyConfig> configs, int current) {
     _baseName = baseName;
-    _configs = configs;
+    _strategy = createStrategyFromConfigs(baseName, configs);
+    _current = current;
+    switchPrevious();
+  }
 
-    _strategy = Map.fromEntries(_configs.entries.map((e) {
-      final manager = EnergyManager(type: e.key, baseName: _baseName)
+  // 从配置创建策略（EnergyManager映射）
+  static Map<EnergyType, EnergyManager> createStrategyFromConfigs(
+      String baseName, Map<EnergyType, EnergyConfig> configs) {
+    return Map.fromEntries(configs.entries.map((e) {
+      final manager = EnergyManager(type: e.key, baseName: baseName)
         ..aptitude = e.value.aptitude
         ..healthPoints = e.value.healthPoints
         ..attackPoints = e.value.attackPoints
@@ -192,9 +199,20 @@ class Elemental {
     }));
   }
 
-  void _initCurrent(int current) {
-    _current = current;
-    switchPrevious();
+  // 从策略创建配置（反向转换函数）
+  static Map<EnergyType, EnergyConfig> createConfigsFromStrategy(
+      Map<EnergyType, EnergyManager> strategy) {
+    return Map.fromEntries(strategy.entries.map((e) {
+      return MapEntry(
+          e.key,
+          EnergyConfig(
+            aptitude: e.value.aptitude,
+            healthPoints: e.value.healthPoints,
+            attackPoints: e.value.attackPoints,
+            defencePoints: e.value.defencePoints,
+            skillPoints: e.value.skillPoints,
+          ));
+    }));
   }
 
   EnergyManager _energyAt(int index) => _strategy[EnergyType.values[index]]!;
@@ -362,13 +380,10 @@ class Elemental {
     };
   }
 
-  // 从JSON中获取名称
   static String baseNameFromJson(Map<String, dynamic> json) => json['baseName'];
 
-  // 从JSON获取配置
   static Map<EnergyType, EnergyConfig> configsFromJson(
       Map<String, dynamic> json) {
-    // 显式转换并创建新Map
     return Map<EnergyType, EnergyConfig>.from(
       (json['configs'] as Map<String, dynamic>).map((key, value) {
         return MapEntry(
@@ -387,10 +402,8 @@ class Elemental {
     );
   }
 
-  // 从JSON获取当前索引
   static int currentFromJson(Map<String, dynamic> json) => json['current'];
 
-  // 从JSON数据创建Elemental对象的工厂构造函数
   factory Elemental.fromJson(Map<String, dynamic> json) {
     final String baseName = Elemental.baseNameFromJson(json);
     final Map<EnergyType, EnergyConfig> configs =
@@ -401,6 +414,15 @@ class Elemental {
       configs: configs,
       current: current,
     );
+  }
+
+  factory Elemental.fromSocket(List<int> data) {
+    return Elemental.fromJson(jsonDecode(utf8.decode(data)));
+  }
+
+  List<int> toSocketData() {
+    return utf8.encode(jsonEncode(
+        configsToJson(name, createConfigsFromStrategy(_strategy), _current)));
   }
 
   // 默认配置

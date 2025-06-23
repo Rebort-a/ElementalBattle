@@ -113,12 +113,29 @@ class GameManager extends ChangeNotifier {
       _socket = await Socket.connect(roomInfo.address, roomInfo.port);
       _socket.listen(
         _handleSocketData,
-        onError: _handleError,
+        onError: _handleDisconnect,
         onDone: dispose,
       );
     } catch (e) {
       _handleError(e);
     }
+  }
+
+  void _handleDisconnect() {
+    showPage.value = (context) {
+      DialogCollection.confirmDialogTemplate(
+        context: context,
+        title: "连接断开",
+        content: '即将退出房间',
+        before: () {
+          return true;
+        },
+        onTap: () {},
+        after: () {
+          dispose();
+        },
+      );
+    };
   }
 
   void _startKeyboard() {

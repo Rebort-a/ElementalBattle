@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 enum MessageType {
+  service,
   accept,
   searching,
   roleConfig,
@@ -26,7 +27,7 @@ class NetworkMessage {
     required this.content,
   });
 
-  static NetworkMessage fromJson(Map<String, dynamic> json) {
+  factory NetworkMessage.fromJson(Map<String, dynamic> json) {
     return NetworkMessage(
       clientIdentify: json['clientIdentify'],
       timestamp: json['timestamp'],
@@ -46,8 +47,8 @@ class NetworkMessage {
     };
   }
 
-  static NetworkMessage fromSocket(List<int> data) {
-    return fromJson(jsonDecode(utf8.decode(data)));
+  factory NetworkMessage.fromSocket(List<int> data) {
+    return NetworkMessage.fromJson(jsonDecode(utf8.decode(data)));
   }
 
   List<int> toSocketData() {
