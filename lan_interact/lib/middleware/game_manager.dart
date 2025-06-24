@@ -117,11 +117,12 @@ class GameManager extends ChangeNotifier {
         onDone: dispose,
       );
     } catch (e) {
-      _handleError(e);
+      _handleError("Failed to connect to server", e);
     }
   }
 
-  void _handleDisconnect() {
+  void _handleDisconnect(Object e) {
+    _handleError("Failed to connect to server", e);
     showPage.value = (context) {
       DialogCollection.confirmDialogTemplate(
         context: context,
@@ -151,7 +152,7 @@ class GameManager extends ChangeNotifier {
         _processMessage(message);
       }
     } catch (e) {
-      _handleError(e);
+      _handleError("Failed to parse network message", e);
     }
   }
 
@@ -592,7 +593,7 @@ class GameManager extends ChangeNotifier {
       return;
     }
 
-    _sendInputMessage(MessageType.text, text);
+    _sendNetworkMessage(MessageType.text, text);
 
     inputController.clear();
   }
@@ -609,25 +610,6 @@ class GameManager extends ChangeNotifier {
     });
   }
 
-  void _sendInputMessage(MessageType type, String text) {
-    final message = NetworkMessage(
-      clientIdentify: playerIdentify,
-      type: type,
-      source: userName,
-      content: text,
-    );
-
-    try {
-      _socket.add(message.toSocketData());
-    } catch (e) {
-      _handleError(e);
-    }
-  }
-
-  void _addCombatInfo(String message) {
-    infoList.value += "$message\n";
-  }
-
   void _sendNetworkMessage(MessageType type, String content) {
     if (gameStep.value == GameStep.disconnect) return;
 
@@ -641,11 +623,15 @@ class GameManager extends ChangeNotifier {
     try {
       _socket.add(message.toSocketData());
     } catch (e) {
-      _handleError(e);
+      _handleError("Send network message failed", e);
     }
   }
 
-  void _handleError(dynamic error) {
-    _addCombatInfo('\n$error');
+  void _handleError(String note, Object error) {
+    _addCombatInfo('\n$note: $error');
+  }
+
+  void _addCombatInfo(String message) {
+    infoList.value += "$message\n";
   }
 }

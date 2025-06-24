@@ -60,7 +60,7 @@ class SocketService {
       clientIdentify: clientId,
       type: MessageType.accept,
       source: roomName,
-      content: 'none',
+      content: 'service',
     ).toSocketData());
   }
 
