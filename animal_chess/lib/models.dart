@@ -41,6 +41,8 @@ class ListNotifier<T> extends ValueNotifier<List<T>> {
   @override
   List<T> get value => List.unmodifiable(super.value);
 
+  int get length => super.value.length;
+
   void add(T value) {
     super.value.add(value);
     super.notifyListeners();
