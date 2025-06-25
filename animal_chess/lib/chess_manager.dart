@@ -8,9 +8,18 @@ import 'models.dart';
 
 enum AnimalType { elephant, tiger, lion, leopard, wolf, dog, cat, mouse }
 
-const List<String> animalNames = ["象", "虎", "狮", "豹", "狼", "狗", "猫", "鼠"];
+const List<String> animalNames = [
+  "🐘",
+  "🐯",
+  "🦁",
+  "🐆",
+  "🐺",
+  "🐕",
+  "🐈",
+  "🐭"
+];
 
-enum Player { red, blue }
+enum PlayerType { red, blue }
 
 const List<String> ownerNames = ["红", "蓝"];
 
@@ -18,7 +27,7 @@ enum GridType { land, river, road, bridge, tree }
 
 class Animal {
   final AnimalType type;
-  final Player owner;
+  final PlayerType owner;
   bool isRevealed = false;
 
   Animal(this.type, this.owner);
@@ -59,14 +68,13 @@ class Animal {
     return true;
   }
 
-  String get displayName =>
-      isRevealed ? "${ownerNames[owner.index]}${animalNames[type.index]}" : "";
+  String get displayName => isRevealed ? animalNames[type.index] : "";
 
   Color get displayColor => isRevealed
-      ? owner == Player.red
+      ? owner == PlayerType.red
           ? Colors.red
           : Colors.blue
-      : Colors.grey;
+      : Colors.blueGrey;
 }
 
 class Point {
@@ -90,12 +98,14 @@ class Grid {
     bool? isSelected,
     bool? isHighlighted,
     bool? isEmpty,
+    bool? isHidden,
   }) {
     return Grid(point: point, type: type)
       ..animal = animal ?? this.animal
       ..isSelected = isSelected ?? this.isSelected
       ..isHighlighted = isHighlighted ?? this.isHighlighted
-      ..isEmpty = isEmpty ?? this.isEmpty;
+      ..isEmpty = isEmpty ?? this.isEmpty
+      ..isHidden = isHidden ?? this.isHidden;
   }
 
   bool get isEmpty => animal == null;
@@ -105,7 +115,18 @@ class Grid {
     }
   }
 
-  bool get isHidden => animal != null && !animal!.isRevealed;
+  bool get isHidden => !isEmpty && !animal!.isRevealed;
+  set isHidden(bool value) {
+    if (value) {
+      if (!isEmpty) {
+        animal!.isRevealed = false;
+      }
+    } else {
+      if (!isEmpty) {
+        animal!.isRevealed = true;
+      }
+    }
+  }
 }
 
 class ChessManager {
@@ -114,19 +135,16 @@ class ChessManager {
 
   final AlwaysNotifier<void Function(BuildContext)> showPage =
       AlwaysNotifier((_) {});
-  final ValueNotifier<String> info = ValueNotifier("游戏开始 - 红方回合");
+  final ValueNotifier<PlayerType> currentPlayer = ValueNotifier(PlayerType.red);
   final ValueNotifier<List<List<ValueNotifier<Grid>>>> displayMap =
       ValueNotifier([]);
 
-  Player _currentPlayer = Player.red;
   Point? _selectedPos;
 
   ChessManager() {
     _initBoard();
     _placeAnimalsRandomly();
   }
-
-  Player get currentPlayer => _currentPlayer;
 
   void _initBoard() {
     List<List<Grid>> newMap = [];
@@ -160,9 +178,9 @@ class ChessManager {
 
   void _placeAnimalsRandomly() {
     final redAnimals =
-        AnimalType.values.map((type) => Animal(type, Player.red)).toList();
+        AnimalType.values.map((type) => Animal(type, PlayerType.red)).toList();
     final blueAnimals =
-        AnimalType.values.map((type) => Animal(type, Player.blue)).toList();
+        AnimalType.values.map((type) => Animal(type, PlayerType.blue)).toList();
 
     final availableGrids = <Point>[];
     for (int y = 0; y < boardLength; y++) {
@@ -182,14 +200,14 @@ class ChessManager {
       final pos = availableGrids[i];
       final grid = displayMap.value[pos.y][pos.x].value;
       displayMap.value[pos.y][pos.x].value =
-          grid.copyWith(animal: redAnimals[i], isEmpty: false);
+          grid.copyWith(animal: redAnimals[i], isEmpty: false, isHidden: true);
     }
 
     for (int i = 8; i < 16; i++) {
       final pos = availableGrids[i];
       final grid = displayMap.value[pos.y][pos.x].value;
-      displayMap.value[pos.y][pos.x].value =
-          grid.copyWith(animal: blueAnimals[i - 8], isEmpty: false);
+      displayMap.value[pos.y][pos.x].value = grid.copyWith(
+          animal: blueAnimals[i - 8], isEmpty: false, isHidden: true);
     }
   }
 
@@ -216,7 +234,7 @@ class ChessManager {
     }
 
     // 选择当前玩家的动物
-    if (grid.animal != null && grid.animal!.owner == _currentPlayer) {
+    if (grid.animal != null && grid.animal!.owner == currentPlayer.value) {
       _selectGrid(point);
       _calculateValidMoves();
     }
@@ -257,10 +275,9 @@ class ChessManager {
   void _revealCard(Point point) {
     final gridNotifier = displayMap.value[point.y][point.x];
     final grid = gridNotifier.value;
-    if (grid.animal == null || grid.animal!.isRevealed) return;
+    if (!grid.isHidden) return;
 
-    final revealedAnimal = grid.animal!..isRevealed = true;
-    gridNotifier.value = grid.copyWith(animal: revealedAnimal, isEmpty: false);
+    gridNotifier.value = grid.copyWith(isEmpty: false, isHidden: false);
 
     _clearSelection();
     _checkGameOver();
@@ -340,12 +357,17 @@ class ChessManager {
     final fromGrid = displayMap.value[_selectedPos!.y][_selectedPos!.x].value;
     final animal = fromGrid.animal!;
 
-    if (!animal.canMoveTo(fromGrid.type, targetGrid.type)) return;
-    if (targetGrid.animal != null &&
-        targetGrid.animal!.owner == _currentPlayer) {
+    if (targetGrid.isHidden) {
       return;
     }
 
+    if (!targetGrid.isEmpty && targetGrid.animal!.owner == animal.owner) {
+      return;
+    }
+
+    if (!animal.canMoveTo(fromGrid.type, targetGrid.type)) {
+      return;
+    }
     // 高亮显示有效移动
     displayMap.value[y][x].value = targetGrid.copyWith(isHighlighted: true);
   }
@@ -358,8 +380,9 @@ class ChessManager {
   }
 
   void _switchPlayer() {
-    _currentPlayer = _currentPlayer == Player.red ? Player.blue : Player.red;
-    info.value = "${_currentPlayer == Player.red ? "红" : "蓝"}方回合";
+    currentPlayer.value = (currentPlayer.value == PlayerType.red
+        ? PlayerType.blue
+        : PlayerType.red);
   }
 
   void _checkGameOver() {
@@ -370,7 +393,7 @@ class ChessManager {
       for (final cell in row) {
         final grid = cell.value;
         if (grid.animal != null) {
-          if (grid.animal!.owner == Player.red) {
+          if (grid.animal!.owner == PlayerType.red) {
             redCount++;
           } else {
             blueCount++;
@@ -416,9 +439,8 @@ class ChessManager {
   }
 
   void _restart() {
-    _currentPlayer = Player.red;
+    currentPlayer.value = PlayerType.red;
     _selectedPos = null;
-    info.value = "游戏重新开始 - 红方回合";
 
     // 清除所有选择和状态
     _initBoard();

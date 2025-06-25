@@ -43,10 +43,31 @@ class ChessPage extends StatelessWidget {
 
   Widget _buildInfo() {
     return ValueListenableBuilder(
-      valueListenable: _manager.info,
+      valueListenable: _manager.currentPlayer,
       builder: (context, value, child) {
-        return Text(value);
+        return buildTurnIndicator(value);
       },
+    );
+  }
+
+  Widget buildTurnIndicator(PlayerType playerType) {
+    bool isRedTurn = playerType == PlayerType.red;
+    final backgroundColor = isRedTurn ? Colors.red : Colors.blue;
+    final text = isRedTurn ? "红方回合" : "蓝方回合";
+
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(4.0),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -56,7 +77,7 @@ class ChessPage extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(color: Colors.grey, width: 8),
+              border: Border.all(color: Colors.brown, width: 8),
             ),
             child: ValueListenableBuilder(
               valueListenable: _manager.displayMap,
@@ -99,42 +120,43 @@ class ChessPage extends StatelessWidget {
                               return GestureDetector(
                                 onTap: () => _manager.selectGrid(Point(x, y)),
                                 child: Container(
-                                    margin: const EdgeInsets.all(2),
-                                    decoration: BoxDecoration(
-                                      color: _getGridColor(value),
-                                      border: Border.all(
-                                        color: value.isSelected
-                                            ? Colors.yellow
-                                            : value.isHighlighted
-                                                ? Colors.green
-                                                : Colors.grey,
-                                        width: value.isSelected ||
-                                                value.isHighlighted
-                                            ? 3
-                                            : 1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(5),
+                                  margin: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: _getGridColor(value),
+                                    border: Border.all(
+                                      color: value.isSelected
+                                          ? Colors.yellow
+                                          : value.isHighlighted
+                                              ? Colors.green
+                                              : Colors.grey,
+                                      width: value.isSelected ||
+                                              value.isHighlighted
+                                          ? 3
+                                          : 1,
                                     ),
-                                    child: value.isEmpty
-                                        ? null
-                                        : Container(
-                                            margin: const EdgeInsets.all(2),
-                                            decoration: BoxDecoration(
-                                              color: value.animal!.displayColor,
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                value.animal!.displayName,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: value.isEmpty
+                                      ? null
+                                      : Container(
+                                          margin: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: value.animal!.displayColor,
+                                            borderRadius:
+                                                BorderRadius.circular(5),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              value.animal!.displayName,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 32,
                                               ),
                                             ),
-                                          )),
+                                          ),
+                                        ),
+                                ),
                               );
                             },
                           );
@@ -151,16 +173,14 @@ class ChessPage extends StatelessWidget {
 
   static Color _getGridColor(Grid grid) {
     switch (grid.type) {
-      case GridType.land:
-        return Colors.white; // 陆地
-      case GridType.river:
-        return Colors.blue[200]!; // 河流
-      case GridType.road:
-        return Colors.grey[300]!; // 道路
-      case GridType.bridge:
-        return Colors.yellow; // 桥
-      case GridType.tree:
-        return Colors.brown; // 树林
+      case GridType.land: // 陆地
+      case GridType.road: // 道路
+      case GridType.bridge: // 桥
+        return Colors.white;
+      case GridType.river: // 河流
+        return Colors.blue[200]!;
+      case GridType.tree: // 树
+        return Colors.brown;
     }
   }
 }
