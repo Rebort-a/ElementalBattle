@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'chess_page.dart';
+import 'common.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Animal Chess',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: globalTheme,
       home: ChessPage(),
     );
   }

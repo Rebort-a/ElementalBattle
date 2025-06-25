@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+ThemeData globalTheme = ThemeData(primarySwatch: Colors.blue);
+
 class RoomInfo {
   final String name;
   final String address;

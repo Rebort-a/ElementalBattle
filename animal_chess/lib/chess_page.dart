@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import 'chess_manager.dart';
+import 'common.dart';
 
 class ChessPage extends StatelessWidget {
   final ChessManager _manager = ChessManager();
@@ -14,6 +15,7 @@ class ChessPage extends StatelessWidget {
         body: Column(
           children: [
             _buildDialog(),
+            // _buildRules(),
             _buildTurnIndicator(),
             Expanded(child: _buildGameBoard()),
           ],
@@ -33,6 +35,27 @@ class ChessPage extends StatelessWidget {
     );
   }
 
+  Widget _buildRules() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildRuleItem(emojis.join(' > ')),
+          _buildRuleItem(
+              '${emojis[7]} ➡ ${emojis[0]}   ${emojis[0]} 🚫 ${emojis[7]}'),
+          _buildRuleItem(
+              '${emojis[0]} ${emojis[5]} ${emojis[7]} ➡ 🌊 || ${emojis[7]} ➡ 🌉'),
+          _buildRuleItem('${emojis[3]} ${emojis[6]} ${emojis[7]} ➡ 🌳'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRuleItem(String text) {
+    return Text(text, style: globalTheme.textTheme.bodyMedium);
+  }
+
   Widget _buildTurnIndicator() => ValueListenableBuilder(
         valueListenable: _manager.currentPlayer,
         builder: (_, player, __) => Container(
@@ -43,8 +66,7 @@ class ChessPage extends StatelessWidget {
           ),
           child: Text(
             '${player == PlayerType.red ? "红" : "蓝"}方回合',
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
+            style: globalTheme.textTheme.titleMedium,
           ),
         ),
       );
@@ -119,6 +141,8 @@ class ChessPage extends StatelessWidget {
         child: Center(
           child: Text(_childContent(grid.animal!),
               style: const TextStyle(fontSize: 32)),
+          // child: Text(_childContent(grid.animal!),
+          //     style: globalTheme.textTheme.displayLarge),
         ),
       );
 

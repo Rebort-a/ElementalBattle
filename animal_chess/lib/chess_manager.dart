@@ -8,6 +8,8 @@ import 'models.dart';
 
 enum AnimalType { elephant, tiger, lion, leopard, wolf, dog, cat, mouse }
 
+const List<String> emojis = ["🐘", "🐅", "🦁", "🐆", "🐺", "🐕", "🐈️", "🐭"];
+
 enum PlayerType { red, blue }
 
 enum GridType { land, river, road, bridge, tree }
@@ -49,16 +51,14 @@ class Animal {
         _ => true,
       };
 
-  String get emoji => _emojis[type.index];
+  String get emoji => emojis[type.index];
   Color get color => owner == PlayerType.red ? Colors.red : Colors.blue;
-
-  static const _emojis = ["🐘", "🐯", "🦁", "🐆", "🐺", "🐕", "🐈", "🐭"];
 }
 
 class Grid {
   final int coordinate;
   final GridType type;
-  final bool isHighlighted;
+  bool isHighlighted;
   Animal? animal;
 
   Grid({
@@ -73,7 +73,7 @@ class Grid {
   // 清除棋子
   Grid clearAnimal() {
     animal = null;
-    return this;
+    return copyWith();
   }
 
   // 翻开棋子
@@ -81,7 +81,7 @@ class Grid {
     if (haveAnimal) {
       animal?.isHidden = false;
     }
-    return this;
+    return copyWith();
   }
 
   // 选中棋子
@@ -89,7 +89,7 @@ class Grid {
     if (haveAnimal) {
       animal?.isSelected = true;
     }
-    return this;
+    return copyWith();
   }
 
   // 取消选中
@@ -97,17 +97,21 @@ class Grid {
     if (haveAnimal) {
       animal?.isSelected = false;
     }
-    return this;
+    return copyWith();
   }
 
-  // 高亮格子
+// 高亮格子
   Grid setHighlights() {
     return copyWith(isHighlighted: true);
   }
 
-  // 取消高亮
+// 取消高亮
   Grid clearHighlights() {
     return copyWith(isHighlighted: false);
+  }
+
+  Grid setAnimal(Animal animal) {
+    return copyWith(animal: animal);
   }
 
   Grid copyWith({
@@ -128,6 +132,12 @@ class Grid {
 class ChessManager {
   static const int _boardLevel = 2;
   static const int boardSize = _boardLevel * 2 + 1;
+  static const _directions = [
+    (-1, 0), // 上
+    (1, 0), // 下
+    (0, -1), // 左
+    (0, 1), // 右
+  ];
 
   final Random _random = Random();
 
@@ -160,39 +170,27 @@ class ChessManager {
 
   // 确定地形类型
   GridType _getTerrainType(int index) {
-    final isCentralColumn = index % boardSize == _boardLevel;
-    final isCentralRow = index ~/ boardSize == _boardLevel;
+    final row = index ~/ boardSize;
+    final col = index % boardSize;
 
-    if (isCentralColumn) {
-      if (isCentralRow) return GridType.bridge;
-      if ((index == _boardLevel) ||
-          (index == _boardLevel * (2 * boardSize + 1))) {
+    if (col == _boardLevel) {
+      if (row == _boardLevel) return GridType.bridge;
+      if (index == _boardLevel || index == _boardLevel * (2 * boardSize + 1)) {
         return GridType.tree;
       }
       return GridType.road;
     }
-    return isCentralRow ? GridType.river : GridType.land;
+    return row == _boardLevel ? GridType.river : GridType.land;
   }
 
   // 随机分配棋子
   void _distributePieces() {
-    List<AnimalType> redPieces = AnimalType.values.map((type) => type).toList();
-    List<AnimalType> bluePieces =
-        AnimalType.values.map((type) => type).toList();
+    const pieces = AnimalType.values;
+    final positions = _getLandPositions()..shuffle(_random);
 
-    List<int> availableSpots = _getLandPositions();
-
-    redPieces.shuffle(_random);
-    bluePieces.shuffle(_random);
-    availableSpots.shuffle(_random);
-
-    _placePieces(
-        PlayerType.red, redPieces, availableSpots.sublist(0, redPieces.length));
-    _placePieces(
-        PlayerType.blue,
-        bluePieces,
-        availableSpots.sublist(
-            redPieces.length, redPieces.length + bluePieces.length));
+    _placePieces(PlayerType.red, pieces, positions.take(pieces.length));
+    _placePieces(PlayerType.blue, pieces,
+        positions.skip(pieces.length).take(pieces.length));
   }
 
   // 获取所有陆地位置
@@ -209,15 +207,11 @@ class ChessManager {
 
   // 放置棋子
   void _placePieces(
-      PlayerType owner, List<AnimalType> pieces, List<int> positions) {
+      PlayerType owner, List<AnimalType> pieces, Iterable<int> positions) {
     for (int i = 0; i < pieces.length; i++) {
-      _setGrid(positions[i], (grid) {
-        return grid.copyWith(
-            animal: Animal(
-                type: pieces[i],
-                owner: owner,
-                isSelected: false,
-                isHidden: true));
+      _setGrid(positions.toList()[i], (grid) {
+        return grid.setAnimal(Animal(
+            type: pieces[i], owner: owner, isSelected: false, isHidden: true));
       });
     }
   }
@@ -288,7 +282,7 @@ class ChessManager {
         _resolveCombat(_getGrid(from).animal!, _getGrid(to).animal!, to);
       } else {
         _setGrid(to, (grid) {
-          return grid.copyWith(animal: _getGrid(from).animal!);
+          return grid.setAnimal(_getGrid(from).animal!);
         });
         _selectedPos = to;
       }
@@ -314,7 +308,7 @@ class ChessManager {
     } else if (attackerWins) {
       // 攻击者胜利
       _setGrid(toPos, (grid) {
-        return grid.copyWith(animal: attacker);
+        return grid.setAnimal(attacker);
       });
       _selectedPos = toPos;
     }
@@ -336,29 +330,19 @@ class ChessManager {
     _calculatePossibleMoves(index);
   }
 
-  // 计算可能的移动
   void _calculatePossibleMoves(int index) {
-    // 把一维索引转换为二维坐标
-    int row = index ~/ boardSize;
-    int col = index % boardSize;
+    final row = index ~/ boardSize;
+    final col = index % boardSize;
 
-    // 定义上下左右四个方向的偏移量
-    List<int> dr = [-1, 1, 0, 0]; // 行偏移：上、下、左、右
-    List<int> dc = [0, 0, -1, 1]; // 列偏移：上、下、左、右
+    for (final (dr, dc) in _directions) {
+      final newRow = row + dr;
+      final newCol = col + dc;
 
-    // 遍历四个方向
-    for (int i = 0; i < 4; i++) {
-      // 计算周围格子的坐标
-      int newRow = row + dr[i];
-      int newCol = col + dc[i];
-
-      // 检查坐标是否超出边界
       if (newRow >= 0 &&
           newRow < boardSize &&
           newCol >= 0 &&
           newCol < boardSize) {
-        int toPos = newRow * boardSize + newCol;
-        _evaluateMove(index, toPos);
+        _evaluateMove(index, newRow * boardSize + newCol);
       }
     }
   }
