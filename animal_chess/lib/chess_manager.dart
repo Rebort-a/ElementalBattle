@@ -1,5 +1,3 @@
-// chess_manager.dart
-
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -20,11 +18,12 @@ class Animal {
   bool isSelected;
   bool isHidden;
 
-  Animal(
-      {required this.type,
-      required this.owner,
-      required this.isSelected,
-      required this.isHidden});
+  Animal({
+    required this.type,
+    required this.owner,
+    required this.isSelected,
+    required this.isHidden,
+  });
 
   bool canEat(Animal? other) {
     if (other == null) return true;
@@ -69,63 +68,57 @@ class Grid {
   });
 
   bool get haveAnimal => animal != null;
+}
+
+class GridNotifier extends ValueNotifier<Grid> {
+  GridNotifier(super.value);
 
   // 清除棋子
-  Grid clearAnimal() {
-    animal = null;
-    return copyWith();
+  void clearAnimal() {
+    value.animal = null;
+    notifyListeners();
   }
 
   // 翻开棋子
-  Grid reveal() {
-    if (haveAnimal) {
-      animal?.isHidden = false;
+  void reveal() {
+    if (value.haveAnimal) {
+      value.animal!.isHidden = false;
     }
-    return copyWith();
+    notifyListeners();
   }
 
   // 选中棋子
-  Grid selectedGrid() {
-    if (haveAnimal) {
-      animal?.isSelected = true;
+  void setSelection() {
+    if (value.haveAnimal) {
+      value.animal!.isSelected = true;
     }
-    return copyWith();
+    notifyListeners();
   }
 
   // 取消选中
-  Grid clearSelection() {
-    if (haveAnimal) {
-      animal?.isSelected = false;
+  void clearSelection() {
+    if (value.haveAnimal) {
+      value.animal!.isSelected = false;
     }
-    return copyWith();
+    notifyListeners();
   }
 
-// 高亮格子
-  Grid setHighlights() {
-    return copyWith(isHighlighted: true);
+  // 高亮格子
+  void setHighlights() {
+    value.isHighlighted = true;
+    notifyListeners();
   }
 
-// 取消高亮
-  Grid clearHighlights() {
-    return copyWith(isHighlighted: false);
+  // 取消高亮
+  void clearHighlights() {
+    value.isHighlighted = false;
+    notifyListeners();
   }
 
-  Grid setAnimal(Animal animal) {
-    return copyWith(animal: animal);
-  }
-
-  Grid copyWith({
-    int? coordinate,
-    GridType? type,
-    bool? isHighlighted,
-    Animal? animal,
-  }) {
-    return Grid(
-      coordinate: coordinate ?? this.coordinate,
-      type: type ?? this.type,
-      isHighlighted: isHighlighted ?? this.isHighlighted,
-      animal: animal ?? this.animal,
-    );
+  // 设置棋子
+  void setAnimal(Animal animal) {
+    value.animal = animal;
+    notifyListeners();
   }
 }
 
@@ -144,9 +137,11 @@ class ChessManager {
   final AlwaysNotifier<void Function(BuildContext)> showPage =
       AlwaysNotifier((_) {});
   final ValueNotifier<PlayerType> currentPlayer = ValueNotifier(PlayerType.red);
-  final ListNotifier<ValueNotifier<Grid>> displayMap = ListNotifier([]);
+  final ListNotifier<GridNotifier> displayMap = ListNotifier([]);
 
-  int? _selectedPos;
+  // 选中和高亮状态管理列表
+  // 第一个元素是选中的格子索引，后续元素是高亮的格子索引
+  final List<int> _signGrids = [];
 
   ChessManager() {
     _initializeGame();
@@ -156,12 +151,13 @@ class ChessManager {
   void _initializeGame() {
     _setupBoard();
     _distributePieces();
+    _signGrids.clear();
   }
 
   // 设置棋盘
   void _setupBoard() {
     displayMap.value = List.generate(boardSize * boardSize, (index) {
-      return ValueNotifier(Grid(
+      return GridNotifier(Grid(
         coordinate: index,
         type: _getTerrainType(index),
       ));
@@ -209,10 +205,8 @@ class ChessManager {
   void _placePieces(
       PlayerType owner, List<AnimalType> pieces, Iterable<int> positions) {
     for (int i = 0; i < pieces.length; i++) {
-      _setGrid(positions.toList()[i], (grid) {
-        return grid.setAnimal(Animal(
-            type: pieces[i], owner: owner, isSelected: false, isHidden: true));
-      });
+      displayMap.value[positions.toList()[i]].setAnimal(Animal(
+          type: pieces[i], owner: owner, isSelected: false, isHidden: true));
     }
   }
 
@@ -231,7 +225,7 @@ class ChessManager {
     }
 
     if (_isValidMoveTarget(index)) {
-      _movePiece(_selectedPos!, index);
+      _movePiece(_signGrids.first, index);
       return;
     }
 
@@ -242,37 +236,28 @@ class ChessManager {
 
   // 翻开棋子
   void _revealPiece(int index) {
-    _setGrid(index, (grid) {
-      return grid.reveal();
-    });
-
+    displayMap.value[index].reveal();
     _endTurn();
   }
 
   // 清除选择状态
   void _clearSelection() {
-    if (_selectedPos != null) {
-      _setGrid(_selectedPos!, (grid) {
-        return grid.clearSelection();
-      });
+    if (_signGrids.isNotEmpty) {
+      // 清除选中状态
+      displayMap.value[_signGrids.first].clearSelection();
 
-      _selectedPos = null;
-    }
-    _clearHighlights();
-  }
+      // 清除高亮状态
+      for (int i = 1; i < _signGrids.length; i++) {
+        displayMap.value[_signGrids[i]].clearHighlights();
+      }
 
-  // 清除所有高亮
-  void _clearHighlights() {
-    for (int i = 0; i < displayMap.length; i++) {
-      _setGrid(i, (grid) {
-        return grid.clearHighlights();
-      });
+      _signGrids.clear();
     }
   }
 
   // 检查是否可以移动到目标位置
   bool _isValidMoveTarget(int index) {
-    return _selectedPos != null && _getGrid(index).isHighlighted;
+    return _signGrids.isNotEmpty && _signGrids.skip(1).contains(index);
   }
 
   // 移动棋子
@@ -281,16 +266,15 @@ class ChessManager {
       if (_getGrid(to).haveAnimal) {
         _resolveCombat(_getGrid(from).animal!, _getGrid(to).animal!, to);
       } else {
-        _setGrid(to, (grid) {
-          return grid.setAnimal(_getGrid(from).animal!);
-        });
-        _selectedPos = to;
+        displayMap.value[to].setAnimal(_getGrid(from).animal!);
+
+        // 更新选中位置
+        if (_signGrids.isNotEmpty) {
+          _signGrids[0] = to;
+        }
       }
 
-      _setGrid(from, (grid) {
-        return grid.clearAnimal();
-      });
-
+      displayMap.value[from].clearAnimal();
       _endTurn();
     }
   }
@@ -302,15 +286,15 @@ class ChessManager {
 
     if (attackerWins && defenderWins) {
       // 同归于尽
-      _setGrid(toPos, (grid) {
-        return grid.clearAnimal();
-      });
+      displayMap.value[toPos].clearAnimal();
     } else if (attackerWins) {
       // 攻击者胜利
-      _setGrid(toPos, (grid) {
-        return grid.setAnimal(attacker);
-      });
-      _selectedPos = toPos;
+      displayMap.value[toPos].setAnimal(attacker);
+
+      // 更新选中位置
+      if (_signGrids.isNotEmpty) {
+        _signGrids[0] = toPos;
+      }
     }
     // 防御者胜利不需要操作
   }
@@ -323,10 +307,8 @@ class ChessManager {
   // 设置选中状态
   void _setSelection(int index) {
     _clearSelection();
-    _selectedPos = index;
-    _setGrid(index, (grid) {
-      return grid.selectedGrid();
-    });
+    _signGrids.add(index);
+    displayMap.value[index].setSelection();
     _calculatePossibleMoves(index);
   }
 
@@ -362,9 +344,8 @@ class ChessManager {
 
     if (!fromGrid.animal!.canMoveTo(fromGrid.type, toGrid.type)) return;
 
-    _setGrid(toPos, (grid) {
-      return grid.setHighlights();
-    });
+    displayMap.value[toPos].setHighlights();
+    _signGrids.add(toPos);
   }
 
   // 结束当前回合
@@ -398,10 +379,13 @@ class ChessManager {
     }
   }
 
-  bool _isSelected(int index) => _selectedPos == index;
+  bool _isSelected(int index) =>
+      _signGrids.isNotEmpty && _signGrids.first == index;
+
   Grid _getGrid(int index) => displayMap.value[index].value;
-  void _setGrid(int index, Grid Function(Grid grid) update) {
-    displayMap.value[index].value = update(_getGrid(index));
+
+  void leaveChess() {
+    _showResult(currentPlayer.value == PlayerType.blue);
   }
 
   void _showResult(bool isRedWin) {
@@ -435,7 +419,7 @@ class ChessManager {
 
   // 重新开始游戏
   void _restart() {
-    _selectedPos = null;
+    _signGrids.clear();
     currentPlayer.value = PlayerType.red;
     _initializeGame();
   }

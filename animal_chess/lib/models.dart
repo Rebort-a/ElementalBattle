@@ -14,9 +14,6 @@ class AlwaysNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
     _value = newValue;
     notifyListeners();
   }
-
-  @override
-  String toString() => '${describeIdentity(this)}($value)';
 }
 
 class ListNotifier<T> extends ValueNotifier<List<T>> {

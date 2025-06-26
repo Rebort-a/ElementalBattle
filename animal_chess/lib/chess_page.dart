@@ -11,7 +11,15 @@ class ChessPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('斗兽棋')),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              _manager.leaveChess();
+            },
+          ),
+          title: const Text('斗兽棋'),
+        ),
         body: Column(
           children: [
             _buildDialog(),
