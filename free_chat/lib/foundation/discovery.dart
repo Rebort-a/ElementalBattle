@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 class Discovery {
@@ -13,7 +12,7 @@ class Discovery {
 
   // 接收udp广播和组播消息，然后调用回调函数
   Future<void> startReceive(
-      void Function(String address, String message) callback) async {
+      void Function(String address, List<int> data) callback) async {
     _receiveSocket = await RawDatagramSocket.bind(
       InternetAddress.anyIPv4,
       multicastPort,
@@ -33,7 +32,7 @@ class Discovery {
       if (event == RawSocketEvent.read) {
         Datagram? dgram = _receiveSocket.receive();
         if (dgram != null) {
-          callback(dgram.address.address, utf8.decode(dgram.data));
+          callback(dgram.address.address, dgram.data);
         }
       }
     });
@@ -44,9 +43,9 @@ class Discovery {
   }
 
   // 定时发送消息到组播和广播地址
-  Future<void> startSending(String message, Duration interval) async {
+  Future<void> startSending(List<int> data, Duration interval) async {
     _sendTimer = Timer.periodic(interval, (timer) async {
-      sendMessage(message);
+      sendMessage(data);
     });
   }
 
@@ -56,7 +55,7 @@ class Discovery {
     }
   }
 
-  Future<void> sendMessage(String message) async {
+  Future<void> sendMessage(List<int> data) async {
     _sendSocket = await RawDatagramSocket.bind(
       InternetAddress.anyIPv4,
       multicastPort,
@@ -69,8 +68,7 @@ class Discovery {
     _sendSocket.readEventsEnabled = true;
 
     // 发送组播信息
-    _sendSocket.send(
-        utf8.encode(message), InternetAddress(multicastAddress), multicastPort);
+    _sendSocket.send(data, InternetAddress(multicastAddress), multicastPort);
 
     // 发送广播消息
     final interfaces = await NetworkInterface.list(
@@ -85,8 +83,8 @@ class Discovery {
         if (isIPv4(address.address)) {
           final broadcastAddress =
               _getBroadcastAddress(address.address, broadcastNetmask);
-          _sendSocket.send(utf8.encode(message),
-              InternetAddress(broadcastAddress), multicastPort);
+          _sendSocket.send(
+              data, InternetAddress(broadcastAddress), multicastPort);
         }
       }
     }

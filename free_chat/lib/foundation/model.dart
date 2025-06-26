@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 
 class AlwaysNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
@@ -16,9 +14,6 @@ class AlwaysNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
     _value = newValue;
     notifyListeners();
   }
-
-  @override
-  String toString() => '${describeIdentity(this)}($value)';
 }
 
 class ListNotifier<T> extends ValueNotifier<List<T>> {
@@ -42,6 +37,8 @@ class ListNotifier<T> extends ValueNotifier<List<T>> {
 
   @override
   List<T> get value => List.unmodifiable(super.value);
+
+  int get length => value.length;
 
   void add(T value) {
     super.value.add(value);
@@ -71,58 +68,5 @@ class ListNotifier<T> extends ValueNotifier<List<T>> {
     super.value.clear();
     super.notifyListeners();
     notifyAll();
-  }
-}
-
-class RoomInfo {
-  final String name;
-  final String address;
-  final int port;
-  RoomInfo({required this.name, required this.address, required this.port});
-}
-
-enum MessageType { notify, text, image, file }
-
-class ChatMessage {
-  String uuid;
-  String timestamp;
-  MessageType type;
-  String source;
-  String content;
-
-  ChatMessage({
-    required this.uuid,
-    required this.timestamp,
-    required this.type,
-    required this.source,
-    required this.content,
-  });
-
-  static ChatMessage fromJson(Map<String, dynamic> json) {
-    return ChatMessage(
-      uuid: json['uuid'],
-      timestamp: json['timestamp'],
-      type: MessageType.values[json['type']],
-      source: json['source'],
-      content: json['content'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'uuid': uuid,
-      'timestamp': timestamp,
-      'type': type.index,
-      'source': source,
-      'content': content,
-    };
-  }
-
-  static ChatMessage fromSocket(List<int> data) {
-    return fromJson(jsonDecode(utf8.decode(data)));
-  }
-
-  List<int> toSocketData() {
-    return utf8.encode(jsonEncode(toJson()));
   }
 }

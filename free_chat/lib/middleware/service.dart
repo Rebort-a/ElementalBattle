@@ -1,18 +1,19 @@
 import 'dart:io';
 
-import 'discovery.dart';
+import '../foundation/discovery.dart';
+import '../foundation/network.dart';
 
 class SocketService {
-  static const String split = '^&*￥';
   final _discovery = Discovery();
-  final Set<Socket> _clients = <Socket>{};
   late final ServerSocket _server;
 
-  int get port => _server.port;
+  final Set<Socket> _clients = <Socket>{};
 
   late final String roomName;
 
   SocketService(this.roomName);
+
+  int get port => _server.port;
 
   Future<void> start() async {
     // 使用随机端口创建服务器
@@ -20,8 +21,13 @@ class SocketService {
 
     // 监听客户端连接
     _server.listen((Socket clientSocket) {
+      int clientId = _clients.length + 1;
+
       // 客户端发起连接请求时，将其添加到列表
       _clients.add(clientSocket);
+
+      // 发送接受消息
+      _sendAcceptMessage(clientSocket, clientId);
 
       // 监听每个客户端
       clientSocket.listen(
@@ -40,9 +46,23 @@ class SocketService {
 
     // 开始定时广播房间信息
     _discovery.startSending(
-      '$roomName$split${_server.port}',
-      const Duration(seconds: 1),
+      NetworkMessage(
+              id: 0,
+              type: MessageType.service,
+              source: roomName,
+              content: '${_server.port}')
+          .toSocketData(),
+      const Duration(seconds: 1), // 1秒发送一次
     );
+  }
+
+  void _sendAcceptMessage(Socket client, int clientId) {
+    client.add(NetworkMessage(
+      id: clientId,
+      type: MessageType.accept,
+      source: roomName,
+      content: 'service',
+    ).toSocketData());
   }
 
   void _broadcastMessage(List<int> data) {
@@ -65,7 +85,9 @@ class SocketService {
     _discovery.stopSending();
 
     // 发送停止信息
-    _discovery.sendMessage('$roomName${split}stop');
+    _discovery.sendMessage(NetworkMessage(
+            id: 0, type: MessageType.service, source: roomName, content: 'stop')
+        .toSocketData());
 
     // 关闭所有客户端连接
     _closeAllClients();

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../foundation/models.dart';
-import '../middleware/home_manager.dart';
+import '../foundation/model.dart';
+import '../middleware/common.dart';
+import 'home_manager.dart';
 
 class HomePage extends StatelessWidget {
   final _homeManager = HomeManager();
@@ -18,7 +19,7 @@ class HomePage extends StatelessWidget {
 
   AppBar _buildAppBar() {
     return AppBar(
-      title: const Text('Chat Rooms'),
+      title: const Text('room list'),
       actions: [
         IconButton(
           icon: const Icon(Icons.add),
@@ -49,6 +50,7 @@ class HomePage extends StatelessWidget {
       builder: (context, value, child) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           value(context);
+          _homeManager.showPage.value = (BuildContext context) {};
         });
         return const SizedBox.shrink();
       },

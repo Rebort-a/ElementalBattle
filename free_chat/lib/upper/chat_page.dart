@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../foundation/models.dart';
-import '../middleware/chat_manager.dart';
+import '../foundation/network.dart';
+import '../middleware/common.dart';
+import 'chat_manager.dart';
 
 class ChatPage extends StatelessWidget {
   late final ChatManager _chatManager;
@@ -66,7 +67,7 @@ class ChatPage extends StatelessWidget {
   }
 
   Widget _buildMessageList() {
-    return ValueListenableBuilder<List<ChatMessage>>(
+    return ValueListenableBuilder<List<NetworkMessage>>(
       valueListenable: _chatManager.messageList,
       builder: (context, value, child) {
         return ListView.builder(
@@ -80,9 +81,9 @@ class ChatPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMessageCard(ChatMessage message) {
+  Widget _buildMessageCard(NetworkMessage message) {
     bool isCurrentUser =
-        (message.uuid == _chatManager.uuid) && (message.source == userName);
+        (message.id == _chatManager.identify) && (message.source == userName);
     bool isNotify = message.type == MessageType.notify;
 
     AlignmentGeometry alignment = isNotify
@@ -121,6 +122,8 @@ class ChatPage extends StatelessWidget {
         break;
       case MessageType.file:
         iconData = Icons.insert_drive_file;
+        break;
+      default:
         break;
     }
 
