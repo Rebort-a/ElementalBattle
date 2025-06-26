@@ -1,6 +1,4 @@
-// chess_page.dart
 import 'package:flutter/material.dart';
-
 import 'chess_manager.dart';
 import 'common.dart';
 
@@ -14,16 +12,13 @@ class ChessPage extends StatelessWidget {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              _manager.leaveChess();
-            },
+            onPressed: _manager.leaveChess,
           ),
           title: const Text('斗兽棋'),
         ),
         body: Column(
           children: [
             _buildDialog(),
-            // _buildRules(),
             _buildTurnIndicator(),
             Expanded(child: _buildGameBoard()),
           ],
@@ -33,35 +28,14 @@ class ChessPage extends StatelessWidget {
   Widget _buildDialog() {
     return ValueListenableBuilder(
       valueListenable: _manager.showPage,
-      builder: (context, show, child) {
+      builder: (context, showDialogFunc, _) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          show(context);
-          _manager.showPage.value = (BuildContext context) {};
+          showDialogFunc(context);
+          _manager.showPage.value = (_) {}; // Reset after showing
         });
         return const SizedBox.shrink();
       },
     );
-  }
-
-  Widget _buildRules() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildRuleItem(emojis.join(' > ')),
-          _buildRuleItem(
-              '${emojis[7]} ➡ ${emojis[0]}   ${emojis[0]} 🚫 ${emojis[7]}'),
-          _buildRuleItem(
-              '${emojis[0]} ${emojis[5]} ${emojis[7]} ➡ 🌊 || ${emojis[7]} ➡ 🌉'),
-          _buildRuleItem('${emojis[3]} ${emojis[6]} ${emojis[7]} ➡ 🌳'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRuleItem(String text) {
-    return Text(text, style: globalTheme.textTheme.bodyMedium);
   }
 
   Widget _buildTurnIndicator() => ValueListenableBuilder(
@@ -74,7 +48,8 @@ class ChessPage extends StatelessWidget {
           ),
           child: Text(
             '${player == PlayerType.red ? "红" : "蓝"}方回合',
-            style: globalTheme.textTheme.titleMedium,
+            style: globalTheme.textTheme.titleMedium
+                ?.copyWith(color: Colors.white),
           ),
         ),
       );
@@ -83,30 +58,17 @@ class ChessPage extends StatelessWidget {
         aspectRatio: 1,
         child: Center(
           child: Container(
-            decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.brown, width: 8)),
+            decoration: _boardDecoration(),
             child: ValueListenableBuilder(
               valueListenable: _manager.displayMap,
-              builder: (_, map, __) => LayoutBuilder(
+              builder: (_, gridNotifiers, __) => LayoutBuilder(
                 builder: (context, constraints) {
                   final size =
                       _calculateBoardSize(constraints, ChessManager.boardSize);
                   return SizedBox(
                     width: size,
                     height: size,
-                    child: GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: ChessManager.boardSize,
-                        childAspectRatio: 1,
-                      ),
-                      itemCount:
-                          (ChessManager.boardSize * ChessManager.boardSize),
-                      itemBuilder: (_, i) {
-                        return _buildGridCell(map[i]);
-                      },
-                    ),
+                    child: _buildBoardGrid(gridNotifiers),
                   );
                 },
               ),
@@ -115,75 +77,80 @@ class ChessPage extends StatelessWidget {
         ),
       );
 
-  double _calculateBoardSize(BoxConstraints constraints, int cellCount) {
-    final maxSize = constraints.maxWidth;
-    return (maxSize ~/ cellCount) * cellCount.toDouble();
+  BoxDecoration _boardDecoration() => BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.brown, width: 8),
+      );
+
+  Widget _buildBoardGrid(List<GridNotifier> gridNotifiers) {
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: ChessManager.boardSize,
+      ),
+      itemCount: gridNotifiers.length,
+      itemBuilder: (_, index) => _buildGridCell(gridNotifiers[index]),
+    );
   }
 
-  Widget _buildGridCell(ValueNotifier<Grid> gridNotifier) =>
-      ValueListenableBuilder(
-        valueListenable: gridNotifier,
+  Widget _buildGridCell(GridNotifier notifier) => ValueListenableBuilder(
+        valueListenable: notifier,
         builder: (_, grid, __) => GestureDetector(
           onTap: () => _manager.selectGrid(grid.coordinate),
           child: Container(
-            margin: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-                color: _backgroundColor(grid),
-                border: _gridBorder(grid),
-                borderRadius: BorderRadius.circular(5)),
-            child: grid.haveAnimal ? _buildAnimal(grid) : null,
+            margin: const EdgeInsets.all(2),
+            decoration: _gridDecoration(grid),
+            child: grid.hasAnimal ? _buildAnimal(grid.animal!) : null,
           ),
         ),
       );
 
-  Border _gridBorder(Grid grid) => Border.all(
-        color: _getBorderColor(grid),
+  BoxDecoration _gridDecoration(GridState grid) => BoxDecoration(
+        color: _gridColor(grid),
+        border: _gridBorder(grid),
+        borderRadius: BorderRadius.circular(4),
+      );
+
+  Color _gridColor(GridState grid) {
+    return switch (grid.type) {
+      GridType.river => Colors.blue[200]!,
+      GridType.tree => Colors.brown[400]!,
+      _ => Colors.grey[100]!,
+    };
+  }
+
+  Border _gridBorder(GridState grid) => Border.all(
+        color: _borderColor(grid),
         width: _borderWidth(grid),
       );
 
-  Widget _buildAnimal(Grid grid) => Container(
+  Color _borderColor(GridState grid) {
+    if (grid.hasAnimal && grid.animal!.isSelected) return Colors.yellow;
+    if (grid.isHighlighted) return Colors.green;
+    return Colors.grey;
+  }
+
+  double _borderWidth(GridState grid) {
+    if (grid.isHighlighted) return 4.0;
+    if (grid.hasAnimal && grid.animal!.isSelected) return 3.0;
+    return 1.0;
+  }
+
+  Widget _buildAnimal(Animal animal) => Container(
         margin: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-            color: _childColor(grid.animal!),
+            color: animal.isHidden ? Colors.blueGrey : animal.color,
             borderRadius: BorderRadius.circular(5)),
         child: Center(
-          child: Text(_childContent(grid.animal!),
+          child: Text(animal.isHidden ? "" : animal.emoji,
               style: const TextStyle(fontSize: 32)),
           // child: Text(_childContent(grid.animal!),
           //     style: globalTheme.textTheme.displayLarge),
         ),
       );
 
-  // 获取格子背景色
-  Color _backgroundColor(Grid grid) {
-    return switch (grid.type) {
-      GridType.river => Colors.blue[200]!,
-      GridType.tree => Colors.brown,
-      _ => Colors.white,
-    };
-  }
-
-  // 获取边框颜色
-  Color _getBorderColor(Grid grid) {
-    if (grid.haveAnimal && grid.animal!.isSelected) return Colors.yellow;
-    if (grid.isHighlighted) return Colors.green;
-    return Colors.grey;
-  }
-
-  // 获取边框宽度
-  double _borderWidth(Grid grid) {
-    if ((grid.haveAnimal && grid.animal!.isSelected) || grid.isHighlighted) {
-      return 3.0;
-    }
-    return 1.0;
-  }
-
-  // 获取边框颜色
-  Color _childColor(Animal animal) {
-    return animal.isHidden ? Colors.blueGrey : animal.color;
-  }
-
-  String _childContent(Animal animal) {
-    return animal.isHidden ? "" : animal.emoji;
+  double _calculateBoardSize(BoxConstraints constraints, int cellCount) {
+    final double maxSize = constraints.maxWidth;
+    return (maxSize ~/ cellCount) * cellCount.toDouble();
   }
 }

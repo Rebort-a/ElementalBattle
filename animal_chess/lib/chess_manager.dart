@@ -1,16 +1,28 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import 'models.dart';
 
 enum AnimalType { elephant, tiger, lion, leopard, wolf, dog, cat, mouse }
 
-const List<String> emojis = ["🐘", "🐅", "🦁", "🐆", "🐺", "🐕", "🐈️", "🐭"];
-
 enum PlayerType { red, blue }
 
 enum GridType { land, river, road, bridge, tree }
+
+const List<String> animalEmojis = [
+  "🐘",
+  "🐅",
+  "🦁",
+  "🐆",
+  "🐺",
+  "🐕",
+  "🐈️",
+  "🐭"
+];
+
+extension PlayerTypeExtension on PlayerType {
+  PlayerType get opponent =>
+      this == PlayerType.red ? PlayerType.blue : PlayerType.red;
+}
 
 class Animal {
   final AnimalType type;
@@ -21,102 +33,85 @@ class Animal {
   Animal({
     required this.type,
     required this.owner,
-    required this.isSelected,
-    required this.isHidden,
+    this.isSelected = false,
+    this.isHidden = true,
   });
 
   bool canEat(Animal? other) {
     if (other == null) return true;
     if (type == other.type) return true;
 
-    return switch (type) {
-      AnimalType.mouse when other.type == AnimalType.elephant => true,
-      AnimalType.elephant when other.type == AnimalType.mouse => false,
-      _ => type.index < other.type.index,
+    // 特殊规则：老鼠吃大象
+    if (type == AnimalType.mouse && other.type == AnimalType.elephant) {
+      return true;
+    } else if (type == AnimalType.elephant && other.type == AnimalType.mouse) {
+      return false;
+    }
+
+    return type.index < other.type.index;
+  }
+
+  bool _canEnterRiver() =>
+      [AnimalType.elephant, AnimalType.dog, AnimalType.mouse].contains(type);
+  bool _canUseBridge(GridType from) =>
+      (from != GridType.river || type == AnimalType.mouse) &&
+      type != AnimalType.elephant;
+  bool _canClimbTree() =>
+      [AnimalType.leopard, AnimalType.cat, AnimalType.mouse].contains(type);
+
+  bool canMoveTo(GridType from, GridType target) {
+    return switch (target) {
+      GridType.river => _canEnterRiver(),
+      GridType.bridge => _canUseBridge(from),
+      GridType.tree => _canClimbTree(),
+      _ => true,
     };
   }
 
-  bool canMoveTo(GridType from, GridType target) => switch (target) {
-        GridType.river => [
-            AnimalType.elephant,
-            AnimalType.dog,
-            AnimalType.mouse
-          ].contains(type),
-        GridType.bridge =>
-          (from != GridType.river || type == AnimalType.mouse) &&
-              type != AnimalType.elephant,
-        GridType.tree =>
-          [AnimalType.leopard, AnimalType.cat, AnimalType.mouse].contains(type),
-        _ => true,
-      };
-
-  String get emoji => emojis[type.index];
+  String get emoji => animalEmojis[type.index];
   Color get color => owner == PlayerType.red ? Colors.red : Colors.blue;
 }
 
-class Grid {
+class GridState {
   final int coordinate;
   final GridType type;
   bool isHighlighted;
   Animal? animal;
 
-  Grid({
+  GridState({
     required this.coordinate,
     required this.type,
     this.isHighlighted = false,
     this.animal,
   });
 
-  bool get haveAnimal => animal != null;
+  bool get hasAnimal => animal != null;
 }
 
-class GridNotifier extends ValueNotifier<Grid> {
+class GridNotifier extends ValueNotifier<GridState> {
   GridNotifier(super.value);
 
-  // 清除棋子
   void clearAnimal() {
     value.animal = null;
     notifyListeners();
   }
 
-  // 翻开棋子
-  void reveal() {
-    if (value.haveAnimal) {
-      value.animal!.isHidden = false;
-    }
+  void revealAnimal() {
+    value.animal?.isHidden = false;
     notifyListeners();
   }
 
-  // 选中棋子
-  void setSelection() {
-    if (value.haveAnimal) {
-      value.animal!.isSelected = true;
-    }
+  void toggleSelection(bool selected) {
+    value.animal?.isSelected = selected;
     notifyListeners();
   }
 
-  // 取消选中
-  void clearSelection() {
-    if (value.haveAnimal) {
-      value.animal!.isSelected = false;
-    }
+  void toggleHighlight(bool highlighted) {
+    value.isHighlighted = highlighted;
     notifyListeners();
   }
 
-  // 高亮格子
-  void setHighlights() {
-    value.isHighlighted = true;
-    notifyListeners();
-  }
-
-  // 取消高亮
-  void clearHighlights() {
-    value.isHighlighted = false;
-    notifyListeners();
-  }
-
-  // 设置棋子
-  void setAnimal(Animal animal) {
+  void placeAnimal(Animal animal) {
     value.animal = animal;
     notifyListeners();
   }
@@ -126,106 +121,99 @@ class ChessManager {
   static const int _boardLevel = 2;
   static const int boardSize = _boardLevel * 2 + 1;
   static const _directions = [
-    (-1, 0), // 上
-    (1, 0), // 下
-    (0, -1), // 左
-    (0, 1), // 右
+    (-1, 0), // up
+    (1, 0), // down
+    (0, -1), // left
+    (0, 1), // right
   ];
-
-  final Random _random = Random();
 
   final AlwaysNotifier<void Function(BuildContext)> showPage =
       AlwaysNotifier((_) {});
   final ValueNotifier<PlayerType> currentPlayer = ValueNotifier(PlayerType.red);
   final ListNotifier<GridNotifier> displayMap = ListNotifier([]);
-
-  // 选中和高亮状态管理列表
-  // 第一个元素是选中的格子索引，后续元素是高亮的格子索引
-  final List<int> _signGrids = [];
+  final List<int> _markedGrid = []; // 第一个元素是当前选中的格子，其余元素是可选的移动目标
 
   ChessManager() {
     _initializeGame();
   }
 
-  // 初始化游戏
   void _initializeGame() {
     _setupBoard();
-    _distributePieces();
-    _signGrids.clear();
+    _placePieces();
+    _resetGameState();
   }
 
-  // 设置棋盘
+  void _resetGameState() {
+    _markedGrid.clear();
+    currentPlayer.value = PlayerType.red;
+  }
+
   void _setupBoard() {
     displayMap.value = List.generate(boardSize * boardSize, (index) {
-      return GridNotifier(Grid(
+      return GridNotifier(GridState(
         coordinate: index,
-        type: _getTerrainType(index),
+        type: _getGridType(index),
       ));
     });
   }
 
-  // 确定地形类型
-  GridType _getTerrainType(int index) {
+  GridType _getGridType(int index) {
     final row = index ~/ boardSize;
     final col = index % boardSize;
 
+    // 中央列特殊处理
     if (col == _boardLevel) {
       if (row == _boardLevel) return GridType.bridge;
-      if (index == _boardLevel || index == _boardLevel * (2 * boardSize + 1)) {
-        return GridType.tree;
-      }
+      if (row == 0 || row == boardSize - 1) return GridType.tree;
       return GridType.road;
     }
+
+    // 中央行是河流
     return row == _boardLevel ? GridType.river : GridType.land;
   }
 
-  // 随机分配棋子
-  void _distributePieces() {
+  void _placePieces() {
+    final landPositions = _getLandPositions()..shuffle();
     const pieces = AnimalType.values;
-    final positions = _getLandPositions()..shuffle(_random);
 
-    _placePieces(PlayerType.red, pieces, positions.take(pieces.length));
-    _placePieces(PlayerType.blue, pieces,
-        positions.skip(pieces.length).take(pieces.length));
-  }
-
-  // 获取所有陆地位置
-  List<int> _getLandPositions() {
-    final positions = <int>[];
-    for (int i = 0; i < displayMap.length; i++) {
-      if (_getGrid(i).type == GridType.land) {
-        positions.add(i);
+    void placePlayerPieces(PlayerType player) {
+      for (int i = 0; i < pieces.length; i++) {
+        final index = landPositions.removeLast();
+        displayMap.value[index].placeAnimal(Animal(
+          type: pieces[i],
+          owner: player,
+        ));
       }
     }
 
-    return positions;
+    placePlayerPieces(PlayerType.red);
+    placePlayerPieces(PlayerType.blue);
   }
 
-  // 放置棋子
-  void _placePieces(
-      PlayerType owner, List<AnimalType> pieces, Iterable<int> positions) {
-    for (int i = 0; i < pieces.length; i++) {
-      displayMap.value[positions.toList()[i]].setAnimal(Animal(
-          type: pieces[i], owner: owner, isSelected: false, isHidden: true));
-    }
+  List<int> _getLandPositions() {
+    return displayMap.value
+        .asMap()
+        .entries
+        .where((entry) => entry.value.value.type == GridType.land)
+        .map((entry) => entry.key)
+        .toList();
   }
 
-  // 处理格子点击
   void selectGrid(int index) {
-    final grid = _getGrid(index);
+    final grid = displayMap.value[index].value;
 
-    if (grid.haveAnimal && grid.animal!.isHidden) {
+    if (grid.hasAnimal && grid.animal!.isHidden) {
       _revealPiece(index);
       return;
     }
 
     if (_isSelected(index)) {
-      _clearSelection();
+      _clearSelectionAndHighlight();
       return;
     }
 
     if (_isValidMoveTarget(index)) {
-      _movePiece(_signGrids.first, index);
+      _movePiece(_markedGrid.first, index);
       return;
     }
 
@@ -234,81 +222,64 @@ class ChessManager {
     }
   }
 
-  // 翻开棋子
   void _revealPiece(int index) {
-    displayMap.value[index].reveal();
+    displayMap.value[index].revealAnimal();
     _endTurn();
   }
 
-  // 清除选择状态
-  void _clearSelection() {
-    if (_signGrids.isNotEmpty) {
-      // 清除选中状态
-      displayMap.value[_signGrids.first].clearSelection();
+  void _clearSelectionAndHighlight() {
+    if (_markedGrid.isEmpty) return;
 
-      // 清除高亮状态
-      for (int i = 1; i < _signGrids.length; i++) {
-        displayMap.value[_signGrids[i]].clearHighlights();
-      }
+    displayMap.value[_markedGrid.first].toggleSelection(false);
 
-      _signGrids.clear();
+    for (final index in _markedGrid.skip(1)) {
+      displayMap.value[index].toggleHighlight(false);
     }
+
+    _markedGrid.clear();
   }
 
-  // 检查是否可以移动到目标位置
   bool _isValidMoveTarget(int index) {
-    return _signGrids.isNotEmpty && _signGrids.skip(1).contains(index);
+    return _markedGrid.length > 1 && _markedGrid.skip(1).contains(index);
   }
 
-  // 移动棋子
   void _movePiece(int from, int to) {
-    if (_getGrid(from).haveAnimal) {
-      if (_getGrid(to).haveAnimal) {
-        _resolveCombat(_getGrid(from).animal!, _getGrid(to).animal!, to);
-      } else {
-        displayMap.value[to].setAnimal(_getGrid(from).animal!);
+    final fromGrid = displayMap.value[from].value;
+    if (!fromGrid.hasAnimal) return;
 
-        // 更新选中位置
-        if (_signGrids.isNotEmpty) {
-          _signGrids[0] = to;
-        }
-      }
+    final movingAnimal = fromGrid.animal!;
 
-      displayMap.value[from].clearAnimal();
-      _endTurn();
+    if (displayMap.value[to].value.hasAnimal) {
+      _resolveCombat(movingAnimal, displayMap.value[to].value.animal!, to);
+    } else {
+      displayMap.value[to].placeAnimal(movingAnimal);
+      _markedGrid.first = to;
     }
+
+    displayMap.value[from].clearAnimal();
+    _endTurn();
   }
 
-  // 解决战斗
-  void _resolveCombat(Animal attacker, Animal defender, int toPos) {
+  void _resolveCombat(Animal attacker, Animal defender, int targetPos) {
     final attackerWins = attacker.canEat(defender);
     final defenderWins = defender.canEat(attacker);
 
     if (attackerWins && defenderWins) {
-      // 同归于尽
-      displayMap.value[toPos].clearAnimal();
+      displayMap.value[targetPos].clearAnimal();
     } else if (attackerWins) {
-      // 攻击者胜利
-      displayMap.value[toPos].setAnimal(attacker);
-
-      // 更新选中位置
-      if (_signGrids.isNotEmpty) {
-        _signGrids[0] = toPos;
-      }
+      displayMap.value[targetPos].placeAnimal(attacker);
+      _markedGrid.first = targetPos;
     }
-    // 防御者胜利不需要操作
   }
 
-  // 检查是否可以选中该格子
-  bool _canSelect(Grid grid) {
-    return grid.haveAnimal && grid.animal!.owner == currentPlayer.value;
+  bool _canSelect(GridState grid) {
+    return grid.hasAnimal && grid.animal!.owner == currentPlayer.value;
   }
 
-  // 设置选中状态
   void _setSelection(int index) {
-    _clearSelection();
-    _signGrids.add(index);
-    displayMap.value[index].setSelection();
+    _clearSelectionAndHighlight();
+    _markedGrid.add(index);
+    displayMap.value[index].toggleSelection(true);
     _calculatePossibleMoves(index);
   }
 
@@ -319,70 +290,61 @@ class ChessManager {
     for (final (dr, dc) in _directions) {
       final newRow = row + dr;
       final newCol = col + dc;
+      final newIndex = newRow * boardSize + newCol;
 
       if (newRow >= 0 &&
           newRow < boardSize &&
           newCol >= 0 &&
           newCol < boardSize) {
-        _evaluateMove(index, newRow * boardSize + newCol);
+        if (_isValidMove(index, newIndex)) {
+          displayMap.value[newIndex].toggleHighlight(true);
+          _markedGrid.add(newIndex);
+        }
       }
     }
   }
 
-  // 评估移动可能性
-  void _evaluateMove(int index, int toPos) {
-    final Grid fromGrid = _getGrid(index);
-    final Grid toGrid = _getGrid(toPos);
+  bool _isValidMove(int fromIndex, int toIndex) {
+    final fromGrid = displayMap.value[fromIndex].value;
+    final toGrid = displayMap.value[toIndex].value;
 
-    if (toGrid.haveAnimal && toGrid.animal!.isHidden) {
-      return;
+    if (!fromGrid.hasAnimal) return false;
+    // 不能移动到隐藏的棋子
+    if (toGrid.animal?.isHidden == true) return false;
+    // 不能吃己方棋子
+    if (toGrid.hasAnimal && toGrid.animal!.owner == fromGrid.animal!.owner) {
+      return false;
     }
 
-    if (toGrid.haveAnimal && toGrid.animal!.owner == fromGrid.animal!.owner) {
-      return;
-    }
-
-    if (!fromGrid.animal!.canMoveTo(fromGrid.type, toGrid.type)) return;
-
-    displayMap.value[toPos].setHighlights();
-    _signGrids.add(toPos);
+    // 检查移动规则
+    return fromGrid.animal!.canMoveTo(fromGrid.type, toGrid.type);
   }
 
-  // 结束当前回合
   void _endTurn() {
-    _clearSelection();
-    _switchPlayer();
+    _clearSelectionAndHighlight();
+    currentPlayer.value = currentPlayer.value.opponent;
     _checkGameEnd();
   }
 
-  void _switchPlayer() {
-    currentPlayer.value = (currentPlayer.value == PlayerType.red
-        ? PlayerType.blue
-        : PlayerType.red);
-  }
-
-  // 检查游戏是否结束
   void _checkGameEnd() {
     int redCount = 0, blueCount = 0;
 
-    for (int i = 0; i < displayMap.length; i++) {
-      final piece = _getGrid(i).animal;
-      if (piece != null) {
-        piece.owner == PlayerType.red ? redCount++ : blueCount++;
+    for (final gridNotifier in displayMap.value) {
+      final animal = gridNotifier.value.animal;
+      if (animal != null) {
+        animal.owner == PlayerType.red ? redCount++ : blueCount++;
       }
     }
 
     if (redCount == 0) {
-      _showResult(false);
+      _showResult(false); // blue wins
     } else if (blueCount == 0) {
-      _showResult(true);
+      _showResult(true); // red wins
     }
   }
 
   bool _isSelected(int index) =>
-      _signGrids.isNotEmpty && _signGrids.first == index;
-
-  Grid _getGrid(int index) => displayMap.value[index].value;
+      _markedGrid.isNotEmpty && _markedGrid.first == index;
 
   void leaveChess() {
     _showResult(currentPlayer.value == PlayerType.blue);
@@ -405,10 +367,8 @@ class ChessManager {
                 },
               ),
               TextButton(
-                child: const Text('退出'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+                child: const Text('关闭'),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           );
@@ -417,10 +377,7 @@ class ChessManager {
     };
   }
 
-  // 重新开始游戏
   void _restart() {
-    _signGrids.clear();
-    currentPlayer.value = PlayerType.red;
     _initializeGame();
   }
 }
