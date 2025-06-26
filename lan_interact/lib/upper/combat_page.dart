@@ -205,7 +205,7 @@ class CombatPage extends StatelessWidget {
           ),
           Expanded(
             child: TextField(
-              controller: gameManager.inputController,
+              controller: gameManager.textController,
               decoration: const InputDecoration.collapsed(
                 hintText: 'Type a message',
               ),

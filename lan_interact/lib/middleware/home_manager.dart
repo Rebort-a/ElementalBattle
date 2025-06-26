@@ -6,7 +6,6 @@ import '../foundation/models.dart';
 import '../foundation/service.dart';
 
 import 'common.dart';
-import 'elemental.dart';
 
 import '../upper/prepare_page.dart';
 
@@ -28,8 +27,6 @@ class HomeManager {
 
   final ListNotifier<CreatedRoomInfo> createdRooms = ListNotifier([]);
   final ListNotifier<RoomInfo> othersRooms = ListNotifier([]);
-
-  final Map<RoomInfo, Elemental> roomMembers = {};
 
   HomeManager() {
     _discovery.startReceive(_handleReceivedMessage);

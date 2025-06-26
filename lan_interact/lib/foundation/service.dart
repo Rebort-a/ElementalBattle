@@ -22,7 +22,7 @@ class SocketService {
 
     // 监听客户端连接
     _server.listen((Socket clientSocket) {
-      int clientId = record++;
+      int clientId = record + 1;
 
       // 客户端发起连接请求时，将其添加到列表
       _clients[clientId] = clientSocket;

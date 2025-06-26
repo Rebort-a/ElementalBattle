@@ -91,7 +91,7 @@ class GameManager extends ChangeNotifier {
   final ValueNotifier<String> infoList = ValueNotifier("");
   final ListNotifier<NetworkMessage> messageList = ListNotifier([]);
 
-  final TextEditingController inputController = TextEditingController();
+  final TextEditingController textController = TextEditingController();
   final ScrollController scrollController = ScrollController();
 
   late Socket _socket;
@@ -569,7 +569,7 @@ class GameManager extends ChangeNotifier {
     messageList.dispose();
 
     // 销毁控制器
-    inputController.dispose();
+    textController.dispose();
     scrollController.dispose();
 
     super.dispose();
@@ -588,14 +588,14 @@ class GameManager extends ChangeNotifier {
   }
 
   void sendEnter() {
-    final text = inputController.text;
+    final text = textController.text;
     if (text.isEmpty) {
       return;
     }
 
     _sendNetworkMessage(MessageType.text, text);
 
-    inputController.clear();
+    textController.clear();
   }
 
   void _scrollToBottom() {
