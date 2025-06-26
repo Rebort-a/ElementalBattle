@@ -143,11 +143,6 @@ class ChessManager {
     _resetGameState();
   }
 
-  void _resetGameState() {
-    _markedGrid.clear();
-    currentPlayer.value = PlayerType.red;
-  }
-
   void _setupBoard() {
     displayMap.value = List.generate(boardSize * boardSize, (index) {
       return GridNotifier(GridState(
@@ -199,24 +194,33 @@ class ChessManager {
         .toList();
   }
 
+  void _resetGameState() {
+    _markedGrid.clear();
+    currentPlayer.value = PlayerType.red;
+  }
+
   void selectGrid(int index) {
     final grid = displayMap.value[index].value;
 
+    // 如果没有翻面，那么翻面
     if (grid.hasAnimal && grid.animal!.isHidden) {
       _revealPiece(index);
       return;
     }
 
+    // 如果是选中棋子，那么取消棋子和周边的标记
     if (_isSelected(index)) {
       _clearSelectionAndHighlight();
       return;
     }
 
+    // 如果是可选的移动目标，那么移动棋子
     if (_isValidMoveTarget(index)) {
       _movePiece(_markedGrid.first, index);
       return;
     }
 
+    // 如果上面都不是，那么判断是否可以选中棋子
     if (_canSelect(grid)) {
       _setSelection(index);
     }

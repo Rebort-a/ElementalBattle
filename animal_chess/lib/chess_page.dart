@@ -15,6 +15,7 @@ class ChessPage extends StatelessWidget {
             onPressed: _manager.leaveChess,
           ),
           title: const Text('斗兽棋'),
+          centerTitle: true,
         ),
         body: Column(
           children: [
