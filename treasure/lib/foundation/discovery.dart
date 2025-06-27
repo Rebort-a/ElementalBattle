@@ -93,13 +93,13 @@ class Discovery {
   }
 
   // 通过哈希值快速判断是否为IPv4地址，来源为getX
-  bool isIPv4(String address) {
+  static bool isIPv4(String address) {
     return RegExp(r'^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$')
         .hasMatch(address);
   }
 
   // 使用ip地址和子网掩码组合获取广播地址
-  String _getBroadcastAddress(String localAddress, String netmask) {
+  static String _getBroadcastAddress(String localAddress, String netmask) {
     final localParts = localAddress.split('.');
     final netmaskParts = netmask.split('.');
 

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'middleware/front_end.dart';
-import 'upper/animal_chess/chess_page.dart';
+import 'upper/animal_chess_local/chess_page.dart';
 import 'upper/chat_room/chat_page.dart';
+import 'upper/elemental_battle/upper/combat_page.dart';
 import 'upper/home_page.dart';
 
 void main() {
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Navigation Demo',
+      title: 'Treasure',
       theme: globalTheme,
       initialRoute: '/',
       routes: {
@@ -34,14 +35,15 @@ class MyApp extends StatelessWidget {
           );
         },
 
-        // '/prepare': (context) {
-        //   // 从路由参数中获取数据
-        //   final args = ModalRoute.of(context)?.settings.arguments as Map;
-        //   return PreparePage(
-        //     roomInfo: args['roomInfo'],
-        //     userName: args['userName'],
-        //   );
-        // },
+        '/elemental_battle': (context) {
+          // 从路由参数中获取数据
+          final args = ModalRoute.of(context)?.settings.arguments as Map;
+          return CombatPage(
+            roomInfo: args['roomInfo'],
+            userName: args['userName'],
+          );
+        },
+
         // '/status': (context) {
         //   // 从路由参数中获取数据
         //   final args = ModalRoute.of(context)?.settings.arguments as Map;
@@ -55,7 +57,7 @@ class MyApp extends StatelessWidget {
         // '/combat': (context) {
         //   // 从路由参数中获取数据
         //   final args = ModalRoute.of(context)?.settings.arguments as Map;
-        //   return CombatPage(gameManager: args['gameManager']);
+        //   return CombatPage(_combatManager: args['_combatManager']);
         // },
         '/test': (context) => const TestPage(),
       },

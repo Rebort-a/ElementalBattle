@@ -36,6 +36,7 @@ class HomePage extends StatelessWidget {
         _buildDialog(),
         _buildLocalGameTitle('Local games'),
         _buildLocalGameList('animal chess', _homeManager.navigateToChessPage),
+        _buildLocalGameList('elemental battle', _homeManager.navigateToMapPage),
         _buildSectionTitle('The rooms you created', _homeManager.createdRooms,
             _homeManager.stopAllCreatedRooms),
         _buildRoomList(_homeManager.createdRooms,

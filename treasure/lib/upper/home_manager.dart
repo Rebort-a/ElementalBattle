@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:treasure/upper/elemental_battle/upper/combat_page.dart';
 
 import '../foundation/discovery.dart';
 import '../foundation/model.dart';
@@ -7,6 +8,7 @@ import '../foundation/network.dart';
 import '../middleware/back_end.dart';
 import '../middleware/service.dart';
 import '../middleware/front_end.dart';
+import 'elemental_battle_local/upper/map_page.dart';
 
 class CreatedRoomInfo extends RoomInfo {
   final SocketService server;
@@ -114,20 +116,45 @@ class HomeManager {
   }
 
   void _joinRoom(RoomInfo room, String userName, BuildContext context) {
-    if (userName.isNotEmpty) {
-      Navigator.of(context).pushNamed(
-        '/chat_room',
-        arguments: {
-          'roomInfo': room,
-          'userName': userName,
-        },
-      );
+    switch (room.type) {
+      case RoomType.onlyChat:
+        Navigator.of(context).pushNamed(
+          '/chat_room',
+          arguments: {
+            'userName': userName,
+            'roomInfo': room,
+          },
+        );
+        break;
+      case RoomType.animalChess:
+        break;
+      case RoomType.elementalBattle:
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => CombatPage(
+                  userName: userName,
+                  roomInfo: room,
+                )));
+
+        // Navigator.of(context).pushNamed(
+        //   '/elemental_battle',
+        //   arguments: {
+        //     'roomInfo': room,
+        //     'userName': userName,
+        //   },
+        // );
+        break;
     }
   }
 
   void navigateToChessPage() {
     showPage.value = (BuildContext context) {
       Navigator.of(context).pushNamed('/animal_chess');
+    };
+  }
+
+  void navigateToMapPage() {
+    showPage.value = (BuildContext context) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => MapPage()));
     };
   }
 }
