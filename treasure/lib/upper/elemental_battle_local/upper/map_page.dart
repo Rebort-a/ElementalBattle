@@ -32,7 +32,6 @@ class MapPage extends StatelessWidget {
           builder: (context, value, _) => Text(value > 0 ? '地下$value层' : '主城'),
         ),
         centerTitle: true,
-        automaticallyImplyLeading: false,
       );
 
   // 竖屏布局
