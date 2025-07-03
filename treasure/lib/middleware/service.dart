@@ -1,15 +1,15 @@
 import 'dart:io';
-
 import 'package:treasure/middleware/back_end.dart';
-
 import '../foundation/discovery.dart';
 import '../foundation/network.dart';
 
 class SocketService {
-  final _discovery = Discovery();
-  late final ServerSocket _server;
+  static const _discoveryInterval = Duration(seconds: 1);
 
-  final Set<Socket> _clients = <Socket>{};
+  final Discovery _discovery = Discovery();
+  late final ServerSocket _server;
+  final Set<Socket> _clients = {};
+  int record = 0;
 
   final String roomName;
   final RoomType roomType;
@@ -19,50 +19,45 @@ class SocketService {
   int get port => _server.port;
 
   Future<void> start() async {
-    // 使用随机端口创建服务器
-    _server = await ServerSocket.bind(InternetAddress.anyIPv4, 0);
+    try {
+      _server = await ServerSocket.bind(InternetAddress.anyIPv4, 0);
+      _server.listen(_handleClientConnect);
 
-    // 监听客户端连接
-    _server.listen((Socket clientSocket) {
-      int clientId = _clients.length + 1;
+      _startDiscoveryBroadcast();
+    } on SocketException catch (e) {
+      throw Exception("Failed to start server: ${e.message}");
+    }
+  }
 
-      // 客户端发起连接请求时，将其添加到列表
-      _clients.add(clientSocket);
+  void stop() {
+    _discovery.stopSending();
+    _broadcastRoomOperation(RoomOperation.stop);
+    _closeResources();
+  }
 
-      // 发送接受消息
-      _sendAcceptMessage(clientSocket, clientId);
+  void _handleClientConnect(Socket client) {
+    record = record + 1;
+    _clients.add(client);
+    _sendAcceptMessage(client, record);
 
-      // 监听每个客户端
-      clientSocket.listen(
-        (data) {
-          // 如果有消息，转发消息给所有已连接的客户端
-          _broadcastMessage(data);
-        },
-        onDone: () {
-          // 当客户端断开时，从列表中移除
-          _clients.remove(clientSocket);
-          clientSocket.destroy();
-        },
-        cancelOnError: true,
-      );
-    });
-
-    // 开始定时广播房间信息
-    _discovery.startSending(
-      NetworkMessage(
-              id: 0,
-              type: MessageType.service,
-              source: roomName,
-              content:
-                  RoomInfo.configToString(port, roomType, RoomOperation.start))
-          .toSocketData(),
-      const Duration(seconds: 1), // 1秒发送一次
+    client.listen(
+      _broadcastMessage,
+      onDone: () => _removeClient(client),
+      onError: (_) => _removeClient(client),
+      cancelOnError: true,
     );
   }
 
-  void _sendAcceptMessage(Socket client, int clientId) {
+  void _startDiscoveryBroadcast() {
+    _discovery.startSending(
+      _createRoomInfoMessage(RoomOperation.start).toSocketData(),
+      _discoveryInterval,
+    );
+  }
+
+  void _sendAcceptMessage(Socket client, int id) {
     client.add(NetworkMessage(
-      id: clientId,
+      id: id,
       type: MessageType.accept,
       source: roomName,
       content: 'service',
@@ -70,37 +65,39 @@ class SocketService {
   }
 
   void _broadcastMessage(List<int> data) {
-    // 遍历所有已连接的客户端
-    for (var client in _clients) {
-      // 发送消息给客户端
-      client.add(data);
+    for (final client in _clients.toList()) {
+      // 避免并发修改
+      try {
+        client.add(data);
+      } catch (e) {
+        _removeClient(client);
+      }
     }
   }
 
-  void _closeAllClients() {
-    for (var client in _clients) {
-      client.close();
+  void _removeClient(Socket client) {
+    _clients.remove(client);
+    client.destroy();
+  }
+
+  void _broadcastRoomOperation(RoomOperation operation) {
+    _discovery.sendMessage(_createRoomInfoMessage(operation).toSocketData());
+  }
+
+  NetworkMessage _createRoomInfoMessage(RoomOperation operation) {
+    return NetworkMessage(
+      id: _clients.hashCode,
+      type: MessageType.service,
+      source: roomName,
+      content: RoomInfo.configToString(port, roomType, operation),
+    );
+  }
+
+  void _closeResources() {
+    for (final client in _clients) {
+      client.destroy();
     }
     _clients.clear();
-  }
-
-  void stop() {
-    // 停止定时发送
-    _discovery.stopSending();
-
-    // 发送停止信息
-    _discovery.sendMessage(NetworkMessage(
-            id: 0,
-            type: MessageType.service,
-            source: roomName,
-            content:
-                RoomInfo.configToString(port, roomType, RoomOperation.stop))
-        .toSocketData());
-
-    // 关闭所有客户端连接
-    _closeAllClients();
-
-    // 关闭服务器
     _server.close();
   }
 }

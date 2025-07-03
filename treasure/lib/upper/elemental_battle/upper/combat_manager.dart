@@ -188,7 +188,8 @@ class CombatManager {
 
   void _handleRoleConfig(NetworkMessage message) {
     final jsonData = jsonDecode(message.content);
-    final isPlayer = message.id == networkEngine.identify;
+    final isPlayer = (message.id == networkEngine.identify) &&
+        (message.source == networkEngine.userName);
 
     if (gameStep.value == GameStep.frontConfig && isPlayer) {
       player = Elemental.fromJson(jsonData);

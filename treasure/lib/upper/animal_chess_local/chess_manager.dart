@@ -364,6 +364,13 @@ class ChessManager {
             content: Text("${isRedWin ? "红" : "蓝"}方获胜！"),
             actions: <Widget>[
               TextButton(
+                child: const Text('退出'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  navigateToBack();
+                },
+              ),
+              TextButton(
                 child: const Text('重开'),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -371,10 +378,9 @@ class ChessManager {
                 },
               ),
               TextButton(
-                child: const Text('关闭'),
+                child: const Text('取消'),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  navigateToBack();
                 },
               ),
             ],
